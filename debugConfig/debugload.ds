@@ -1,0 +1,64 @@
+############################################################
+#
+# Copyright University of Leeds 2017
+# All Rights Reserved
+# File: debugload.ds
+#
+############################################################
+
+#
+# Stop processor if running
+#
+stop
+wait 5s
+
+#
+# Perform a reset of the system to get it back to some known place
+#
+reset system
+
+# Processor should now be stopped at 0x00000000
+
+#
+# Enable semihosting to allow access to all registers in the debugger
+#
+set semihosting enabled 1
+
+#
+# We need to add a hw breakpoint at a specific place. This is actually
+# within the preloader just before it launches the bare metal image in
+# DDR. We want to stop at this point so that the system has already been
+# initialsed by the preloader (including the DDR), after which we
+# will be able to access the both the DDR and FPGA memory with the
+# debugger to force upload our bare metal image.
+#
+
+#
+# Add the symbol file for the preloader so that DS-5 can find a specific
+# function
+#
+add-symbol-file "$sdir/u-boot-spl"
+
+#
+# Add a breakpoint at the exit point of the preloader
+#
+thbreak jump_to_image_no_args
+
+#
+# Tell target to continue executing preloader. Remember it's currently
+# stopped at 0x00000000 and needs to run through the preloader to reach
+# our breakpoint
+#
+cont
+
+#
+# Now wait for breakpoint to be hit. It won't take 10 seconds, but that
+# will be our timeout should something go wrong.
+#
+wait 10s
+
+#
+# We are now stopped just before the bare metal app is launched. Let's
+# now hand over to the debugger to upload your bare metal app.
+#
+

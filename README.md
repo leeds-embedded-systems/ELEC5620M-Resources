@@ -1,4 +1,4 @@
-# Resources for DE1-SoC
+# Resources for ELEC5620
 
 University-provided drivers, scatter files and debug configurations to aid programming the DE1-SoC HPS. 
 

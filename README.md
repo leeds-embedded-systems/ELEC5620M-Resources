@@ -1,6 +1,6 @@
 # Resources for ELEC5620
 
-University-provided drivers, scatter files and debug configurations to aid programming the DE1-SoC HPS. 
+University-provided drivers, scatter files and debug configurations to aid programming the DE1-SoC HPS for ELEC5620M Embedded Systems Design for System-on-Chip at the University of Leeds.
 
 ## Drivers
 

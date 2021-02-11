@@ -30,6 +30,8 @@
 * 
 ******************************************************************************/
 
+#ifdef __GNUC__
+
 /*
  * $Id: //acds/rel/15.0/embedded/ip/hps/altera_hps/hwlib/src/hwmgr/alt_sdmmc.c#1 $
  */
@@ -3058,3 +3060,5 @@ __attribute__((weak)) ALT_STATUS_CODE alt_cache_system_purge(void * address, siz
 {
     return ALT_E_SUCCESS;
 }
+
+#endif //__GNUC__

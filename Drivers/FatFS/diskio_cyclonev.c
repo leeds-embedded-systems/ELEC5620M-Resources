@@ -4,6 +4,8 @@
 /*                                                                       */
 /*-----------------------------------------------------------------------*/
 
+#ifdef __GNUC__
+
 // FatFs lower layer API Declarations
 #include "diskio.h"
 // Minimal Altera HWLib for SD-Card (hwlib/)
@@ -318,3 +320,5 @@ DRESULT disk_ioctl (
 #ifndef DEBUG
 #pragma pop
 #endif
+
+#endif //__GNUC__

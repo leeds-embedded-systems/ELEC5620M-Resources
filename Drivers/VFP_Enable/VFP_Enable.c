@@ -21,8 +21,11 @@
  * Date       | Changes
  * -----------+----------------------------------
  * 05/12/2018 | Creation of driver
+ * 11/02/2021 | Add __TARGET_FPU_VFP guard to prevent compilation if no VFP enabled.
  *
  */
+
+#if __TARGET_FPU_VFP
 
 __asm void _platform_pre_stackheap_init(void) {
     //Inline assembly code for enabling FPU
@@ -37,3 +40,4 @@ __asm void _platform_pre_stackheap_init(void) {
     BX   LR                ; // Return from function
 }
 
+#endif

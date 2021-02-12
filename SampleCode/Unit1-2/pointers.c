@@ -19,7 +19,7 @@ aPointer = &aVariable; //Get the address of aVariable (&), and store it in aPoin
 // Notice how aVariable is 12, while aPointer has a value of 0x010100 (&aVariable)
 
 //Lets try accessing the pointer
-return aPointer;  //Return the value of the pointer – this will return 0x010100
+return aPointer;  //Return the value of the pointer - this will return 0x010100
 return *aPointer; //Dereference (*) to access value stored at the address - return 12
 
 
@@ -38,8 +38,8 @@ char anArray[8] = {0,1,1,2,3,5,8,13};
 //    0x030807 | anArray[7] | 13
 // Notice the values of anArray are stored in sequential addresses.
 // Lets try accessing the array 
-return anArray[1]; //Return the value of element 1 – this will return a value of 1
-return anArray[6]; //Return the value of element 6 – this will return a value of 8
+return anArray[1]; //Return the value of element 1 - this will return a value of 1
+return anArray[6]; //Return the value of element 6 - this will return a value of 8
 
 
 // Create a pointer, which is equal to anArray (which is itself a pointer).
@@ -56,10 +56,11 @@ char* aPointer = anArray; // This does _not_ copy the array, it copies the addre
 //    0x030806 | ?          | 8
 //    0x030807 | ?          | 13
 //    0x030808 | aPointer   | 0x030800
-// Notice the values of anArray are stored in sequential addresses, but that anArray // is actually just representing the address 0x030800.
+// Notice the values of anArray are stored in sequential addresses, but that anArray 
+// is actually just representing the address 0x030800.
 // Lets try accessing the array 
-return *(aPointer+1); //Add 1 to aPointer, then dereference – will return value of 1
-return *(aPointer+6); //Add 6 to aPointer, then dereference – will return value of 8
+return *(aPointer+1); //Add 1 to aPointer, then dereference - will return value of 1
+return *(aPointer+6); //Add 6 to aPointer, then dereference - will return value of 8
 
 
 // Declare an array of 2 values, and set the elements to an initial value.
@@ -80,8 +81,8 @@ int* aPointer = anArray;
 // Notice the values of anArray take 4 bytes each. The ARM processor we use is
 // Little-Endian, so lowest byte is in lowest address.
 // Lets try accessing the array 
-return anArray[0]; //Return value of element 0 – this will return a value of 123456
-return anArray[1]; //Return value of element 1 – this will return a value of 543210
+return anArray[0]; //Return value of element 0 - this will return a value of 123456
+return anArray[1]; //Return value of element 1 - this will return a value of 543210
 return *(aPointer+1); //Add 1 to aPointer, then dereference - will return 543210
 
 

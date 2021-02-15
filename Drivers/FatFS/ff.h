@@ -22,6 +22,10 @@
 #ifndef FF_DEFINED
 #define FF_DEFINED	86604	/* Revision ID */
 
+#ifndef __GNUC__
+#error "GNU Extensions are required for the FatFS library."
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

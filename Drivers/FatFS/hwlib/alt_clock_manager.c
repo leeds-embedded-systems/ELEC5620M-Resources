@@ -34,6 +34,8 @@
  * $Id: //acds/rel/15.0/embedded/ip/hps/altera_hps/hwlib/src/hwmgr/soc_cv_av/alt_clock_manager.c#1 $
  */
 
+#ifdef __GNUC__
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -816,3 +818,4 @@ ALT_STATUS_CODE alt_clk_freq_get(ALT_CLK_t clk, alt_freq_t* freq)
     return ret;
 }
 
+#endif // __GNUC__

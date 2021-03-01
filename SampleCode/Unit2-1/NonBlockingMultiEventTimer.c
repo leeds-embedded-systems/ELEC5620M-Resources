@@ -10,7 +10,8 @@
         if ((lastTimerValue[0] - currentTimerValue) >= requiredPeriod[0]) {
             // When the difference between the last time and current time is greater
             // than the required period. We use subtraction to prevent glitches
-            // when the timer value overflows - e.g. (0x10 - 0xFFFFFFFF)%32 = 0x11.
+            // when the timer value overflows:
+            //      e.g. (0x10 - 0xFFFFFFFF) & 0xFFFFFFFF = 0x11.
             // If the time elapsed is enough, perform our actions.
             <Perform some action here>
             // To avoid accumulation errors, we make sure to mark the last time

@@ -30,10 +30,10 @@ __irq void __irq_isr (void) { //Handler for the IRQ Exception
 
 bool was_masked;
 //Globally (and Temporarily) disable the IRQ (set I bit in CPSR)
-wasMasked = __disable_irq(); //wasMasked = true if interrupts were previously enabled
+wasMasked = __disable_irq(); //wasMasked = true if IRQ was previously disabled
 //Perform atomic operations in here
 ...
 //Check if interrupts need to be re-enabled
-if (was_masked) {
+if (!was_masked) {
     __enable_irq(); //Globally re-enable the IRQ (clear the I bit in CPSR)
 }

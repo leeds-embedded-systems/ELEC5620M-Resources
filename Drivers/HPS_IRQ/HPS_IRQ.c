@@ -81,7 +81,7 @@ volatile unsigned int* irq_gic_dist_ptr  = (unsigned int *)MPCORE_GIC_DIST;
 
 /*
  * Here we create a vector table using an inline assembly function. This function is
- * not compiled using the C compiler, but fed directly to the Linker.
+ * not compiled using the C compiler, but fed directly to the Assembler.
  * In the table we have two types of entry:
  *   LDR PC,=<functionName> ; Sets Page Counter equal to function address.
  *   DCD 0 ; will trigger a jump to "Undefined Instruction" vector

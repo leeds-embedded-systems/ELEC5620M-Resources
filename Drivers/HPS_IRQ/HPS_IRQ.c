@@ -158,7 +158,7 @@ void HPS_IRQ_ConfigureIRQStack(void) {
 
 //Initialise HPS IRQ Driver
 signed int HPS_IRQ_initialise( isr_handler_func userUnhandledIRQCallback ) {
-    //Magic assembly lookup command to get the VBAR (vector table base address register)
+    //Assembly lookup command to get the VBAR (vector table base address register)
     register unsigned int cp15_VBAR __asm("cp15:0:c12:c0:0");
     /* Configure Global Interrupt Controller (GIC) */
     //Disable interrupts before configuring

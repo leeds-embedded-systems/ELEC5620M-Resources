@@ -17,7 +17,7 @@ bool lt24_initialised = false;
 // Useful Defines
 //
 
-//Uncomment this #define to enable the Hardware Optimised mode.
+//Globally define this macro to enable the Hardware Optimised mode.
 //#define HARDWARE_OPTIMISED
 
 //PIO Bit Map
@@ -231,8 +231,10 @@ void LT24_write( bool isData, unsigned short value )
     //Read
     unsigned int regVal = lt24_pio_ptr[LT24_PIO_DATA];
     //Modify
-    regVal = regVal & ~LT24_CMDDATMASK;      //Mask all bits for command and data (sets them all to 0)
-    regVal = regVal | ((unsigned int)value); //Set the data bits (unsigned value, so cast pads MSBs with 0's)
+    //Mask all bits for command and data (sets them all to 0)
+    regVal = regVal & ~LT24_CMDDATMASK;
+    //Set the data bits (unsigned value, so cast pads MSBs with 0's)
+    regVal = regVal | ((unsigned int)value); 
     if (isData) {
         //For data we set the RS bit high.
         regVal = regVal | (LT24_RS | LT24_RDn);
@@ -242,8 +244,9 @@ void LT24_write( bool isData, unsigned short value )
     }
     //Write
     lt24_pio_ptr[LT24_PIO_DATA] = regVal;
-    //Then we need to output the value again with the LT24_WRn bit high (second cycle of write)
-    regVal = regVal | (LT24_WRn); //Rest of regVal is unchanged, so we just or on the LT24_WRn bit
+    //Then we need to output the value again with LT24_WRn high (second cycle of write)
+    //Rest of regVal is unchanged, so we just or on the LT24_WRn bit
+    regVal = regVal | (LT24_WRn); 
     //Write
     lt24_pio_ptr[LT24_PIO_DATA] = regVal;
 }

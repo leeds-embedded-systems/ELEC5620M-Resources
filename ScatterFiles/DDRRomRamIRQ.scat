@@ -5,6 +5,7 @@ DDR 0x01000040 0x1EFFFFC0
     ; Application code starts at start of DDR (preloader entry address)
     APP_CODE +0 
     {   
+        *(vector_table,+FIRST) ; ISR Vector Table - add vector table to start of ram.
         *(+RO)
     }
     ; RW/ZI data starts after APP_CODE. NOCOMPRESS means that the data is

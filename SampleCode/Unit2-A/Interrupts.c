@@ -1,9 +1,10 @@
-//Magic assembly lookup command to get the VBAR (vector table base address register)
-register unsigned int cp15_VBAR __asm("cp15:0:c12:c0:0");
+
+//ARM Header providing low level access routines.
+#include <arm_acle.h>
 //Disable interrupts before configuring
 __disable_irq();
-// Set the location of the vector table using VBAR register
-cp15_VBAR = (unsigned int)&vector_table;
+// Set the location of the vector table in the VBAR register ("cp15:0:c12:c0:0")
+__arm_mcr(15, 0, (unsigned int)&vector_table, 12, 0, 0);
 //Enable interrupts
 __enable_irq();
 

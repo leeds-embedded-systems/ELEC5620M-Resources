@@ -1,7 +1,7 @@
 /*
  * HPS I2C Driver
  * ------------------------------
- * Description:
+ *
  * Driver for the HPS embedded I2C controller
  *
  * Company: University of Leeds
@@ -11,45 +11,70 @@
  *
  * Date       | Changes
  * -----------+-----------------------------------
- * 20/09/2017 | Creation of driver
- * 20/10/2017 | Change to include status codes
+ * 30/12/2023 | Switch to new driver context model
+ *            | Add support for reading data
+ *            | Change behaviour to non-blocking
  * 13/07/2019 | Support Controller ID 1 (LTC Hdr)
+ * 20/10/2017 | Change to include status codes
+ * 20/09/2017 | Creation of driver
  *
  */
 
 #ifndef HPS_I2C_H_
 #define HPS_I2C_H_
 
+#include "Util/driver_i2c.h"
 #include <stdbool.h>
 
-//Error Codes
-#define HPS_I2C_SUCCESS      0
-#define HPS_I2C_ERRORNOINIT -1
-#define HPS_I2C_INVALIDID   -2
-#define HPS_I2C_BUSY        -3
-#define HPS_I2C_INVALIDLEN  -4
-#define HPS_I2C_ABORTED     -5
+// Driver context
+typedef struct {
+    // Context Header
+    DrvCtx_t header;
+    // Context Body
+    volatile unsigned int* base;
+    // I2C common interface
+    I2CCtx_t i2c;
+    // Read/Write Status
+    bool writeQueued;
+    unsigned int writeLength;
+    bool readQueued;
+    unsigned int readLength;
+} HPSI2CCtx_t, *PHPSI2CCtx_t;
 
 //Initialise HPS I2C Controller
-// - controller is id of the I2C controller to initialised.
-// - DE1-SoC uses ID 0 for Accelerometer/VGA/Audio/ADC. ID 1 for LTC 14pin Hdr.
+// - For base, DE1-SoC uses 0xFFC04000 for Accelerometer/VGA/Audio/ADC. 0xFFC05000 for LTC 14pin Hdr.
 // - Returns 0 if successful.
-signed int HPS_I2C_initialise(unsigned int controller_id);
+HpsErr_t HPS_I2C_initialise(void* base, I2CSpeed speed, PHPSI2CCtx_t* pCtx);
 
 //Check if driver initialised
-// - controller is id of the I2C controller to initialised.
-// - Returns true if driver previously initialised
-// - HPS_I2C_init(controller_id) must be called if false.
-bool HPS_I2C_isInitialised(unsigned int controller_id);
+// - Returns true if driver context is initialised
+bool HPS_I2C_isInitialised(PHPSI2CCtx_t ctx);
+
+//Abort a pending read or write
+// - Aborts read if isRead, otherwise aborts write
+HpsErr_t HPS_I2C_abort(PHPSI2CCtx_t ctx, bool isRead);
 
 //Functions to write data
-// - controller is id of the I2C controller to initialised.
 // - 7bit address is I2C slave device address
 // - data is data to be sent (8bit, 16bit, 32bit or array respectively)
-// - Returns 0 if successful.
-signed int HPS_I2C_write8b(unsigned int controller_id, unsigned char address, unsigned char data);
-signed int HPS_I2C_write16b(unsigned int controller_id, unsigned char address, unsigned short data);
-signed int HPS_I2C_write32b(unsigned int controller_id, unsigned char address, unsigned int data);
-signed int HPS_I2C_write(unsigned int controller_id, unsigned char address, unsigned char data[], unsigned int length);
+// - Non-blocking. Write will be queued to FIFO and will then return.
+//   - To check if complete, perform an array write with length 0.
+//   - Returns ERR_AGAIN if not yet finished.
+//   - Returns number of bytes written if successful.
+HpsErrExt_t HPS_I2C_write8b (PHPSI2CCtx_t ctx, unsigned short address, unsigned char data);
+HpsErrExt_t HPS_I2C_write16b(PHPSI2CCtx_t ctx, unsigned short address, unsigned short data);
+HpsErrExt_t HPS_I2C_write32b(PHPSI2CCtx_t ctx, unsigned short address, unsigned int data);
+HpsErrExt_t HPS_I2C_write   (PHPSI2CCtx_t ctx, unsigned short address, unsigned char data[], unsigned int length);
+
+//Function to read data
+// - 7bit address is I2C slave device address
+// - When starting a read, writeLen bytes from writeData will be written before the restart (e.g. to send a register address)
+// - Up to readLen bytes will be stored to readData[] once the read is completed.
+// - Read length must be >= 1.
+// - Non-blocking. Read will be queued to FIFO and will then return.
+//   - To check if complete, perform an read with writeLen = 0.
+//   - Returns ERR_AGAIN if not yet finished.
+//   - Returns number of bytes written if successful.
+HpsErr_t HPS_I2C_read(PHPSI2CCtx_t ctx, unsigned short address, unsigned char writeData[], unsigned int writeLen, unsigned char readData[], unsigned int readLen);
 
 #endif /* HPS_I2C_H_ */

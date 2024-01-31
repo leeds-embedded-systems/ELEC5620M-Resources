@@ -11,8 +11,9 @@
  *
  * Date       | Changes
  * -----------+----------------------------------
- * 05/02/2017 | Creation of driver
+ * 31/01/2024 | Update to new driver contexts
  * 20/10/2017 | Update driver to match new styles
+ * 05/02/2017 | Creation of driver
  *
  */
 
@@ -20,13 +21,12 @@
 #define DE1SoC_LT24_H_
 
 //Include required header files
-#include <stdbool.h> //Boolean variable type "bool" and "true"/"false" constants.
+#include <stdint.h>
+#include "Util/driver_ctx.h"
 
-//Error Codes
-#define LT24_SUCCESS       0
-#define LT24_ERRORNOINIT  -1
-#define LT24_INVALIDSIZE  -4
-#define LT24_INVALIDSHAPE -6
+//Map some error codes to their use
+#define LT24_INVALIDSIZE  ERR_BEYONDEND
+#define LT24_INVALIDSHAPE ERR_REVERSED
 
 //Size of the LCD
 #define LT24_WIDTH  240
@@ -42,46 +42,55 @@
 #define LT24_CYAN    (LT24_GREEN | LT24_BLUE)
 #define LT24_MAGENTA (LT24_BLUE | LT24_RED)
 
+// Driver context
+typedef struct {
+    // Context Header
+    DrvCtx_t header;
+    // Context Body
+    volatile unsigned int* cntrl;
+    volatile unsigned int* data;
+    bool hwOpt;
+} LT24Ctx_t, *PLT24Ctx_t;
 
 //Function to initialise the LCD
-// - Returns 0 if successful
-signed int LT24_initialise( unsigned int pio_base_address, unsigned int pio_hw_base_address );
+//  - Returns Util/error Code
+//  - Returns context pointer to *ctx
+HpsErr_t LT24_initialise( void* cntrlBase, void* dataBase, PLT24Ctx_t* pCtx );
 
 //Check if driver initialised
 // - returns true if initialised
-bool LT24_isInitialised( void );
+bool LT24_isInitialised( PLT24Ctx_t ctx );
 
 //Function for writing to LT24 Registers (using dedicated HW)
 //You must check LT24_isInitialised() before calling this function
-void LT24_write( bool isData, unsigned short value );
+HpsErr_t LT24_write( PLT24Ctx_t ctx, bool isData, unsigned short value );
 
 //Function for configuring LCD reset/power (using PIO)
 //You must check LT24_isInitialised() before calling this function
-void LT24_powerConfig( bool isOn );
+HpsErr_t LT24_powerConfig( PLT24Ctx_t ctx, bool isOn );
 
 //Function to clear display to a set colour
-// - Returns 0 if successful
-signed int LT24_clearDisplay(unsigned short colour);
+// - Returns ERR_SUCCESS if successful
+HpsErr_t LT24_clearDisplay( PLT24Ctx_t ctx, unsigned short colour );
 
 //Function to convert Red/Green/Blue to RGB565 encoded colour value 
 unsigned short LT24_makeColour( unsigned int R, unsigned int G, unsigned int B );
 
 //Function to set the drawing window on the display
-//  Returns 0 if successful
-signed int LT24_setWindow( unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height);
+//  Returns ERR_SUCCESS if successful
+HpsErr_t LT24_setWindow( PLT24Ctx_t ctx, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height);
 
 //Generates test pattern on display
-// - returns 0 if successful
-signed int LT24_testPattern( void );
+// - returns ERR_SUCCESS if successful
+HpsErr_t LT24_testPattern( PLT24Ctx_t ctx );
 
 //Copy frame buffer to display
-// - returns 0 if successful
-signed int LT24_copyFrameBuffer(const unsigned short* framebuffer, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height);
+// - returns ERR_SUCCESS if successful
+HpsErr_t LT24_copyFrameBuffer( PLT24Ctx_t ctx, const unsigned short* framebuffer, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height);
 
 //Plot a single pixel on the LT24 display
-// - returns 0 if successful
-signed int LT24_drawPixel(unsigned short colour,unsigned int x,unsigned int y);
-
+// - returns ERR_SUCCESS if successful
+HpsErr_t LT24_drawPixel( PLT24Ctx_t ctx, unsigned short colour, unsigned int x, unsigned int y);
 
 #endif /*DE1SoC_LT24_H_*/
 

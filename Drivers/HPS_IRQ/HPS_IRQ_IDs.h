@@ -3,17 +3,20 @@
  * ---------------
  * Description:
  * This file contains an enum type for various peripheral
- * interrupt IDs in the Leeds SoC Computer and Cyclone V HPS.
+ * interrupt IDs in the Cyclone V HPS.
+ *
+ * Do NOT include this file directly. Instead include HPS_IRQ.h
  *
  */
 
 #ifndef HPS_IRQ_IDS_H_
 #define HPS_IRQ_IDS_H_
 
+#if !defined(__ARRIA10__)
 
 typedef enum {
 
-/* ARM A9 MPCORE devices (there are many; only a few are defined below) */
+/* ARM A9 MPCORE devices (0-15 are software, 16-31 are unused except for these three) */
     IRQ_MPCORE_GLOBAL_TIMER         = 27,
     IRQ_MPCORE_PRIVATE_TIMER        = 29,
     IRQ_MPCORE_WATCHDOG             = 30,
@@ -60,25 +63,25 @@ typedef enum {
     IRQ_L2_COMBINED                 = 70,
     IRQ_DDR_ECC_ERROR               = 71,
 
-/* FPGA interrupts (there are 64 in total; Some have aliases for Leeds SoC Computer) */
-    IRQ_INTERVAL_TIMER              = 72, // IRQ_FPGA0  = 72,
-    IRQ_LSC_KEYS                    = 73, // IRQ_FPGA1  = 73,
+/* FPGA interrupts (there are 64 in total) */
+	IRQ_FPGA0                       = 72,
+	IRQ_FPGA1                       = 73,
     IRQ_FPGA2                       = 74,
     IRQ_FPGA3                       = 75,
     IRQ_FPGA4                       = 76,
     IRQ_FPGA5                       = 77,
-    IRQ_LSC_AUDIO                   = 78, // IRQ_FPGA6  = 78,
-    IRQ_LSC_PS2_PRIMARY             = 79, // IRQ_FPGA7  = 79,
-    IRQ_LSC_JTAG                    = 80, // IRQ_FPGA8  = 80,
-    IRQ_LSC_IrDA                    = 81, // IRQ_FPGA9  = 81,
+	IRQ_FPGA6                       = 78,
+	IRQ_FPGA7                       = 79,
+	IRQ_FPGA8                       = 80,
+	IRQ_FPGA9                       = 81,
     IRQ_FPGA10                      = 82,
-    IRQ_LSC_GPIO_JP1                = 83, // IRQ_FPGA11 = 83,
-    IRQ_LSC_GPIO_JP2                = 84, // IRQ_FPGA12 = 84,
+	IRQ_FPGA11                      = 83,
+	IRQ_FPGA12                      = 84,
     IRQ_FPGA13                      = 85,
     IRQ_FPGA14                      = 86,
     IRQ_FPGA15                      = 87,
     IRQ_FPGA16                      = 88,
-    IRQ_LSC_PS2_SECONDARY           = 89, // IRQ_FPGA17 = 89,
+	IRQ_FPGA17                      = 89,
     IRQ_FPGA18                      = 90,
     IRQ_FPGA19                      = 91,
     IRQ_FPGA20                      = 92,
@@ -206,6 +209,6 @@ typedef enum {
 
 } HPSIRQSource;
 
-
+#endif
 
 #endif /* HPS_IRQ_IDS_H_ */

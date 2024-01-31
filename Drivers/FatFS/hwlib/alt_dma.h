@@ -31,7 +31,7 @@
 ******************************************************************************/
 
 /*
- * $Id: //acds/rel/15.0/embedded/ip/hps/altera_hps/hwlib/include/alt_dma.h#1 $
+ * $Id: //acds/rel/20.1std/embedded/ip/hps/altera_hps/hwlib/include/alt_dma.h#1 $
  */
 
 #ifndef __ALT_DMA_H__
@@ -40,11 +40,6 @@
 #include "hwlib.h"
 #include "alt_dma_common.h"
 #include "alt_dma_program.h"
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
 
 /*!
  * \addtogroup ALT_DMA DMA Controller API
@@ -60,6 +55,7 @@ extern "C"
  *    DMA Controller DMA-330.
  *  * Altera, Cyclone V Device Handbook Volume 3: Hard Processor System
  *    Technical Reference Manual, DMA Controller.
+ *  * Altera, Arria 10 Hard Processor System Technical Reference Manual.
  *
  * @{
  */
@@ -85,9 +81,18 @@ extern "C"
 #define ALT_DMA_PERIPH_PROVISION_I2C_SUPPORT (1)
 #endif
 
+#if ALT_DMA_PERIPH_PROVISION_I2C_SUPPORT
+#include "alt_i2c.h"
+#endif
+
 /*!
  * @}
  */
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
 
 /*!
  * \addtogroup ALT_DMA_CSR DMA API for Configuration, Control, and Status
@@ -274,6 +279,8 @@ ALT_DMA_EVENT_SELECT_t;
  * This type enumerates the DMA peripheral interface MUX selection options
  * available.
  */
+#if defined(soc_cv_av)
+    
 typedef enum ALT_DMA_PERIPH_MUX_e
 {
     /*! 
@@ -292,6 +299,37 @@ typedef enum ALT_DMA_PERIPH_MUX_e
     ALT_DMA_PERIPH_MUX_CAN     = 2
 }
 ALT_DMA_PERIPH_MUX_t;
+    
+#elif defined(soc_a10)
+    
+typedef enum ALT_DMA_PERIPH_MUX_e
+{
+    /*!
+     * Accept the reset default MUX selection
+     */
+    ALT_DMA_PERIPH_MUX_DEFAULT = 0,
+
+    /*!
+     * Select FPGA as the peripheral interface
+     */
+    ALT_DMA_PERIPH_MUX_FPGA    = 1,
+
+    /*!
+     * Select Security Manager as the peripheral interface. This option is only
+     * valid for the first mux selection for DMA interface 5.
+     */
+    ALT_DMA_PERIPH_MUX_SECMGR  = 2,
+
+    /*!
+     * Select I2C as the peripheral interface. This option is only valid for
+     * the second and third mux selection for DMA interfaces 6 and 7.
+     */
+    ALT_DMA_PERIPH_MUX_I2C     = 3
+}
+ALT_DMA_PERIPH_MUX_t;
+    
+#endif
+    
 
 /*!
  * This type defines the structure used to specify the configuration of the
@@ -319,6 +357,8 @@ typedef struct ALT_DMA_CFG_s
      */
     ALT_DMA_SECURITY_t periph_sec[32];
 
+#if defined(soc_cv_av)
+    
     /*!
      * DMA Peripheral Register Interface MUX Selections. MUX selections are
      * 0-based index-aligned with the enumeration values
@@ -326,6 +366,18 @@ typedef struct ALT_DMA_CFG_s
      * ALT_DMA_PERIPH_FPGA_7_OR_CAN1_IF2 of the ALT_DMA_PERIPH_t type.
      */
     ALT_DMA_PERIPH_MUX_t periph_mux[4];
+
+#elif defined(soc_a10)
+
+    /*!
+     * DMA Peripheral Register Interface MUX Selection. MUX selections are
+     * 0-based index-aligned with tne enumeration values 
+     *ALT_DMA_PERIPH_FPGA_5_OR_SECMGR, ALT_DMA_PERIPH_FPGA_6_OR_I2C4_TX,
+     * and ALT_DMA_PERIPH_FPGA_7_OR_I2C4_RX of the ALT_DMA_PERIPH_t type.
+     */
+    ALT_DMA_PERIPH_MUX_t periph_mux[3];
+    
+#endif
 }
 ALT_DMA_CFG_t;
 
@@ -669,6 +721,45 @@ ALT_STATUS_CODE alt_dma_int_clear(ALT_DMA_EVENT_t irq_num);
  * @{
  */
 
+#if ALT_DMA_PERIPH_PROVISION_I2C_SUPPORT
+    
+/*!
+ * This type defines the structure used by alt_dma_memory_to_periph() and
+ * alt_dma_periph_to_memory() for the \e periph_info pointer when transfering
+ * to or from I2C peripherals. The fields of this structure should be filled
+ * out appropriately then used as in those functions.
+ *
+ * It is necessary for the contents of the structure to be undisturbed while
+ * the DMA transfer is in progress. Thus if it is allocated on the stack, it
+ * will need to be in scope until the DMA operation completes or fails.
+ */
+typedef struct ALT_DMA_PERIPH_INFO_I2C_s
+{
+    /*!
+     * The I2C device handle.
+     */
+    ALT_I2C_DEV_t * i2c_dev;
+
+    /*!
+     * When the I2C controller is configured as bus master, this indicates that
+     * the transfer should issue a RESTART at the start of the transfer. When
+     * configured as bus slave, this parameter is ignored. */
+    bool issue_restart;
+
+    /*!
+     * When the I2C controller is configured as bus master, this indicates that
+     * the transfer should issue a STOP at the end of the transfer. When
+     * configured as bus slave, this parameter is ignored. */
+    bool issue_stop;
+
+    /*!
+     * Scratch space used by the I2C DMA implementation.
+     */
+    uint32_t scratch[4];
+}
+ALT_DMA_PERIPH_INFO_I2C_t;
+
+#endif
 
 /*!
  * Uses the DMA engine to asynchronously copy the specified memory from the
@@ -1021,12 +1112,12 @@ ALT_STATUS_CODE alt_dma_periph_to_memory(ALT_DMA_CHANNEL_t channel,
  * @}
  */
 
-/*!
- * @}
- */
-
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
+
+/*!
+ * @}
+ */
 
 #endif  /* __ALT_DMA_H__ */

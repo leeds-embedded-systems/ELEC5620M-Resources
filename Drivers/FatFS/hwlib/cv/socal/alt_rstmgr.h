@@ -3343,16 +3343,16 @@ typedef volatile struct ALT_RSTMGR_MISCMODRST_s  ALT_RSTMGR_MISCMODRST_t;
  */
 struct ALT_RSTMGR_s
 {
-    volatile ALT_RSTMGR_STAT_t        stat;                 /* ALT_RSTMGR_STAT */
-    volatile ALT_RSTMGR_CTL_t         ctrl;                 /* ALT_RSTMGR_CTL */
-    volatile ALT_RSTMGR_COUNTS_t      counts;               /* ALT_RSTMGR_COUNTS */
-    volatile uint32_t                 _pad_0xc_0xf;         /* *UNDEFINED* */
-    volatile ALT_RSTMGR_MPUMODRST_t   mpumodrst;            /* ALT_RSTMGR_MPUMODRST */
-    volatile ALT_RSTMGR_PERMODRST_t   permodrst;            /* ALT_RSTMGR_PERMODRST */
-    volatile ALT_RSTMGR_PER2MODRST_t  per2modrst;           /* ALT_RSTMGR_PER2MODRST */
-    volatile ALT_RSTMGR_BRGMODRST_t   brgmodrst;            /* ALT_RSTMGR_BRGMODRST */
-    volatile ALT_RSTMGR_MISCMODRST_t  miscmodrst;           /* ALT_RSTMGR_MISCMODRST */
-    volatile uint32_t                 _pad_0x24_0x100[55];  /* *UNDEFINED* */
+    ALT_RSTMGR_STAT_t        stat;                 /* ALT_RSTMGR_STAT */
+    ALT_RSTMGR_CTL_t         ctrl;                 /* ALT_RSTMGR_CTL */
+    ALT_RSTMGR_COUNTS_t      counts;               /* ALT_RSTMGR_COUNTS */
+    volatile uint32_t        _pad_0xc_0xf;         /* *UNDEFINED* */
+    ALT_RSTMGR_MPUMODRST_t   mpumodrst;            /* ALT_RSTMGR_MPUMODRST */
+    ALT_RSTMGR_PERMODRST_t   permodrst;            /* ALT_RSTMGR_PERMODRST */
+    ALT_RSTMGR_PER2MODRST_t  per2modrst;           /* ALT_RSTMGR_PER2MODRST */
+    ALT_RSTMGR_BRGMODRST_t   brgmodrst;            /* ALT_RSTMGR_BRGMODRST */
+    ALT_RSTMGR_MISCMODRST_t  miscmodrst;           /* ALT_RSTMGR_MISCMODRST */
+    volatile uint32_t        _pad_0x24_0x100[55];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_RSTMGR. */
@@ -3363,13 +3363,13 @@ struct ALT_RSTMGR_raw_s
     volatile uint32_t  stat;                 /* ALT_RSTMGR_STAT */
     volatile uint32_t  ctrl;                 /* ALT_RSTMGR_CTL */
     volatile uint32_t  counts;               /* ALT_RSTMGR_COUNTS */
-    volatile uint32_t  _pad_0xc_0xf;         /* *UNDEFINED* */
+    uint32_t           _pad_0xc_0xf;         /* *UNDEFINED* */
     volatile uint32_t  mpumodrst;            /* ALT_RSTMGR_MPUMODRST */
     volatile uint32_t  permodrst;            /* ALT_RSTMGR_PERMODRST */
     volatile uint32_t  per2modrst;           /* ALT_RSTMGR_PER2MODRST */
     volatile uint32_t  brgmodrst;            /* ALT_RSTMGR_BRGMODRST */
     volatile uint32_t  miscmodrst;           /* ALT_RSTMGR_MISCMODRST */
-    volatile uint32_t  _pad_0x24_0x100[55];  /* *UNDEFINED* */
+    uint32_t           _pad_0x24_0x100[55];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_RSTMGR. */

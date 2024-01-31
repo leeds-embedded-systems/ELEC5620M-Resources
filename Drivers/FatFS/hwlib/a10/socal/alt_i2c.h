@@ -32,48 +32,76 @@
 
 /* Altera - ALT_I2C */
 
-#ifndef __ALTERA_ALT_I2C_H__
-#define __ALTERA_ALT_I2C_H__
+#ifndef __ALT_SOCAL_I2C_H__
+#define __ALT_SOCAL_I2C_H__
 
+#ifndef __ASSEMBLY__
 #ifdef __cplusplus
+#include <cstdint>
 extern "C"
 {
+#else   /* __cplusplus */
+#include <stdint.h>
 #endif  /* __cplusplus */
+#endif  /* __ASSEMBLY__ */
 
 /*
- * Component : I2C Module - ALT_I2C
- * I2C Module
- * 
- * Registers in the I2C module
+ * Component : ALT_I2C
  * 
  */
 /*
- * Register : Control Register - ic_con
+ * Register : ic_con
  * 
- * This register can be written only when the I2C is disabled, which corresponds to
- * the Bit [0] of the Enable Register being set to 0. Writes at other times have no
- * effect.
+ * Name: I2C Control Register
+ * 
+ * Size: 10 bits
+ * 
+ * Address Offset: 0x00
+ * 
+ * Read/Write Access:
+ * 
+ * If configuration parameter I2C_DYNAMIC_TAR_UPDATE = 0,
+ * 
+ * all bits are Read/Write.
+ * 
+ * If I2C_DYNAMIC_TAR_UPDATE = 1, bit 4 is Read-only.
+ * 
+ * This register can be written only when the DW_apb_i2c
+ * 
+ * is disabled, which corresponds to the IC_ENABLE[0] register
+ * 
+ * being set to 0. Writes at other times have no effect.
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description         
- * :-------|:-------|:------|:---------------------
- *  [0]    | RW     | 0x1   | Master Enable       
- *  [2:1]  | RW     | 0x2   | Master Speed Control
- *  [3]    | RW     | 0x1   | Slave Address Size  
- *  [4]    | RW     | 0x1   | Master Address Size 
- *  [5]    | RW     | 0x1   | Restart Enable      
- *  [6]    | RW     | 0x1   | Slave Disable       
- *  [31:7] | ???    | 0x0   | *UNDEFINED*         
+ *  Bits    | Access | Reset | Description                     
+ * :--------|:-------|:------|:---------------------------------
+ *  [0]     | RW     | 0x1   | ALT_I2C_CON_MST_MOD             
+ *  [2:1]   | RW     | 0x2   | ALT_I2C_CON_SPEED               
+ *  [3]     | RW     | 0x1   | ALT_I2C_CON_IC_10BITADDR_SLV    
+ *  [4]     | R      | 0x1   | ALT_I2C_CON_IC_10BITADDR_MST    
+ *  [5]     | RW     | 0x1   | ALT_I2C_CON_IC_RESTART_EN       
+ *  [6]     | RW     | 0x1   | ALT_I2C_CON_IC_SLV_DIS          
+ *  [7]     | RW     | 0x0   | ALT_I2C_CON_STOP_DET_IFADDRED   
+ *  [8]     | RW     | 0x0   | ALT_I2C_CON_TX_EMPTY_CTL        
+ *  [9]     | RW     | 0x0   | ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL
+ *  [31:10] | R      | 0x0   | ALT_I2C_CON_RSVD_IC_CON_31TO10  
  * 
  */
 /*
- * Field : Master Enable - master_mode
+ * Field : master_mode
  * 
- * This bit controls whether the i2c master is enabled.
+ * This bit controls whether the DW_apb_i2c master is enabled.
  * 
- * NOTE: Software should ensure that if this bit is written with '1', then bit 6
- * should also be written with a '1'.
+ * 0: master disabled
+ * 
+ * 1: master enabled
+ * 
+ * Reset value: IC_MASTER_MODE configuration parameter
+ * 
+ * NOTE: Software should ensure that if this bit is written with '1'
+ * 
+ * then bit 6 should also be written with a '1'.
  * 
  * Field Enumeration Values:
  * 
@@ -116,12 +144,29 @@ extern "C"
 #define ALT_I2C_CON_MST_MOD_SET(value) (((value) << 0) & 0x00000001)
 
 /*
- * Field : Master Speed Control - speed
+ * Field : speed
  * 
- * These bits control at which speed the I2C operates, its setting is relevant only
- * if one is operating the I2C in master mode. Hardware protects against illegal
- * values being programmed by software. This field should be programmed only with
- * standard or fast speed.
+ * These bits control at which speed the DW_apb_i2c operates; its
+ * 
+ * setting is relevant only if one is operating the DW_apb_i2c in
+ * 
+ * master mode. Hardware protects against illegal values being
+ * 
+ * programmed by software. This register should be programmed
+ * 
+ * only with a value in the range of 1 to IC_MAX_SPEED_MODE;
+ * 
+ * otherwise, hardware updates this register with the value of
+ * 
+ * IC_MAX_SPEED_MODE.
+ * 
+ * 1: standard mode (100 kbit/s)
+ * 
+ * 2: fast mode (<=400 kbit/s) or fast mode plus (<=1000Kbit/s)
+ * 
+ * 3: high speed mode (3.4 Mbit/s)
+ * 
+ * Reset value: IC_MAX_SPEED_MODE configuration
  * 
  * Field Enumeration Values:
  * 
@@ -164,12 +209,25 @@ extern "C"
 #define ALT_I2C_CON_SPEED_SET(value) (((value) << 1) & 0x00000006)
 
 /*
- * Field : Slave Address Size - ic_10bitaddr_slave
+ * Field : ic_10bitaddr_slave
  * 
- * When acting as a slave, this bit controls whether the I2C responds to 7- or
- * 10-bit addresses. In 7-bit addressing, only the lower 7 bits of  the Slave
- * Address Register are compared. The I2C responds will only respond to 10-bit
- * addressing transfers that match the full 10 bits of the Slave Address register.
+ * When acting as a slave, this bit controls whether the DW_apb_i2c
+ * 
+ * responds to 7- or 10-bit addresses.
+ * 
+ * 0: 7-bit addressing. The DW_apb_i2c ignores transactions that
+ * 
+ * involve 10-bit addressing; for 7-bit addressing,
+ * 
+ * only the lower 7 bits of the IC_SAR register are compared.
+ * 
+ * 1: 10-bit addressing. The DW_apb_i2c responds to only 10-bit
+ * 
+ * addressing transfers that match the full 10 bits of the IC_SAR
+ * 
+ * register.
+ * 
+ * Reset value: IC_10BITADDR_SLAVE configuration parameter
  * 
  * Field Enumeration Values:
  * 
@@ -212,10 +270,37 @@ extern "C"
 #define ALT_I2C_CON_IC_10BITADDR_SLV_SET(value) (((value) << 3) & 0x00000008)
 
 /*
- * Field : Master Address Size - ic_10bitaddr_master
+ * Field : ic_10bitaddr_master
  * 
- * This bit controls whether the I2C starts its transfers in 7-or 10-bit addressing
- * mode when acting as a master.
+ * If the I2C_DYNAMIC_TAR_UPDATE configuration parameter is
+ * 
+ * set to 'No' (0), this bit is named IC_10BITADDR_MASTER and
+ * 
+ * controls whether the DW_apb_i2c starts its transfers in 7- or 10-bit
+ * 
+ * addressing mode when acting as a master.
+ * 
+ * If I2C_DYNAMIC_TAR_UPDATE is set to 'Yes' (1), the
+ * 
+ * function of this bit is handled by bit 12 of IC_TAR register, and
+ * 
+ * becomes a read-only copy called
+ * 
+ * IC_10BITADDR_MASTER_rd_only.
+ * 
+ * 0: 7-bit addressing
+ * 
+ * 1: 10-bit addressing
+ * 
+ * Dependencies: If I2C_DYNAMIC_TAR_UPDATE = 1, then this
+ * 
+ * bit is read-only. If I2C_DYNAMIC_TAR_UPDATE = 0, then this
+ * 
+ * bit can be read or write.
+ * 
+ * Reset value: IC_10BITADDR_MASTER configuration
+ * 
+ * parameter
  * 
  * Field Enumeration Values:
  * 
@@ -258,29 +343,47 @@ extern "C"
 #define ALT_I2C_CON_IC_10BITADDR_MST_SET(value) (((value) << 4) & 0x00000010)
 
 /*
- * Field : Restart Enable - ic_restart_en
+ * Field : ic_restart_en
  * 
- * Determines whether RESTART conditions may be sent when acting as a master. Some
- * older slaves do not support handling RESTART conditions; however, RESTART
- * conditions are used in several I2C operations. When RESTART is disabled, the
- * master is prohibited from performing the following functions
+ * Determines whether RESTART conditions may be sent when
  * 
- * * Changing direction within a transfer (split),
+ * acting as a master. Some older slaves do not support handling
  * 
- * * Sending a START BYTE,
+ * RESTART conditions; however, RESTART conditions are used in
  * 
- * * High-speed mode operation,
+ * several DW_apb_i2c operations.
  * 
- * * Combined format transfers in 7-bit addressing modes,
+ * 0: disable
  * 
- * * Read operation with a 10-bit address,
+ * 1: enable
  * 
- * * Sending multiple bytes per transfer,
+ * When RESTART is disabled, the master is prohibited from
  * 
- * By replacing RESTART condition followed by a STOP and a subsequent START
- * condition, split operations are broken down into multiple I2C transfers. If the
- * above operations are performed, it will result in setting bit [6](tx_abort) of
- * the Raw Interrupt Status Register.
+ * performing the following functions:
+ * 
+ * * Change direction within a transfer (split)
+ * 
+ * * Send a START BYTE
+ * 
+ * * High-speed mode operation
+ * 
+ * * Combined format transfers in 7-bit addressing modes
+ * 
+ * * Read operation with a 10-bit address
+ * 
+ * * Send multiple bytes per transfer
+ * 
+ * By replacing RESTART condition followed by a STOP and a
+ * 
+ * subsequent START condition, split operations are broken down
+ * 
+ * into multiple DW_apb_i2c transfers. If the above operations are
+ * 
+ * performed, it will result in setting bit 6 (TX_ABRT) of the
+ * 
+ * IC_RAW_INTR_STAT register.
+ * 
+ * Reset value: IC_RESTART_EN configuration parameter
  * 
  * Field Enumeration Values:
  * 
@@ -323,20 +426,44 @@ extern "C"
 #define ALT_I2C_CON_IC_RESTART_EN_SET(value) (((value) << 5) & 0x00000020)
 
 /*
- * Field : Slave Disable - ic_slave_disable
+ * Field : ic_slave_disable
  * 
- * This bit controls whether I2C has its slave disabled. The slave will be
- * disabled, after reset.
+ * This bit controls whether I2C has its slave disabled,
  * 
- * NOTE: Software should ensure that if this bit is written with 0, then bit [0] of
- * this register should also be written with a 0.
+ * which means once the presetn signal is applied, then
+ * 
+ * this bit takes on the value of the configuration parameter
+ * 
+ * IC_SLAVE_DISABLE. You have the choice of having the slave enabled
+ * 
+ * or disabled after reset is applied, which means software does not
+ * 
+ * have to configure the slave. By default, the slave is always enabled
+ * 
+ * (in reset state as well). If you need to disable it after reset, set
+ * 
+ * this bit to 1.
+ * 
+ * If this bit is set (slave is disabled), DW_apb_i2c functions only as
+ * 
+ * a master and does not perform any action that requires a slave.
+ * 
+ * 0: slave is enabled
+ * 
+ * 1: slave is disabled
+ * 
+ * Reset value: IC_SLAVE_DISABLE configuration parameter
+ * 
+ * NOTE: Software should ensure that if this bit is written with 0,
+ * 
+ * then bit 0 should also be written with a 0.
  * 
  * Field Enumeration Values:
  * 
  *  Enum                         | Value | Description  
  * :-----------------------------|:------|:--------------
- *  ALT_I2C_CON_IC_SLV_DIS_E_DIS | 0x1   | slave disable
  *  ALT_I2C_CON_IC_SLV_DIS_E_EN  | 0x0   | slave enable 
+ *  ALT_I2C_CON_IC_SLV_DIS_E_DIS | 0x1   | slave disable
  * 
  * Field Access Macros:
  * 
@@ -344,15 +471,15 @@ extern "C"
 /*
  * Enumerated value for register field ALT_I2C_CON_IC_SLV_DIS
  * 
- * slave disable
- */
-#define ALT_I2C_CON_IC_SLV_DIS_E_DIS    0x1
-/*
- * Enumerated value for register field ALT_I2C_CON_IC_SLV_DIS
- * 
  * slave enable
  */
 #define ALT_I2C_CON_IC_SLV_DIS_E_EN     0x0
+/*
+ * Enumerated value for register field ALT_I2C_CON_IC_SLV_DIS
+ * 
+ * slave disable
+ */
+#define ALT_I2C_CON_IC_SLV_DIS_E_DIS    0x1
 
 /* The Least Significant Bit (LSB) position of the ALT_I2C_CON_IC_SLV_DIS register field. */
 #define ALT_I2C_CON_IC_SLV_DIS_LSB        6
@@ -371,6 +498,144 @@ extern "C"
 /* Produces a ALT_I2C_CON_IC_SLV_DIS register field value suitable for setting the register. */
 #define ALT_I2C_CON_IC_SLV_DIS_SET(value) (((value) << 6) & 0x00000040)
 
+/*
+ * Field : stop_det_ifaddressed
+ * 
+ * In slave mode:
+ * 
+ * 1:  issues the STOP_DET interrrupt only when it is addressed.
+ * 
+ * 0:  issues the STOP_DET irrespective of whether it's addressed or not.
+ * 
+ * Dependencies: This register bit value is applicable in the slave mode only
+ * (MASTER_MODE = 1'b0)
+ * 
+ * Reset value: 0x0
+ * 
+ * NOTE: During a general call address, this slave does not issue the
+ * 
+ * STOP_DET interrupt if STOP_DET_IF_ADDRESSED = 1'b1, even if
+ * 
+ * the slave responds to the general call address by generating ACK.
+ * 
+ * The STOP_DET interrupt is generated only when the transmitted
+ * 
+ * address matches the slave address (SAR).
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_CON_STOP_DET_IFADDRED register field. */
+#define ALT_I2C_CON_STOP_DET_IFADDRED_LSB        7
+/* The Most Significant Bit (MSB) position of the ALT_I2C_CON_STOP_DET_IFADDRED register field. */
+#define ALT_I2C_CON_STOP_DET_IFADDRED_MSB        7
+/* The width in bits of the ALT_I2C_CON_STOP_DET_IFADDRED register field. */
+#define ALT_I2C_CON_STOP_DET_IFADDRED_WIDTH      1
+/* The mask used to set the ALT_I2C_CON_STOP_DET_IFADDRED register field value. */
+#define ALT_I2C_CON_STOP_DET_IFADDRED_SET_MSK    0x00000080
+/* The mask used to clear the ALT_I2C_CON_STOP_DET_IFADDRED register field value. */
+#define ALT_I2C_CON_STOP_DET_IFADDRED_CLR_MSK    0xffffff7f
+/* The reset value of the ALT_I2C_CON_STOP_DET_IFADDRED register field. */
+#define ALT_I2C_CON_STOP_DET_IFADDRED_RESET      0x0
+/* Extracts the ALT_I2C_CON_STOP_DET_IFADDRED field value from a register. */
+#define ALT_I2C_CON_STOP_DET_IFADDRED_GET(value) (((value) & 0x00000080) >> 7)
+/* Produces a ALT_I2C_CON_STOP_DET_IFADDRED register field value suitable for setting the register. */
+#define ALT_I2C_CON_STOP_DET_IFADDRED_SET(value) (((value) << 7) & 0x00000080)
+
+/*
+ * Field : tx_empty_ctrl
+ * 
+ * This bit controls the generation
+ * 
+ * of the TX_EMPTY interrupt, as described in the IC_RAW_INTR_STAT register.
+ * 
+ * Reset value: 0x0.
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_CON_TX_EMPTY_CTL register field. */
+#define ALT_I2C_CON_TX_EMPTY_CTL_LSB        8
+/* The Most Significant Bit (MSB) position of the ALT_I2C_CON_TX_EMPTY_CTL register field. */
+#define ALT_I2C_CON_TX_EMPTY_CTL_MSB        8
+/* The width in bits of the ALT_I2C_CON_TX_EMPTY_CTL register field. */
+#define ALT_I2C_CON_TX_EMPTY_CTL_WIDTH      1
+/* The mask used to set the ALT_I2C_CON_TX_EMPTY_CTL register field value. */
+#define ALT_I2C_CON_TX_EMPTY_CTL_SET_MSK    0x00000100
+/* The mask used to clear the ALT_I2C_CON_TX_EMPTY_CTL register field value. */
+#define ALT_I2C_CON_TX_EMPTY_CTL_CLR_MSK    0xfffffeff
+/* The reset value of the ALT_I2C_CON_TX_EMPTY_CTL register field. */
+#define ALT_I2C_CON_TX_EMPTY_CTL_RESET      0x0
+/* Extracts the ALT_I2C_CON_TX_EMPTY_CTL field value from a register. */
+#define ALT_I2C_CON_TX_EMPTY_CTL_GET(value) (((value) & 0x00000100) >> 8)
+/* Produces a ALT_I2C_CON_TX_EMPTY_CTL register field value suitable for setting the register. */
+#define ALT_I2C_CON_TX_EMPTY_CTL_SET(value) (((value) << 8) & 0x00000100)
+
+/*
+ * Field : rx_fifo_full_hld_ctrl
+ * 
+ * This bit controls whether
+ * 
+ * DW_apb_i2c should hold the bus when the Rx FIFO is physically full to its
+ * RX_BUFFER_DEPTH,
+ * 
+ * as described in the IC_RX_FULL_HLD_BUS_EN parameter.
+ * 
+ * Dependencies: This register bit value is applicable only when the
+ * 
+ * IC_RX_FULL_HLD_BUS_EN configuration parameter is set to 1.
+ * 
+ * If IC_RX_FULL_HLD_BUS_EN = 0, then this bit is read-only.
+ * 
+ * If IC_RX_FULL_HLD_BUS_EN = 1, then this bit can be read or write.
+ * 
+ * Reset value: 0x0.
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL register field. */
+#define ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL_LSB        9
+/* The Most Significant Bit (MSB) position of the ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL register field. */
+#define ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL_MSB        9
+/* The width in bits of the ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL register field. */
+#define ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL_WIDTH      1
+/* The mask used to set the ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL register field value. */
+#define ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL_SET_MSK    0x00000200
+/* The mask used to clear the ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL register field value. */
+#define ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL_CLR_MSK    0xfffffdff
+/* The reset value of the ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL register field. */
+#define ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL_RESET      0x0
+/* Extracts the ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL field value from a register. */
+#define ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL_GET(value) (((value) & 0x00000200) >> 9)
+/* Produces a ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL register field value suitable for setting the register. */
+#define ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL_SET(value) (((value) << 9) & 0x00000200)
+
+/*
+ * Field : rsvd_ic_con_31to10
+ * 
+ * Reserved bits [31:1] - Read Only
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_CON_RSVD_IC_CON_31TO10 register field. */
+#define ALT_I2C_CON_RSVD_IC_CON_31TO10_LSB        10
+/* The Most Significant Bit (MSB) position of the ALT_I2C_CON_RSVD_IC_CON_31TO10 register field. */
+#define ALT_I2C_CON_RSVD_IC_CON_31TO10_MSB        31
+/* The width in bits of the ALT_I2C_CON_RSVD_IC_CON_31TO10 register field. */
+#define ALT_I2C_CON_RSVD_IC_CON_31TO10_WIDTH      22
+/* The mask used to set the ALT_I2C_CON_RSVD_IC_CON_31TO10 register field value. */
+#define ALT_I2C_CON_RSVD_IC_CON_31TO10_SET_MSK    0xfffffc00
+/* The mask used to clear the ALT_I2C_CON_RSVD_IC_CON_31TO10 register field value. */
+#define ALT_I2C_CON_RSVD_IC_CON_31TO10_CLR_MSK    0x000003ff
+/* The reset value of the ALT_I2C_CON_RSVD_IC_CON_31TO10 register field. */
+#define ALT_I2C_CON_RSVD_IC_CON_31TO10_RESET      0x0
+/* Extracts the ALT_I2C_CON_RSVD_IC_CON_31TO10 field value from a register. */
+#define ALT_I2C_CON_RSVD_IC_CON_31TO10_GET(value) (((value) & 0xfffffc00) >> 10)
+/* Produces a ALT_I2C_CON_RSVD_IC_CON_31TO10 register field value suitable for setting the register. */
+#define ALT_I2C_CON_RSVD_IC_CON_31TO10_SET(value) (((value) << 10) & 0xfffffc00)
+
 #ifndef __ASSEMBLY__
 /*
  * WARNING: The C register and register group struct declarations are provided for
@@ -384,57 +649,103 @@ extern "C"
  */
 struct ALT_I2C_CON_s
 {
-    uint32_t  master_mode         :  1;  /* Master Enable */
-    uint32_t  speed               :  2;  /* Master Speed Control */
-    uint32_t  ic_10bitaddr_slave  :  1;  /* Slave Address Size */
-    uint32_t  ic_10bitaddr_master :  1;  /* Master Address Size */
-    uint32_t  ic_restart_en       :  1;  /* Restart Enable */
-    uint32_t  ic_slave_disable    :  1;  /* Slave Disable */
-    uint32_t                      : 25;  /* *UNDEFINED* */
+    uint32_t        master_mode           :  1;  /* ALT_I2C_CON_MST_MOD */
+    uint32_t        speed                 :  2;  /* ALT_I2C_CON_SPEED */
+    uint32_t        ic_10bitaddr_slave    :  1;  /* ALT_I2C_CON_IC_10BITADDR_SLV */
+    const uint32_t  ic_10bitaddr_master   :  1;  /* ALT_I2C_CON_IC_10BITADDR_MST */
+    uint32_t        ic_restart_en         :  1;  /* ALT_I2C_CON_IC_RESTART_EN */
+    uint32_t        ic_slave_disable      :  1;  /* ALT_I2C_CON_IC_SLV_DIS */
+    uint32_t        stop_det_ifaddressed  :  1;  /* ALT_I2C_CON_STOP_DET_IFADDRED */
+    uint32_t        tx_empty_ctrl         :  1;  /* ALT_I2C_CON_TX_EMPTY_CTL */
+    uint32_t        rx_fifo_full_hld_ctrl :  1;  /* ALT_I2C_CON_RX_FIFO_FULL_HLD_CTL */
+    const uint32_t  rsvd_ic_con_31to10    : 22;  /* ALT_I2C_CON_RSVD_IC_CON_31TO10 */
 };
 
 /* The typedef declaration for register ALT_I2C_CON. */
 typedef volatile struct ALT_I2C_CON_s  ALT_I2C_CON_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_CON register. */
+#define ALT_I2C_CON_RESET       0x0000007d
 /* The byte offset of the ALT_I2C_CON register from the beginning of the component. */
 #define ALT_I2C_CON_OFST        0x0
 /* The address of the ALT_I2C_CON register. */
 #define ALT_I2C_CON_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_CON_OFST))
 
 /*
- * Register : Target Address Register - ic_tar
+ * Register : ic_tar
  * 
- * This register can be written to only when the ic_enable register is set to 0.
- * This register is 13 bits wide. All bits can be dynamically updated as long as
- * any set of the following conditions are true,
+ * Name: I2C Target Address Register
  * 
- * (Enable Register bit 0 is set to 0) or (Enable Register bit 0 is set to 1 AND
- * (I2C is NOT engaged in any Master [tx, rx] operation [ic_status register
- * mst_activity bit 5 is set to 0]) AND (I2C is enabled to operate in Master
- * mode[ic_con bit[0] is set to one]) AND (there are NO entries in the TX FIFO
- * Register [IC_STATUS bit [2] is set to 1])
+ * Size: 12 bits or 13 bits; 13 bits only when I2C_DYNAMIC_TAR_UPDATE = 1
+ * 
+ * Address Offset: 0x04
+ * 
+ * Read/Write Access: Read/Write
+ * 
+ * If the configuration parameter I2C_DYNAMIC_TAR_UPDATE is set to 'No' (0),
+ * 
+ * this register is 12 bits wide, and bits 31:12 are reserved. This register
+ * 
+ * can be written to only when IC_ENABLE[0] is set to 0.
+ * 
+ * However, if I2C_DYNAMIC_TAR_UPDATE = 1, then the register becomes 13 bits wide.
+ * 
+ * All bits can be dynamically updated as long as any set of the following
+ * 
+ * conditions are true:
+ * 
+ * * DW_apb_i2c is NOT enabled (IC_ENABLE[0] is set to 0);
+ * 
+ * or
+ * 
+ * * DW_apb_i2c is enabled (IC_ENABLE[0]=1);
+ * 
+ * AND
+ * 
+ * DW_apb_i2c is NOT engaged in any Master (tx, rx) operation (IC_STATUS[5]=0);
+ * 
+ * AND
+ * 
+ * DW_apb_i2c is enabled to operate in Master mode (IC_CON[0]=1);
+ * 
+ * AND
+ * 
+ * there are NO entries in the TX FIFO (IC_STATUS[2]=1)
  * 
  * Register Layout
  * 
- *  Bits    | Access | Reset | Description                  
- * :--------|:-------|:------|:------------------------------
- *  [9:0]   | RW     | 0x55  | Master Target Address        
- *  [10]    | RW     | 0x0   | General Call OR Start        
- *  [11]    | RW     | 0x0   | Special                      
- *  [12]    | RW     | 0x1   | Master Addressing Bit Control
- *  [31:13] | ???    | 0x0   | *UNDEFINED*                  
+ *  Bits    | Access | Reset | Description                 
+ * :--------|:-------|:------|:-----------------------------
+ *  [9:0]   | RW     | 0x55  | ALT_I2C_TAR_IC_TAR          
+ *  [10]    | RW     | 0x0   | ALT_I2C_TAR_GC_OR_START     
+ *  [11]    | RW     | 0x0   | ALT_I2C_TAR_SPECIAL         
+ *  [12]    | RW     | 0x1   | ALT_I2C_TAR_IC_10BITADDR_MST
+ *  [31:13] | ???    | 0x0   | *UNDEFINED*                 
  * 
  */
 /*
- * Field : Master Target Address - ic_tar
+ * Field : ic_tar
  * 
- * This is the target address for any master transaction. When transmitting a
- * General Call, these bits are ignored. To generate a START BYTE, the CPU needs to
- * write only once into these bits. If the ic_tar and ic_sar are the same, loopback
- * exists but the FIFOs are shared between master and slave, so full loopback is
- * not feasible. Only one direction loopback mode is supported (simplex), not
- * duplex. A master cannot transmit to itself; it can transmit to only a slave.
+ * This is the target address for any master transaction. When
+ * 
+ * transmitting a General Call, these bits are ignored. To generate a
+ * 
+ * START BYTE, the CPU needs to write only once into these bits.
+ * 
+ * Reset value: IC_DEFAULT_TAR_SLAVE_ADDR configuration
+ * 
+ * parameter
+ * 
+ * If the IC_TAR and IC_SAR are the same, loopback exists but the
+ * 
+ * FIFOs are shared between master and slave, so full loopback is
+ * 
+ * not feasible. Only one direction loopback mode is supported
+ * 
+ * (simplex), not duplex. A master cannot transmit to itself; it can
+ * 
+ * transmit to only a slave.
  * 
  * Field Access Macros:
  * 
@@ -457,14 +768,27 @@ typedef volatile struct ALT_I2C_CON_s  ALT_I2C_CON_t;
 #define ALT_I2C_TAR_IC_TAR_SET(value) (((value) << 0) & 0x000003ff)
 
 /*
- * Field : General Call OR Start - gc_or_start
+ * Field : gc_or_start
  * 
- * If bit 11 (SPECIAL) of this Register is set to 1, then this bit indicates
- * whether a General Call or START byte command is to be performed by the I2C or
- * General Call Address after issuing a General Call, only writes may be performed.
- * Attempting to issue a read command results in setting bit 6 (TX_ABRT) of the Raw
- * Interrupt_Status register. The I2C remains in General Call mode until the
- * special bit value (bit 11) is cleared.
+ * If bit 11 (SPECIAL) is set to 1, then this bit indicates whether a
+ * 
+ * General Call or START byte command is to be performed by the
+ * 
+ * DW_apb_i2c.
+ * 
+ * 0: General Call Address  after issuing a General Call, only writes
+ * 
+ * may be performed. Attempting to issue a read command results in
+ * 
+ * setting bit 6 (TX_ABRT) of the IC_RAW_INTR_STAT register.
+ * 
+ * The DW_apb_i2c remains in General Call mode until the
+ * 
+ * SPECIAL bit value (bit 11) is cleared.
+ * 
+ * 1: START BYTE
+ * 
+ * Reset value: 0x0
  * 
  * Field Enumeration Values:
  * 
@@ -507,10 +831,19 @@ typedef volatile struct ALT_I2C_CON_s  ALT_I2C_CON_t;
 #define ALT_I2C_TAR_GC_OR_START_SET(value) (((value) << 10) & 0x00000400)
 
 /*
- * Field : Special - special
+ * Field : special
  * 
- * This bit indicates whether software performs a General Call or START BYTE
- * command.
+ * This bit indicates whether software performs a General Call or
+ * 
+ * START BYTE command.
+ * 
+ * 0: ignore bit 10 GC_OR_START and use IC_TAR normally
+ * 
+ * 1: perform special I2C command as specified in GC_OR_START
+ * 
+ * bit
+ * 
+ * Reset value: 0x0
  * 
  * Field Enumeration Values:
  * 
@@ -555,10 +888,25 @@ typedef volatile struct ALT_I2C_CON_s  ALT_I2C_CON_t;
 #define ALT_I2C_TAR_SPECIAL_SET(value) (((value) << 11) & 0x00000800)
 
 /*
- * Field : Master Addressing Bit Control - ic_10bitaddr_master
+ * Field : ic_10bitaddr_master
  * 
- * This bit controls whether the i2c starts its transfers in 7-bit or 10-bit
- * addressing mode when acting as a master.
+ * This bit controls whether the DW_apb_i2c starts its transfers in 7-
+ * 
+ * or 10-bit addressing mode when acting as a master.
+ * 
+ * 0: 7-bit addressing
+ * 
+ * 1: 10-bit addressing
+ * 
+ * Dependencies: This bit exists in this register only if the
+ * 
+ * I2C_DYNAMIC_TAR_UPDATE configuration parameter is set
+ * 
+ * to 'Yes' (1).
+ * 
+ * Reset value: IC_10BITADDR_MASTER configuration
+ * 
+ * parameter
  * 
  * Field Enumeration Values:
  * 
@@ -613,10 +961,10 @@ typedef volatile struct ALT_I2C_CON_s  ALT_I2C_CON_t;
  */
 struct ALT_I2C_TAR_s
 {
-    uint32_t  ic_tar              : 10;  /* Master Target Address */
-    uint32_t  gc_or_start         :  1;  /* General Call OR Start */
-    uint32_t  special             :  1;  /* Special */
-    uint32_t  ic_10bitaddr_master :  1;  /* Master Addressing Bit Control */
+    uint32_t  ic_tar              : 10;  /* ALT_I2C_TAR_IC_TAR */
+    uint32_t  gc_or_start         :  1;  /* ALT_I2C_TAR_GC_OR_START */
+    uint32_t  special             :  1;  /* ALT_I2C_TAR_SPECIAL */
+    uint32_t  ic_10bitaddr_master :  1;  /* ALT_I2C_TAR_IC_10BITADDR_MST */
     uint32_t                      : 19;  /* *UNDEFINED* */
 };
 
@@ -624,39 +972,58 @@ struct ALT_I2C_TAR_s
 typedef volatile struct ALT_I2C_TAR_s  ALT_I2C_TAR_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_TAR register. */
+#define ALT_I2C_TAR_RESET       0x00001055
 /* The byte offset of the ALT_I2C_TAR register from the beginning of the component. */
 #define ALT_I2C_TAR_OFST        0x4
 /* The address of the ALT_I2C_TAR register. */
 #define ALT_I2C_TAR_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_TAR_OFST))
 
 /*
- * Register : Slave Address Register - ic_sar
+ * Register : ic_sar
  * 
- * Holds Address of Slave
+ * Name: I2C Slave Address Register
+ * 
+ * Size: 10 bits
+ * 
+ * Address Offset: 0x08
+ * 
+ * Read/Write Access: Read/Write
  * 
  * Register Layout
  * 
- *  Bits    | Access | Reset | Description  
- * :--------|:-------|:------|:--------------
- *  [9:0]   | RW     | 0x55  | Slave Address
- *  [31:10] | ???    | 0x0   | *UNDEFINED*  
+ *  Bits    | Access | Reset | Description       
+ * :--------|:-------|:------|:-------------------
+ *  [9:0]   | RW     | 0x55  | ALT_I2C_SAR_IC_SAR
+ *  [31:10] | ???    | 0x0   | *UNDEFINED*       
  * 
  */
 /*
- * Field : Slave Address - ic_sar
+ * Field : ic_sar
  * 
- * The Slave Address register holds the slave address when the I2C is operating as
- * a slave. For 7-bit addressing, only Field Bits [6:0] of the Slave Address
- * Register are used. This register can be written only when the I2C interface is
- * disabled, which corresponds to field bit 0 of the Enable Register being set to
- * 0. Writes at other times have no effect.
+ * The IC_SAR holds the slave address when the I2C is operating as a slave. For
+ * 7-bit
  * 
- * Note, the default values cannot be any of the reserved address locations: that
- * is,
+ * addressing, only IC_SAR[6:0] is used.
  * 
- * 0x00 to 0x07, or 0x78 to 0x7f. The correct operation of the device is not
- * guaranteed if you program the Slave Address Register or Target Address Register
- * to a reserved value.
+ * This register can be written only when the I2C interface is disabled, which
+ * 
+ * corresponds to the IC_ENABLE[0] register being set to 0. Writes at other times
+ * have
+ * 
+ * no effect.
+ * 
+ * Note
+ * 
+ * The default values cannot be any of the reserved address locations:
+ * 
+ * that is, 0x00 to 0x07, or 0x78 to 0x7f. The correct operation of the
+ * 
+ * device is not guaranteed if you program the IC_SAR or IC_TAR to
+ * 
+ * a reserved value.
+ * 
+ * Reset value: IC_DEFAULT_SLAVE_ADDR configuration parameter
  * 
  * Field Access Macros:
  * 
@@ -691,7 +1058,7 @@ typedef volatile struct ALT_I2C_TAR_s  ALT_I2C_TAR_t;
  */
 struct ALT_I2C_SAR_s
 {
-    uint32_t  ic_sar : 10;  /* Slave Address */
+    uint32_t  ic_sar : 10;  /* ALT_I2C_SAR_IC_SAR */
     uint32_t         : 22;  /* *UNDEFINED* */
 };
 
@@ -699,35 +1066,69 @@ struct ALT_I2C_SAR_s
 typedef volatile struct ALT_I2C_SAR_s  ALT_I2C_SAR_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_SAR register. */
+#define ALT_I2C_SAR_RESET       0x00000055
 /* The byte offset of the ALT_I2C_SAR register from the beginning of the component. */
 #define ALT_I2C_SAR_OFST        0x8
 /* The address of the ALT_I2C_SAR register. */
 #define ALT_I2C_SAR_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_SAR_OFST))
 
 /*
- * Register : Tx Rx Data and Command Register - ic_data_cmd
+ * Register : ic_data_cmd
  * 
- * This is the register the CPU writes to when filling the TX FIFO. Reading from
- * this register returns bytes from RX FIFO.
+ * Name: I2C Rx/Tx Data Buffer and Command Register;
+ * 
+ * this is the register the CPU writes to when
+ * 
+ * filling the TX FIFO and the CPU reads from when
+ * 
+ * retrieving bytes from RX FIFO
+ * 
+ * Size:
+ * 
+ * When IC_EMPTYFIFO_HOLD_MASTER_EN=1 - 11 bits (writes), 8 bits (read)
+ * 
+ * When IC_EMPTYFIFO_HOLD_MASTER_EN=0 - 9 bits (writes), 8 bits (read)
+ * 
+ * Address Offset: 0x10
+ * 
+ * Read/Write Access: Read/Write
+ * 
+ * NOTE: With nine bits required for writes,
+ * 
+ * the DW_apb_i2c requires 16-bit data on the
+ * 
+ * APB bus transfers when writing into the
+ * 
+ * transmit FIFO. Eight-bit transfers remain for
+ * 
+ * reads from the receive FIFO.
  * 
  * Register Layout
  * 
- *  Bits    | Access | Reset | Description              
- * :--------|:-------|:------|:--------------------------
- *  [7:0]   | RW     | 0x0   | Tx Rx Data               
- *  [8]     | W      | 0x0   | Master Read Write Control
- *  [9]     | W      | 0x0   | Generate Stop            
- *  [10]    | W      | 0x0   | Generate Restart         
- *  [31:11] | ???    | 0x0   | *UNDEFINED*              
+ *  Bits    | Access | Reset | Description             
+ * :--------|:-------|:------|:-------------------------
+ *  [7:0]   | RW     | 0x0   | ALT_I2C_DATA_CMD_DAT    
+ *  [8]     | W      | 0x0   | ALT_I2C_DATA_CMD_CMD    
+ *  [9]     | W      | 0x0   | ALT_I2C_DATA_CMD_STOP   
+ *  [10]    | W      | 0x0   | ALT_I2C_DATA_CMD_RESTART
+ *  [31:11] | ???    | 0x0   | *UNDEFINED*             
  * 
  */
 /*
- * Field : Tx Rx Data - dat
+ * Field : dat
  * 
- * This Field  contains the data to be transmitted or received on the I2C bus. If
- * you are writing to these bits and want to perform a read, bits 7:0 (dat) are
- * ignored by the I2C. However, when you read from this register, these bits return
- * the value of data received on the I2C interface.
+ * This register contains the data to be transmitted or received on the I2C bus.
+ * 
+ * If you are writing to this register and want to perform a read,
+ * 
+ * bits 7:0 (DAT) are ignored by the DW_apb_i2c. However, when you read
+ * 
+ * this register, these bits return the value of data received on the
+ * 
+ * DW_apb_i2c interface.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -750,31 +1151,61 @@ typedef volatile struct ALT_I2C_SAR_s  ALT_I2C_SAR_t;
 #define ALT_I2C_DATA_CMD_DAT_SET(value) (((value) << 0) & 0x000000ff)
 
 /*
- * Field : Master Read Write Control - cmd
+ * Field : cmd
  * 
- * This bit controls whether a read or a write is performed. This bit does not
- * control the direction when the I2C acts as a slave. It controls only the
- * direction when it acts as a master. When a command is entered in the TX FIFO,
- * this bit distinguishes the write and read commands. In slave-receiver mode, this
- * bit is a 'don't care' because writes to this register are not required. In
- * slave-transmitter mode, a '0' indicates that the CPU data is to be transmitted.
+ * This bit controls whether a read or a write is performed.
+ * 
+ * This bit does not control the direction when the DW_apb_i2c
+ * 
+ * acts as a slave. It controls only the direction
+ * 
+ * when it acts as a master.
+ * 
+ * 1 = Read
+ * 
+ * 0 = Write
+ * 
+ * When a command is entered in the TX FIFO, this bit distinguishes the write and
+ * 
+ * read commands. In slave-receiver mode, this bit is a 'don't care' because writes
+ * to
+ * 
+ * this register are not required. In slave-transmitter mode, a '0' indicates that
+ * CPU
+ * 
+ * data is to be transmitted and as DAT or IC_DATA_CMD[7:0].
+ * 
  * When programming this bit, you should remember the following: attempting to
- * perform a read operation after a General Call command has been sent results in a
- * tx_abrt interrupt (bit 6 of the Raw Intr Status Register), unless bit 11 special
- * in the Target Address Register has been cleared. If a '1' is written to this bit
- * after receiving a RD_REQ interrupt, then a tx_abrt interrupt occurs.
  * 
- * NOTE: It is possible that while attempting a master I2C read transfer on I2C, a
- * RD_REQ interrupt may have occurred simultaneously due to a remote I2C master
- * addressing I2C. In this type of scenario, I2C ignores the Data Cmd write,
- * generates a tx_abrt interrupt, and waits to service the RD_REQ interrupt.
+ * perform a read operation after a General Call command has been sent results in a
+ * 
+ * TX_ABRT interrupt (bit 6 of the IC_RAW_INTR_STAT register), unless bit 11
+ * 
+ * (SPECIAL) in the IC_TAR register has been cleared.
+ * 
+ * If a '1' is written to this bit after receiving a RD_REQ interrupt, then a
+ * TX_ABRT
+ * 
+ * interrupt occurs.
+ * 
+ * NOTE: It is possible that while attempting a master I2C read transfer on
+ * 
+ * DW_apb_i2c, a RD_REQ interrupt may have occurred simultaneously due to a
+ * 
+ * remote I2C master addressing DW_apb_i2c. In this type of scenario, DW_apb_i2c
+ * 
+ * ignores the IC_DATA_CMD write, generates a TX_ABRT interrupt, and waits to
+ * 
+ * service the RD_REQ interrupt.
+ * 
+ * Reset value: 0x0
  * 
  * Field Enumeration Values:
  * 
  *  Enum                      | Value | Description 
  * :--------------------------|:------|:-------------
- *  ALT_I2C_DATA_CMD_CMD_E_RD | 0x1   | Master Read 
  *  ALT_I2C_DATA_CMD_CMD_E_WR | 0x0   | Master Write
+ *  ALT_I2C_DATA_CMD_CMD_E_RD | 0x1   | Master Read 
  * 
  * Field Access Macros:
  * 
@@ -782,15 +1213,15 @@ typedef volatile struct ALT_I2C_SAR_s  ALT_I2C_SAR_t;
 /*
  * Enumerated value for register field ALT_I2C_DATA_CMD_CMD
  * 
- * Master Read
- */
-#define ALT_I2C_DATA_CMD_CMD_E_RD   0x1
-/*
- * Enumerated value for register field ALT_I2C_DATA_CMD_CMD
- * 
  * Master Write
  */
 #define ALT_I2C_DATA_CMD_CMD_E_WR   0x0
+/*
+ * Enumerated value for register field ALT_I2C_DATA_CMD_CMD
+ * 
+ * Master Read
+ */
+#define ALT_I2C_DATA_CMD_CMD_E_RD   0x1
 
 /* The Least Significant Bit (LSB) position of the ALT_I2C_DATA_CMD_CMD register field. */
 #define ALT_I2C_DATA_CMD_CMD_LSB        8
@@ -810,43 +1241,35 @@ typedef volatile struct ALT_I2C_SAR_s  ALT_I2C_SAR_t;
 #define ALT_I2C_DATA_CMD_CMD_SET(value) (((value) << 8) & 0x00000100)
 
 /*
- * Field : Generate Stop - stop
+ * Field : stop
  * 
  * This bit controls whether a STOP is issued after the byte is sent or received.
  * 
- * 1 = STOP is issued after this byte, regardless of whether or not the Tx FIFO is
+ * This bit is available only if IC_EMPTYFIFO_HOLD_MASTER_EN is configured to 1.
+ * 
+ * 1 - STOP is issued after this byte, regardless of whether or not the Tx FIFO is
+ * 
  * empty. If the Tx FIFO is not empty, the master immediately tries to start a new
+ * 
  * transfer by issuing a START and arbitrating for the bus.
  * 
- * 0 = STOP is not issued after this byte, regardless of whether or not the Tx FIFO
- * is empty. If the Tx FIFO is not empty, the master continues the current transfer
- * by sending/receiving data bytes according to the value of the CMD bit. If the Tx
- * FIFO is empty, the master holds the SCL line low and stalls the bus until a new
+ * 0 - STOP is not issued after this byte, regardless of whether or not the Tx FIFO
+ * is
+ * 
+ * empty. If the Tx FIFO is not empty, the master continues the current transfer by
+ * 
+ * sending/receiving data bytes according to the value of the CMD bit. If the Tx
+ * FIFO
+ * 
+ * is empty, the master holds the SCL line low and stalls the bus until a new
+ * 
  * command is available in the Tx FIFO.
  * 
- * Field Enumeration Values:
- * 
- *  Enum                            | Value | Description      
- * :--------------------------------|:------|:------------------
- *  ALT_I2C_DATA_CMD_STOP_E_STOP    | 0x1   | Issue Stop       
- *  ALT_I2C_DATA_CMD_STOP_E_NO_STOP | 0x0   | Do Not Issue Stop
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
  */
-/*
- * Enumerated value for register field ALT_I2C_DATA_CMD_STOP
- * 
- * Issue Stop
- */
-#define ALT_I2C_DATA_CMD_STOP_E_STOP    0x1
-/*
- * Enumerated value for register field ALT_I2C_DATA_CMD_STOP
- * 
- * Do Not Issue Stop
- */
-#define ALT_I2C_DATA_CMD_STOP_E_NO_STOP 0x0
-
 /* The Least Significant Bit (LSB) position of the ALT_I2C_DATA_CMD_STOP register field. */
 #define ALT_I2C_DATA_CMD_STOP_LSB        9
 /* The Most Significant Bit (MSB) position of the ALT_I2C_DATA_CMD_STOP register field. */
@@ -865,41 +1288,32 @@ typedef volatile struct ALT_I2C_SAR_s  ALT_I2C_SAR_t;
 #define ALT_I2C_DATA_CMD_STOP_SET(value) (((value) << 9) & 0x00000200)
 
 /*
- * Field : Generate Restart - restart
+ * Field : restart
  * 
  * This bit controls whether a RESTART is issued before the byte is sent or
  * received.
  * 
- * 1 = A RESTART is issued before the data is sent/received (according to the value
- * of CMD), regardless of whether or not the transfer direction is changing from
- * the previous command.
+ * This bit is available only if IC_EMPTYFIFO_HOLD_MASTER_EN is configured to 1.
  * 
- * 0 = A RESTART is issued only if the transfer direction is changing from the
- * previous command.
+ * 1 - If IC_RESTART_EN is 1, a RESTART is issued before the data is
  * 
- * Field Enumeration Values:
+ * sent/received (according to the value of CMD), regardless of whether or not the
  * 
- *  Enum                                             | Value | Description                      
- * :-------------------------------------------------|:------|:----------------------------------
- *  ALT_I2C_DATA_CMD_RESTART_E_RESTART               | 0x1   | Issue Restart                    
- *  ALT_I2C_DATA_CMD_RESTART_E_RESTART_ON_DIR_CHANGE | 0x0   | Issue Restart On Direction Change
+ * transfer direction is changing from the previous command; if IC_RESTART_EN
+ * 
+ * is 0, a STOP followed by a START is issued instead.
+ * 
+ * 0 - If IC_RESTART_EN is 1, a RESTART is issued only if the transfer direction is
+ * 
+ * changing from the previous command; if IC_RESTART_EN is 0, a STOP followed
+ * 
+ * by a START is issued instead.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
  */
-/*
- * Enumerated value for register field ALT_I2C_DATA_CMD_RESTART
- * 
- * Issue Restart
- */
-#define ALT_I2C_DATA_CMD_RESTART_E_RESTART                  0x1
-/*
- * Enumerated value for register field ALT_I2C_DATA_CMD_RESTART
- * 
- * Issue Restart On Direction Change
- */
-#define ALT_I2C_DATA_CMD_RESTART_E_RESTART_ON_DIR_CHANGE    0x0
-
 /* The Least Significant Bit (LSB) position of the ALT_I2C_DATA_CMD_RESTART register field. */
 #define ALT_I2C_DATA_CMD_RESTART_LSB        10
 /* The Most Significant Bit (MSB) position of the ALT_I2C_DATA_CMD_RESTART register field. */
@@ -930,10 +1344,10 @@ typedef volatile struct ALT_I2C_SAR_s  ALT_I2C_SAR_t;
  */
 struct ALT_I2C_DATA_CMD_s
 {
-    uint32_t  dat     :  8;  /* Tx Rx Data */
-    uint32_t  cmd     :  1;  /* Master Read Write Control */
-    uint32_t  stop    :  1;  /* Generate Stop */
-    uint32_t  restart :  1;  /* Generate Restart */
+    uint32_t  dat     :  8;  /* ALT_I2C_DATA_CMD_DAT */
+    uint32_t  cmd     :  1;  /* ALT_I2C_DATA_CMD_CMD */
+    uint32_t  stop    :  1;  /* ALT_I2C_DATA_CMD_STOP */
+    uint32_t  restart :  1;  /* ALT_I2C_DATA_CMD_RESTART */
     uint32_t          : 21;  /* *UNDEFINED* */
 };
 
@@ -941,38 +1355,68 @@ struct ALT_I2C_DATA_CMD_s
 typedef volatile struct ALT_I2C_DATA_CMD_s  ALT_I2C_DATA_CMD_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_DATA_CMD register. */
+#define ALT_I2C_DATA_CMD_RESET       0x00000000
 /* The byte offset of the ALT_I2C_DATA_CMD register from the beginning of the component. */
 #define ALT_I2C_DATA_CMD_OFST        0x10
 /* The address of the ALT_I2C_DATA_CMD register. */
 #define ALT_I2C_DATA_CMD_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_DATA_CMD_OFST))
 
 /*
- * Register : Std Spd Clock SCL HCNT Register - ic_ss_scl_hcnt
+ * Register : ic_ss_scl_hcnt
  * 
- * This register sets the SCL clock high-period count for standard speed.
+ * Name: Standard Speed I2C Clock SCL High Count Register
+ * 
+ * Size: 16 bits
+ * 
+ * Address Offset: 0x14
+ * 
+ * Read/Write Access: Read/Write
  * 
  * Register Layout
  * 
- *  Bits    | Access | Reset | Description            
- * :--------|:-------|:------|:------------------------
- *  [15:0]  | RW     | 0x190 | Std Spd SCL High Period
- *  [31:16] | ???    | 0x0   | *UNDEFINED*            
+ *  Bits    | Access | Reset | Description                       
+ * :--------|:-------|:------|:-----------------------------------
+ *  [15:0]  | RW     | 0x190 | ALT_I2C_SS_SCL_HCNT_IC_SS_SCL_HCNT
+ *  [31:16] | ???    | 0x0   | *UNDEFINED*                       
  * 
  */
 /*
- * Field : Std Spd SCL High Period - ic_ss_scl_hcnt
+ * Field : ic_ss_scl_hcnt
  * 
  * This register must be set before any I2C bus transaction can take place to
- * ensure proper I/O timing. This field sets the SCL clock high-period count for
- * standard speed. This register can be written only when the I2C interface is
- * disabled which corresponds to the Enable Register being set to 0. Writes at
- * other times have no effect. The minimum valid value is 6; hardware prevents
- * values less than this being written, and if attempted results in 6 being set. It
- * is readable and writeable.
  * 
- * NOTE: This register must not be programmed to a value higher than 65525, because
- * I2C uses a 16-bit counter to flag an I2C bus idle condition when this counter
- * reaches a value of IC_SS_SCL_HCNT + 10.
+ * ensure proper I/O timing. This register sets the SCL clock high-period
+ * 
+ * count for standard speed.
+ * 
+ * This register can be written only when the I2C interface is disabled which
+ * 
+ * corresponds to the IC_ENABLE[0] register being set to 0. Writes at other
+ * 
+ * times have no effect.
+ * 
+ * The minimum valid value is 6; hardware prevents values less than this
+ * 
+ * being written, and if attempted results in 6 being set. For designs with
+ * 
+ * APB_DATA_WIDTH = 8, the order of programming is important to ensure
+ * 
+ * the correct operation of the DW_apb_i2c. The lower byte must be
+ * 
+ * programmed first. Then the upper byte is programmed.
+ * 
+ * When the configuration parameter IC_HC_COUNT_VALUES is set to 1,
+ * 
+ * this register is read only.
+ * 
+ * NOTE: This register must not be programmed to a value higher than
+ * 
+ * 65525, because DW_apb_i2c uses a 16-bit counter to flag an I2C bus idle
+ * 
+ * condition when this counter reaches a value of IC_SS_SCL_HCNT + 10.
+ * 
+ * Reset value: IC_SS_SCL_HIGH_COUNT configuration parameter
  * 
  * Field Access Macros:
  * 
@@ -1007,7 +1451,7 @@ typedef volatile struct ALT_I2C_DATA_CMD_s  ALT_I2C_DATA_CMD_t;
  */
 struct ALT_I2C_SS_SCL_HCNT_s
 {
-    uint32_t  ic_ss_scl_hcnt : 16;  /* Std Spd SCL High Period */
+    uint32_t  ic_ss_scl_hcnt : 16;  /* ALT_I2C_SS_SCL_HCNT_IC_SS_SCL_HCNT */
     uint32_t                 : 16;  /* *UNDEFINED* */
 };
 
@@ -1015,34 +1459,62 @@ struct ALT_I2C_SS_SCL_HCNT_s
 typedef volatile struct ALT_I2C_SS_SCL_HCNT_s  ALT_I2C_SS_SCL_HCNT_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_SS_SCL_HCNT register. */
+#define ALT_I2C_SS_SCL_HCNT_RESET       0x00000190
 /* The byte offset of the ALT_I2C_SS_SCL_HCNT register from the beginning of the component. */
 #define ALT_I2C_SS_SCL_HCNT_OFST        0x14
 /* The address of the ALT_I2C_SS_SCL_HCNT register. */
 #define ALT_I2C_SS_SCL_HCNT_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_SS_SCL_HCNT_OFST))
 
 /*
- * Register : Std Spd Clock SCL LCNT Register - ic_ss_scl_lcnt
+ * Register : ic_ss_scl_lcnt
  * 
- * This register sets the SCL clock low-period count for standard speed
+ * Name: Standard Speed I2C Clock SCL Low Count Register
+ * 
+ * Size: 16 bits
+ * 
+ * Address Offset: 0x18
+ * 
+ * Read/Write Access: Read/Write
  * 
  * Register Layout
  * 
- *  Bits    | Access | Reset | Description           
- * :--------|:-------|:------|:-----------------------
- *  [15:0]  | RW     | 0x1d6 | Std Spd SCL Low Period
- *  [31:16] | ???    | 0x0   | *UNDEFINED*           
+ *  Bits    | Access | Reset | Description                       
+ * :--------|:-------|:------|:-----------------------------------
+ *  [15:0]  | RW     | 0x1d6 | ALT_I2C_SS_SCL_LCNT_IC_SS_SCL_LCNT
+ *  [31:16] | ???    | 0x0   | *UNDEFINED*                       
  * 
  */
 /*
- * Field : Std Spd SCL Low Period - ic_ss_scl_lcnt
+ * Field : ic_ss_scl_lcnt
  * 
  * This register must be set before any I2C bus transaction can take place to
- * ensure proper I/O timing. This field sets the SCL clock low period count for
- * standard speed. This register can be written only when the I2C interface is
- * disabled which corresponds to the Enable Register register being set to 0.
- * Writes at other times have no effect. The minimum valid value is 8; hardware
- * prevents values less than this from being written, and if attempted, results in
- * 8 being set.
+ * 
+ * ensure proper I/O timing. This register sets the SCL clock low period
+ * 
+ * count for standard speed.
+ * 
+ * This register can be written only when the I2C interface is disabled which
+ * 
+ * corresponds to the IC_ENABLE[0] register being set to 0. Writes at other
+ * 
+ * times have no effect.
+ * 
+ * The minimum valid value is 8; hardware prevents values less than this
+ * 
+ * being written, and if attempted, results in 8 being set. For designs with
+ * 
+ * APB_DATA_WIDTH = 8, the order of programming is important to
+ * 
+ * ensure the correct operation of DW_apb_i2c. The lower byte must be
+ * 
+ * programmed first, and then the upper byte is programmed.
+ * 
+ * When the configuration parameter IC_HC_COUNT_VALUES is set to 1,
+ * 
+ * this register is read only.
+ * 
+ * Reset value: IC_SS_SCL_LOW_COUNT configuration parameter
  * 
  * Field Access Macros:
  * 
@@ -1077,7 +1549,7 @@ typedef volatile struct ALT_I2C_SS_SCL_HCNT_s  ALT_I2C_SS_SCL_HCNT_t;
  */
 struct ALT_I2C_SS_SCL_LCNT_s
 {
-    uint32_t  ic_ss_scl_lcnt : 16;  /* Std Spd SCL Low Period */
+    uint32_t  ic_ss_scl_lcnt : 16;  /* ALT_I2C_SS_SCL_LCNT_IC_SS_SCL_LCNT */
     uint32_t                 : 16;  /* *UNDEFINED* */
 };
 
@@ -1085,36 +1557,67 @@ struct ALT_I2C_SS_SCL_LCNT_s
 typedef volatile struct ALT_I2C_SS_SCL_LCNT_s  ALT_I2C_SS_SCL_LCNT_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_SS_SCL_LCNT register. */
+#define ALT_I2C_SS_SCL_LCNT_RESET       0x000001d6
 /* The byte offset of the ALT_I2C_SS_SCL_LCNT register from the beginning of the component. */
 #define ALT_I2C_SS_SCL_LCNT_OFST        0x18
 /* The address of the ALT_I2C_SS_SCL_LCNT register. */
 #define ALT_I2C_SS_SCL_LCNT_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_SS_SCL_LCNT_OFST))
 
 /*
- * Register : Fast Spd Clock SCL HCNT Register - ic_fs_scl_hcnt
+ * Register : ic_fs_scl_hcnt
  * 
- * This register sets the SCL clock high-period count for fast speed
+ * Name: Fast Mode or Fast Mode Plus I2C Clock SCL High Count Register
+ * 
+ * Size: 16 bits
+ * 
+ * Address Offset: 0x1c
+ * 
+ * Read/Write Access: Read/Write
  * 
  * Register Layout
  * 
- *  Bits    | Access | Reset | Description             
- * :--------|:-------|:------|:-------------------------
- *  [15:0]  | RW     | 0x3c  | Fast Spd SCL High Period
- *  [31:16] | ???    | 0x0   | *UNDEFINED*             
+ *  Bits    | Access | Reset | Description                       
+ * :--------|:-------|:------|:-----------------------------------
+ *  [15:0]  | RW     | 0x3c  | ALT_I2C_FS_SCL_HCNT_IC_FS_SCL_HCNT
+ *  [31:16] | ???    | 0x0   | *UNDEFINED*                       
  * 
  */
 /*
- * Field : Fast Spd SCL High Period - ic_fs_scl_hcnt
+ * Field : ic_fs_scl_hcnt
  * 
  * This register must be set before any I2C bus transaction can take place to
- * ensure proper I/O timing. This register sets the SCL clock high-period count for
- * fast speed. It is used in high-speed mode to send the Master Code and START BYTE
- * or General CALL. This register goes away and becomes read-only returning 0s if
- * in Standard Speed Mode. This register can be written only when the I2C interface
- * is disabled, which corresponds to the Enable Register being set to 0. Writes at
- * other times have no effect. The minimum valid value is 6; hardware prevents
- * values less than this from being written, and if attempted results in 6 being
- * set.
+ * 
+ * ensure proper I/O timing. This register sets the SCL clock high-period
+ * 
+ * count for fast mode or fast mode plus. It is used in high-speed mode to send the
+ * Master Code
+ * 
+ * and START BYTE or General CALL.
+ * 
+ * This register goes away and becomes read-only returning 0s if
+ * 
+ * IC_MAX_SPEED_MODE = standard. This register can be written only
+ * 
+ * when the I2C interface is disabled, which corresponds to the IC_ENABLE[0]
+ * 
+ * register being set to 0. Writes at other times have no effect.
+ * 
+ * The minimum valid value is 6; hardware prevents values less than this
+ * 
+ * being written, and if attempted results in 6 being set. For designs with
+ * 
+ * APB_DATA_WIDTH == 8 the order of programming is important to
+ * 
+ * ensure the correct operation of the DW_apb_i2c. The lower byte must be
+ * 
+ * programmed first. Then the upper byte is programmed.
+ * 
+ * When the configuration parameter IC_HC_COUNT_VALUES is set to 1,
+ * 
+ * this register is read only.
+ * 
+ * Reset value: IC_FS_SCL_HIGH_COUNT configuration parameter
  * 
  * Field Access Macros:
  * 
@@ -1149,7 +1652,7 @@ typedef volatile struct ALT_I2C_SS_SCL_LCNT_s  ALT_I2C_SS_SCL_LCNT_t;
  */
 struct ALT_I2C_FS_SCL_HCNT_s
 {
-    uint32_t  ic_fs_scl_hcnt : 16;  /* Fast Spd SCL High Period */
+    uint32_t  ic_fs_scl_hcnt : 16;  /* ALT_I2C_FS_SCL_HCNT_IC_FS_SCL_HCNT */
     uint32_t                 : 16;  /* *UNDEFINED* */
 };
 
@@ -1157,34 +1660,70 @@ struct ALT_I2C_FS_SCL_HCNT_s
 typedef volatile struct ALT_I2C_FS_SCL_HCNT_s  ALT_I2C_FS_SCL_HCNT_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_FS_SCL_HCNT register. */
+#define ALT_I2C_FS_SCL_HCNT_RESET       0x0000003c
 /* The byte offset of the ALT_I2C_FS_SCL_HCNT register from the beginning of the component. */
 #define ALT_I2C_FS_SCL_HCNT_OFST        0x1c
 /* The address of the ALT_I2C_FS_SCL_HCNT register. */
 #define ALT_I2C_FS_SCL_HCNT_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_FS_SCL_HCNT_OFST))
 
 /*
- * Register : Fast Spd Clock SCL LCNT Register - ic_fs_scl_lcnt
+ * Register : ic_fs_scl_lcnt
  * 
- * This register sets the SCL clock low period count
+ * Name: Fast Mode or Fast Mode Plus I2C Clock SCL Low Count Register
+ * 
+ * Size: 16 bits
+ * 
+ * Address Offset: 0x20
+ * 
+ * Read/Write Access: Read/Write
  * 
  * Register Layout
  * 
- *  Bits    | Access | Reset | Description            
- * :--------|:-------|:------|:------------------------
- *  [15:0]  | RW     | 0x82  | Fast Spd SCL Low Period
- *  [31:16] | ???    | 0x0   | *UNDEFINED*            
+ *  Bits    | Access | Reset | Description                       
+ * :--------|:-------|:------|:-----------------------------------
+ *  [15:0]  | RW     | 0x82  | ALT_I2C_FS_SCL_LCNT_IC_FS_SCL_LCNT
+ *  [31:16] | ???    | 0x0   | *UNDEFINED*                       
  * 
  */
 /*
- * Field : Fast Spd SCL Low Period - ic_fs_scl_lcnt
+ * Field : ic_fs_scl_lcnt
  * 
  * This register must be set before any I2C bus transaction can take place to
- * ensure proper I/O timing. This field sets the SCL clock low period count for
- * fast speed. It is used in high-speed mode to send the Master Code and START BYTE
- * or General CALL. This register can be written only when the I2C interface is
- * disabled, which corresponds to the Enable Register being set to 0. Writes at
- * other times have no effect.The minimum valid value is 8; hardware prevents
- * values less than this being written, and if attempted results in 8 being set.
+ * 
+ * ensure proper I/O timing. This register sets the SCL clock low period count
+ * 
+ * for fast speed. It is used in high-speed mode to send the Master Code and
+ * 
+ * START BYTE or General CALL.
+ * 
+ * This register goes away and becomes read-only returning 0s if
+ * 
+ * IC_MAX_SPEED_MODE = standard.
+ * 
+ * This register can be written only when the I2C interface is disabled, which
+ * 
+ * corresponds to the IC_ENABLE[0] register being set to 0. Writes at other times
+ * 
+ * have no effect.
+ * 
+ * The minimum valid value is 8; hardware prevents values less than this
+ * 
+ * being written, and if attempted results in 8 being set. For designs with
+ * 
+ * APB_DATA_WIDTH = 8 the order of programming is important to ensure
+ * 
+ * the correct operation of the DW_apb_i2c. The lower byte must be
+ * 
+ * programmed first. Then the upper byte is programmed. If the value is less
+ * 
+ * than 8 then the count value gets changed to 8.
+ * 
+ * When the configuration parameter IC_HC_COUNT_VALUES is set to 1,
+ * 
+ * this register is read only.
+ * 
+ * Reset value: IC_FS_SCL_LOW_COUNT configuration parameter
  * 
  * Field Access Macros:
  * 
@@ -1219,7 +1758,7 @@ typedef volatile struct ALT_I2C_FS_SCL_HCNT_s  ALT_I2C_FS_SCL_HCNT_t;
  */
 struct ALT_I2C_FS_SCL_LCNT_s
 {
-    uint32_t  ic_fs_scl_lcnt : 16;  /* Fast Spd SCL Low Period */
+    uint32_t  ic_fs_scl_lcnt : 16;  /* ALT_I2C_FS_SCL_LCNT_IC_FS_SCL_LCNT */
     uint32_t                 : 16;  /* *UNDEFINED* */
 };
 
@@ -1227,45 +1766,65 @@ struct ALT_I2C_FS_SCL_LCNT_s
 typedef volatile struct ALT_I2C_FS_SCL_LCNT_s  ALT_I2C_FS_SCL_LCNT_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_FS_SCL_LCNT register. */
+#define ALT_I2C_FS_SCL_LCNT_RESET       0x00000082
 /* The byte offset of the ALT_I2C_FS_SCL_LCNT register from the beginning of the component. */
 #define ALT_I2C_FS_SCL_LCNT_OFST        0x20
 /* The address of the ALT_I2C_FS_SCL_LCNT register. */
 #define ALT_I2C_FS_SCL_LCNT_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_FS_SCL_LCNT_OFST))
 
 /*
- * Register : Interrupt Status Register - ic_intr_stat
+ * Register : ic_intr_stat
  * 
- * Each bit in this register has a corresponding mask bit in the Interrupt Mask
- * Register. These bits are cleared by reading the matching Interrupt Clear
- * Register. The unmasked raw versions of these bits are available in the Raw
- * Interrupt Status Register.
+ * Name: I2C Interrupt Status Register
+ * 
+ * Size: 14 bits
+ * 
+ * Address Offset: 0x2C
+ * 
+ * Read/Write Access: Read
+ * 
+ * Each bit in this register has a corresponding mask bit
+ * 
+ * in the IC_INTR_MASK register. These bits are cleared by reading the matching
+ * 
+ * interrupt clear register. The unmasked raw versions of these bits are
+ * 
+ * available in the IC_RAW_INTR_STAT register.
  * 
  * Register Layout
  * 
- *  Bits    | Access | Reset | Description             
- * :--------|:-------|:------|:-------------------------
- *  [0]     | R      | 0x0   | Receiver Under          
- *  [1]     | R      | 0x0   | Receiver Over           
- *  [2]     | R      | 0x0   | Receive Full            
- *  [3]     | R      | 0x0   | Interrupt Transmit Over 
- *  [4]     | R      | 0x0   | Interrupt Transmit Empty
- *  [5]     | R      | 0x0   | Interrupt Read Request  
- *  [6]     | R      | 0x0   | Interrupt TX Abort      
- *  [7]     | R      | 0x0   | Interrupt RX Done       
- *  [8]     | R      | 0x0   | Interrupt R_activity    
- *  [9]     | R      | 0x0   | Interrupt Stop Detect   
- *  [10]    | R      | 0x0   | Interrupt Start Detect  
- *  [11]    | R      | 0x0   | Interrupt General Call  
- *  [31:12] | ???    | 0x0   | *UNDEFINED*             
+ *  Bits    | Access | Reset | Description                    
+ * :--------|:-------|:------|:--------------------------------
+ *  [0]     | R      | 0x0   | ALT_I2C_INTR_STAT_R_RX_UNDER   
+ *  [1]     | R      | 0x0   | ALT_I2C_INTR_STAT_R_RX_OVER    
+ *  [2]     | R      | 0x0   | ALT_I2C_INTR_STAT_R_RX_FULL    
+ *  [3]     | R      | 0x0   | ALT_I2C_INTR_STAT_R_TX_OVER    
+ *  [4]     | R      | 0x0   | ALT_I2C_INTR_STAT_R_TX_EMPTY   
+ *  [5]     | R      | 0x0   | ALT_I2C_INTR_STAT_R_RD_REQ     
+ *  [6]     | R      | 0x0   | ALT_I2C_INTR_STAT_R_TX_ABRT    
+ *  [7]     | R      | 0x0   | ALT_I2C_INTR_STAT_R_RX_DONE    
+ *  [8]     | R      | 0x0   | ALT_I2C_INTR_STAT_R_ACTIVITY   
+ *  [9]     | R      | 0x0   | ALT_I2C_INTR_STAT_R_STOP_DET   
+ *  [10]    | R      | 0x0   | ALT_I2C_INTR_STAT_R_START_DET  
+ *  [11]    | R      | 0x0   | ALT_I2C_INTR_STAT_R_GEN_CALL   
+ *  [12]    | R      | 0x0   | ALT_I2C_INTR_STAT_R_RESTART_DET
+ *  [13]    | R      | 0x0   | ALT_I2C_INTR_STAT_R_MST_ON_HOLD
+ *  [31:14] | ???    | 0x0   | *UNDEFINED*                    
  * 
  */
 /*
- * Field : Receiver Under - r_rx_under
+ * Field : r_rx_under
  * 
  * Set if the processor attempts to read the receive buffer when it is empty by
- * reading from the Tx Rx Data and Command Register. If the module is disabled,
- * Enable Register is set to 0, this bit keeps its level until the master or slave
- * state machines go into idle, then this interrupt is cleared.
+ * 
+ * reading from the IC_DATA_CMD register. If the module is disabled
+ * 
+ * (IC_ENABLE[0]=0), this bit keeps its level until the master or slave state
+ * 
+ * machines go into idle, and when ic_en goes to 0, this interrupt is cleared.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -1288,13 +1847,26 @@ typedef volatile struct ALT_I2C_FS_SCL_LCNT_s  ALT_I2C_FS_SCL_LCNT_t;
 #define ALT_I2C_INTR_STAT_R_RX_UNDER_SET(value) (((value) << 0) & 0x00000001)
 
 /*
- * Field : Receiver Over - r_rx_over
+ * Field : r_rx_over
  * 
- * Set if the receive buffer is completely filled to 64 and an additional byte is
- * received from an external I2C device. The I2C acknowledges this, but any data
- * bytes received after the FIFO is full are lost. If the module is disabled,
- * Enable Register bit[0] is set to 0 this bit keeps its level until the master or
- * slave state machines go into idle, then this interrupt is cleared.
+ * Set if the receive buffer is completely filled to IC_RX_BUFFER_DEPTH and
+ * 
+ * an additional byte is received from an external I2C device. The DW_apb_i2c
+ * 
+ * acknowledges this, but any data bytes received after the FIFO is full are lost.
+ * If
+ * 
+ * the module is disabled (IC_ENABLE[0]=0), this bit keeps its level until the
+ * 
+ * master or slave state machines go into idle, and when ic_en goes to 0, this
+ * 
+ * interrupt is cleared.
+ * 
+ * NOTE: If the parameter IC_RX_FULL_HLD_BUS_EN=1, then the RX_OVER interrupt is
+ * 
+ * never set to 1, because the criteria to set this interrupt are never met.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -1317,14 +1889,21 @@ typedef volatile struct ALT_I2C_FS_SCL_LCNT_s  ALT_I2C_FS_SCL_LCNT_t;
 #define ALT_I2C_INTR_STAT_R_RX_OVER_SET(value) (((value) << 1) & 0x00000002)
 
 /*
- * Field : Receive Full - r_rx_full
+ * Field : r_rx_full
  * 
- * Set when the receive buffer reaches or goes above the Receive FIFO Threshold
- * Value(rx_tl). It is automatically cleared by hardware when buffer level goes
- * below the threshold. If the module is disabled, Bit [0] of the Enable Register
- * set to 0, the RX FIFO is flushed and held in reset; therefore the RX FIFO is not
- * full. So this bit is cleared once the Enable Register Bit 0 is programmed with a
- * 0, regardless of the activity that continues.
+ * Set when the receive buffer reaches or goes above the RX_TL threshold in the
+ * 
+ * IC_RX_TL register. It is automatically cleared by hardware when buffer level
+ * 
+ * goes below the threshold. If the module is disabled (IC_ENABLE[0]=0), the
+ * 
+ * RX FIFO is flushed and held in reset; therefore the RX FIFO is not full. So this
+ * 
+ * bit is cleared once the IC_ENABLE bit 0 is programmed with a 0, regardless of
+ * 
+ * the activity that continues.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -1347,12 +1926,19 @@ typedef volatile struct ALT_I2C_FS_SCL_LCNT_s  ALT_I2C_FS_SCL_LCNT_t;
 #define ALT_I2C_INTR_STAT_R_RX_FULL_SET(value) (((value) << 2) & 0x00000004)
 
 /*
- * Field : Interrupt Transmit Over - r_tx_over
+ * Field : r_tx_over
  * 
- * Set during transmit if the transmit buffer is filled to 64 and the processor
- * attempts to issue another I2C command by writing to the Data and Command
- * Register. When the module is disabled, this bit keeps its level until the master
- * or slave state machines goes into idle, then interrupt is cleared.
+ * Set during transmit if the transmit buffer is filled to IC_TX_BUFFER_DEPTH
+ * 
+ * and the processor attempts to issue another I2C command by writing to the
+ * 
+ * IC_DATA_CMD register. When the module is disabled, this bit keeps its level
+ * 
+ * until the master or slave state machines go into idle, and when ic_en goes to 0,
+ * 
+ * this interrupt is cleared.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -1375,14 +1961,37 @@ typedef volatile struct ALT_I2C_FS_SCL_LCNT_s  ALT_I2C_FS_SCL_LCNT_t;
 #define ALT_I2C_INTR_STAT_R_TX_OVER_SET(value) (((value) << 3) & 0x00000008)
 
 /*
- * Field : Interrupt Transmit Empty - r_tx_empty
+ * Field : r_tx_empty
  * 
- * This bit is set to 1 when the transmit buffer is at or below the threshold value
- * set in the ic_tx_tl register. It is automatically cleared by hardware when the
- * buffer level goes above the threshold. When the ic_enable bit 0 is 0, the TX
- * FIFO is flushed and held in reset. There the TX FIFO looks like it has no data
- * within it, so this bit is set to 1, provided there is activity in the master or
- * slave state machines. When there is no longer activity, this bit is set to 0.
+ * The behavior of the TX_EMPTY interrupt status differs based on the
+ * 
+ * TX_EMPTY_CTRL selection in the IC_CON register.
+ * 
+ * When TX_EMPTY_CTRL = 0:  This bit is set to 1 when the transmit buffer is at or
+ * below the threshold
+ * 
+ * value set in the IC_TX_TL register.
+ * 
+ * When TX_EMPTY_CTRL = 1: This bit is set to 1 when the transmit buffer is at or
+ * below the threshold
+ * 
+ * value set in the IC_TX_TL register and the transmission of the
+ * 
+ * address/data from the internal shift register for the most recently popped
+ * 
+ * command is completed.
+ * 
+ * It is automatically cleared by hardware when the buffer level goes above the
+ * 
+ * threshold. When IC_ENABLE[0] is set to 0, the TX FIFO is flushed and held in
+ * 
+ * reset. There the TX FIFO looks like it has no data within it, so this bit is set
+ * 
+ * to 1, provided there is activity in the master or slave state machines. When
+ * 
+ * there is no longer any activity, then with ic_en=0, this bit is set to 0.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -1405,15 +2014,24 @@ typedef volatile struct ALT_I2C_FS_SCL_LCNT_s  ALT_I2C_FS_SCL_LCNT_t;
 #define ALT_I2C_INTR_STAT_R_TX_EMPTY_SET(value) (((value) << 4) & 0x00000010)
 
 /*
- * Field : Interrupt Read Request - r_rd_req
+ * Field : r_rd_req
  * 
- * This bit is set to 1 when i2c is acting as a slave and another I2C master is
- * attempting to read data from I2C. The I2C holds the I2C bus in a wait state
- * (SCL=0) until this interrupt is serviced, which means that the slave has been
- * addressed by a remote master that is asking for data to be transferred. The
- * processor must respond to this interrupt and then write the requested data to
- * the IC_DATA_CMD register. This bit is set to 0 just after the processor reads
- * the ic_clr_rd_req register.
+ * This bit is set to 1 when DW_apb_i2c is acting as a slave and another I2C
+ * 
+ * master is attempting to read data from DW_apb_i2c. The DW_apb_i2c holds
+ * 
+ * the I2C bus in a wait state (SCL=0) until this interrupt is serviced, which
+ * means
+ * 
+ * that the slave has been addressed by a remote master that is asking for data to
+ * 
+ * be transferred. The processor must respond to this interrupt and then write the
+ * 
+ * requested data to the IC_DATA_CMD register. This bit is set to 0 just after the
+ * 
+ * processor reads the IC_CLR_RD_REQ register.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -1436,18 +2054,31 @@ typedef volatile struct ALT_I2C_FS_SCL_LCNT_s  ALT_I2C_FS_SCL_LCNT_t;
 #define ALT_I2C_INTR_STAT_R_RD_REQ_SET(value) (((value) << 5) & 0x00000020)
 
 /*
- * Field : Interrupt TX Abort - r_tx_abrt
+ * Field : r_tx_abrt
  * 
- * This bit indicates if I2C, as an I2C transmitter, is unable to complete the
- * intended actions on the contents of the transmit FIFO. This situation can occur
- * both as an I2C master or an I2C slave, and is referred to as a 'transmit
- * abort'.When this bit is set to 1, the ic_tx_abrt_source register indicates the
- * reason why the transmit abort takes places.
+ * This bit indicates if DW_apb_i2c, as an I2C transmitter,
  * 
- * NOTE: The I2C flushes/resets/empties the TX FIFO whenever this bit is set. The
- * TX FIFO remains in this flushed state until the register ic_clr_tx_abrt is read.
- * Once this read is performed, the TX FIFO is then ready to accept more data bytes
- * from the APB interface.
+ * is unable to complete the intended actions on the
+ * 
+ * contents of the transmit FIFO. This situation can
+ * 
+ * occur both as an I2C master or an I2C slave, and is
+ * 
+ * referred to as a 'transmit abort'.
+ * 
+ * When this bit is set to 1, the IC_TX_ABRT_SOURCE register
+ * 
+ * indicates the reason why the transmit abort takes places.
+ * 
+ * NOTE: The DW_apb_i2c flushes/resets/empties the TX FIFO whenever this
+ * 
+ * bit is set. The TX FIFO remains in this flushed state until the register
+ * 
+ * IC_CLR_TX_ABRT is read. Once this read is performed, the TX FIFO is then
+ * 
+ * ready to accept more data bytes from the APB interface.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -1470,11 +2101,17 @@ typedef volatile struct ALT_I2C_FS_SCL_LCNT_s  ALT_I2C_FS_SCL_LCNT_t;
 #define ALT_I2C_INTR_STAT_R_TX_ABRT_SET(value) (((value) << 6) & 0x00000040)
 
 /*
- * Field : Interrupt RX Done - r_rx_done
+ * Field : r_rx_done
  * 
- * When the I2C is acting as a slave-transmitter, this bit is set to 1, if the
- * master does not acknowledge a transmitted byte. This occurs on the last byte of
+ * When the DW_apb_i2c is acting as a slave-transmitter,
+ * 
+ * this bit is set to 1 if the master does not acknowledge
+ * 
+ * a transmitted byte. This occurs on the last byte of
+ * 
  * the transmission, indicating that the transmission is done.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -1497,22 +2134,28 @@ typedef volatile struct ALT_I2C_FS_SCL_LCNT_s  ALT_I2C_FS_SCL_LCNT_t;
 #define ALT_I2C_INTR_STAT_R_RX_DONE_SET(value) (((value) << 7) & 0x00000080)
 
 /*
- * Field : Interrupt R_activity - r_activity
+ * Field : r_activity
  * 
- * This bit captures I2C activity and stays set until it is cleared. There are four
- * ways to clear it:
+ * This bit captures DW_apb_i2c activity and stays set until it is cleared. There
  * 
- * * Disabling the I2C
+ * are four ways to clear it:
  * 
- * * Reading the ic_clr_activity register
+ * * Disabling the DW_apb_i2c
  * 
- * * Reading the ic_clr_intr register
+ * * Reading the IC_CLR_ACTIVITY register
  * 
- * * I2C reset
+ * * Reading the IC_CLR_INTR register
+ * 
+ * * System reset
  * 
  * Once this bit is set, it stays set unless one of the four methods is used to
- * clear it. Even if the I2C module is idle, this bit remains set until cleared,
+ * clear it.
+ * 
+ * Even if the DW_apb_i2c module is idle, this bit remains set until cleared,
+ * 
  * indicating that there was activity on the bus.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -1535,10 +2178,40 @@ typedef volatile struct ALT_I2C_FS_SCL_LCNT_s  ALT_I2C_FS_SCL_LCNT_t;
 #define ALT_I2C_INTR_STAT_R_ACTIVITY_SET(value) (((value) << 8) & 0x00000100)
 
 /*
- * Field : Interrupt Stop Detect - r_stop_det
+ * Field : r_stop_det
  * 
- * Indicates whether a STOP condition has occurred on the I2C interface regardless
- * of whether I2C is operating in slave or master mode.
+ * The behavior of the STOP_DET interrupt status differs based on the
+ * 
+ * STOP_DET_IFADDRESSED selection in the IC_CON register
+ * 
+ * When STOP_DET_IFADDRESSED =0 : Indicates whether a STOP condition has occurred
+ * on the I2C interface
+ * 
+ * regardless of whether DW_apb_i2c is operating in slave or master mode.
+ * 
+ * In slave mode, a STOP_DET interrupt is generated irrespective of whether
+ * 
+ * the slave is addressed or not.
+ * 
+ * When STOP_DET_IFADDRESSED = 1 :
+ * 
+ * In Master Mode (MASTER_MODE = 1'b1), indicates a STOP condition has occured on
+ * the I2C interface.
+ * 
+ * In Slave Mode (MASTER_MODE = 1'b0),STOP_DET interrupt is generated only if the
+ * slave is addressed.
+ * 
+ * NOTE: During a general call address, this slave does not issue a STOP_DET
+ * 
+ * interrupt if STOP_DET_IFADDRESSED=1'b1, even if the slave responds to
+ * 
+ * the general call address by generating ACK. The STOP_DET interrupt is
+ * 
+ * generated only when the transmitted address matches the slave address
+ * 
+ * (SAR).
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -1561,10 +2234,15 @@ typedef volatile struct ALT_I2C_FS_SCL_LCNT_s  ALT_I2C_FS_SCL_LCNT_t;
 #define ALT_I2C_INTR_STAT_R_STOP_DET_SET(value) (((value) << 9) & 0x00000200)
 
 /*
- * Field : Interrupt Start Detect - r_start_det
+ * Field : r_start_det
  * 
- * Indicates whether a START or RESTART condition has occurred on the I2C interface
- * regardless of whether I2C is operating in slave or master mode.
+ * Indicates whether a START or RESTART condition has occurred on the I2C
+ * 
+ * interface regardless of whether DW_apb_i2c is operating in slave or master
+ * 
+ * mode.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -1587,12 +2265,17 @@ typedef volatile struct ALT_I2C_FS_SCL_LCNT_s  ALT_I2C_FS_SCL_LCNT_t;
 #define ALT_I2C_INTR_STAT_R_START_DET_SET(value) (((value) << 10) & 0x00000400)
 
 /*
- * Field : Interrupt General Call - r_gen_call
+ * Field : r_gen_call
  * 
  * Set only when a General Call address is received and it is acknowledged. It
- * stays set until it is cleared either by disabling I2C or when the CPU reads bit
- * 0 of the ic_clr_gen_call register. I2C stores the received data in the Rx
- * buffer.
+ * 
+ * stays set until it is cleared either by disabling DW_apb_i2c or when the CPU
+ * 
+ * reads bit 0 of the IC_CLR_GEN_CALL register. DW_apb_i2c stores the
+ * 
+ * received data in the Rx buffer.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -1614,6 +2297,65 @@ typedef volatile struct ALT_I2C_FS_SCL_LCNT_s  ALT_I2C_FS_SCL_LCNT_t;
 /* Produces a ALT_I2C_INTR_STAT_R_GEN_CALL register field value suitable for setting the register. */
 #define ALT_I2C_INTR_STAT_R_GEN_CALL_SET(value) (((value) << 11) & 0x00000800)
 
+/*
+ * Field : r_restart_det
+ * 
+ * Indicates a RESTART condition has occurred on the I2C
+ * 
+ * interface when DW_apb_i2c is operating in slave mode and addressed. This feature
+ * is avaliable only when IC_SLV_RESTART_DET_EN is enabled.
+ * 
+ * Reset value: 0x0
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_INTR_STAT_R_RESTART_DET register field. */
+#define ALT_I2C_INTR_STAT_R_RESTART_DET_LSB        12
+/* The Most Significant Bit (MSB) position of the ALT_I2C_INTR_STAT_R_RESTART_DET register field. */
+#define ALT_I2C_INTR_STAT_R_RESTART_DET_MSB        12
+/* The width in bits of the ALT_I2C_INTR_STAT_R_RESTART_DET register field. */
+#define ALT_I2C_INTR_STAT_R_RESTART_DET_WIDTH      1
+/* The mask used to set the ALT_I2C_INTR_STAT_R_RESTART_DET register field value. */
+#define ALT_I2C_INTR_STAT_R_RESTART_DET_SET_MSK    0x00001000
+/* The mask used to clear the ALT_I2C_INTR_STAT_R_RESTART_DET register field value. */
+#define ALT_I2C_INTR_STAT_R_RESTART_DET_CLR_MSK    0xffffefff
+/* The reset value of the ALT_I2C_INTR_STAT_R_RESTART_DET register field. */
+#define ALT_I2C_INTR_STAT_R_RESTART_DET_RESET      0x0
+/* Extracts the ALT_I2C_INTR_STAT_R_RESTART_DET field value from a register. */
+#define ALT_I2C_INTR_STAT_R_RESTART_DET_GET(value) (((value) & 0x00001000) >> 12)
+/* Produces a ALT_I2C_INTR_STAT_R_RESTART_DET register field value suitable for setting the register. */
+#define ALT_I2C_INTR_STAT_R_RESTART_DET_SET(value) (((value) << 12) & 0x00001000)
+
+/*
+ * Field : r_master_on_hold
+ * 
+ * Indicates whether master is holding the bus and TX FIFO is empty.
+ * 
+ * Enabled only when I2C_DYNAMIC_TAR_UPDATE=1 and IC_EMPTYFIFO_HOLD_MASTER_EN=1.
+ * 
+ * Reset value: 0x0
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_INTR_STAT_R_MST_ON_HOLD register field. */
+#define ALT_I2C_INTR_STAT_R_MST_ON_HOLD_LSB        13
+/* The Most Significant Bit (MSB) position of the ALT_I2C_INTR_STAT_R_MST_ON_HOLD register field. */
+#define ALT_I2C_INTR_STAT_R_MST_ON_HOLD_MSB        13
+/* The width in bits of the ALT_I2C_INTR_STAT_R_MST_ON_HOLD register field. */
+#define ALT_I2C_INTR_STAT_R_MST_ON_HOLD_WIDTH      1
+/* The mask used to set the ALT_I2C_INTR_STAT_R_MST_ON_HOLD register field value. */
+#define ALT_I2C_INTR_STAT_R_MST_ON_HOLD_SET_MSK    0x00002000
+/* The mask used to clear the ALT_I2C_INTR_STAT_R_MST_ON_HOLD register field value. */
+#define ALT_I2C_INTR_STAT_R_MST_ON_HOLD_CLR_MSK    0xffffdfff
+/* The reset value of the ALT_I2C_INTR_STAT_R_MST_ON_HOLD register field. */
+#define ALT_I2C_INTR_STAT_R_MST_ON_HOLD_RESET      0x0
+/* Extracts the ALT_I2C_INTR_STAT_R_MST_ON_HOLD field value from a register. */
+#define ALT_I2C_INTR_STAT_R_MST_ON_HOLD_GET(value) (((value) & 0x00002000) >> 13)
+/* Produces a ALT_I2C_INTR_STAT_R_MST_ON_HOLD register field value suitable for setting the register. */
+#define ALT_I2C_INTR_STAT_R_MST_ON_HOLD_SET(value) (((value) << 13) & 0x00002000)
+
 #ifndef __ASSEMBLY__
 /*
  * WARNING: The C register and register group struct declarations are provided for
@@ -1627,61 +2369,83 @@ typedef volatile struct ALT_I2C_FS_SCL_LCNT_s  ALT_I2C_FS_SCL_LCNT_t;
  */
 struct ALT_I2C_INTR_STAT_s
 {
-    const uint32_t  r_rx_under  :  1;  /* Receiver Under */
-    const uint32_t  r_rx_over   :  1;  /* Receiver Over */
-    const uint32_t  r_rx_full   :  1;  /* Receive Full */
-    const uint32_t  r_tx_over   :  1;  /* Interrupt Transmit Over */
-    const uint32_t  r_tx_empty  :  1;  /* Interrupt Transmit Empty */
-    const uint32_t  r_rd_req    :  1;  /* Interrupt Read Request */
-    const uint32_t  r_tx_abrt   :  1;  /* Interrupt TX Abort */
-    const uint32_t  r_rx_done   :  1;  /* Interrupt RX Done */
-    const uint32_t  r_activity  :  1;  /* Interrupt R_activity */
-    const uint32_t  r_stop_det  :  1;  /* Interrupt Stop Detect */
-    const uint32_t  r_start_det :  1;  /* Interrupt Start Detect */
-    const uint32_t  r_gen_call  :  1;  /* Interrupt General Call */
-    uint32_t                    : 20;  /* *UNDEFINED* */
+    const uint32_t  r_rx_under       :  1;  /* ALT_I2C_INTR_STAT_R_RX_UNDER */
+    const uint32_t  r_rx_over        :  1;  /* ALT_I2C_INTR_STAT_R_RX_OVER */
+    const uint32_t  r_rx_full        :  1;  /* ALT_I2C_INTR_STAT_R_RX_FULL */
+    const uint32_t  r_tx_over        :  1;  /* ALT_I2C_INTR_STAT_R_TX_OVER */
+    const uint32_t  r_tx_empty       :  1;  /* ALT_I2C_INTR_STAT_R_TX_EMPTY */
+    const uint32_t  r_rd_req         :  1;  /* ALT_I2C_INTR_STAT_R_RD_REQ */
+    const uint32_t  r_tx_abrt        :  1;  /* ALT_I2C_INTR_STAT_R_TX_ABRT */
+    const uint32_t  r_rx_done        :  1;  /* ALT_I2C_INTR_STAT_R_RX_DONE */
+    const uint32_t  r_activity       :  1;  /* ALT_I2C_INTR_STAT_R_ACTIVITY */
+    const uint32_t  r_stop_det       :  1;  /* ALT_I2C_INTR_STAT_R_STOP_DET */
+    const uint32_t  r_start_det      :  1;  /* ALT_I2C_INTR_STAT_R_START_DET */
+    const uint32_t  r_gen_call       :  1;  /* ALT_I2C_INTR_STAT_R_GEN_CALL */
+    const uint32_t  r_restart_det    :  1;  /* ALT_I2C_INTR_STAT_R_RESTART_DET */
+    const uint32_t  r_master_on_hold :  1;  /* ALT_I2C_INTR_STAT_R_MST_ON_HOLD */
+    uint32_t                         : 18;  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register ALT_I2C_INTR_STAT. */
 typedef volatile struct ALT_I2C_INTR_STAT_s  ALT_I2C_INTR_STAT_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_INTR_STAT register. */
+#define ALT_I2C_INTR_STAT_RESET       0x00000000
 /* The byte offset of the ALT_I2C_INTR_STAT register from the beginning of the component. */
 #define ALT_I2C_INTR_STAT_OFST        0x2c
 /* The address of the ALT_I2C_INTR_STAT register. */
 #define ALT_I2C_INTR_STAT_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_INTR_STAT_OFST))
 
 /*
- * Register : Interrupt Mask Register - ic_intr_mask
+ * Register : ic_intr_mask
+ * 
+ * Name: I2C Interrupt Mask Register
+ * 
+ * Size: 14 bits
+ * 
+ * Address Offset: 0x30
+ * 
+ * Read/Write Access: Read/Write However,
+ * 
+ * if configuration parameter IC_SLV_RESTART_DET = 0, bit 13 is read only;
+ * 
+ * if configuration parameter I2C_DYNAMIC_TAR_UPDATE = 0 or
+ * IC_EMPTYFIFO_HOLD_MASTER_EN = 0, bit 14 is read only.
  * 
  * These bits mask their corresponding interrupt status bits.
  * 
+ * They are active high; a value of 0 prevents a bit from
+ * 
+ * generating an interrupt.
+ * 
  * Register Layout
  * 
- *  Bits    | Access | Reset | Description    
- * :--------|:-------|:------|:----------------
- *  [0]     | RW     | 0x1   | Mask RX Under  
- *  [1]     | RW     | 0x1   | RX Buffer Over 
- *  [2]     | RW     | 0x1   | RX Buffer Full 
- *  [3]     | RW     | 0x1   | TX Buffer Over 
- *  [4]     | RW     | 0x1   | TX Buffer Empty
- *  [5]     | RW     | 0x1   | Read Request   
- *  [6]     | RW     | 0x1   | TX Abort       
- *  [7]     | RW     | 0x1   | RX Done        
- *  [8]     | RW     | 0x0   | Activity Bit   
- *  [9]     | RW     | 0x0   | Stop Detect    
- *  [10]    | RW     | 0x0   | Start Detect   
- *  [11]    | RW     | 0x1   | General Call   
- *  [31:12] | ???    | 0x0   | *UNDEFINED*    
+ *  Bits    | Access | Reset | Description                   
+ * :--------|:-------|:------|:-------------------------------
+ *  [0]     | RW     | 0x1   | ALT_I2C_INTR_MSK_M_RX_UNDER   
+ *  [1]     | RW     | 0x1   | ALT_I2C_INTR_MSK_M_RX_OVER    
+ *  [2]     | RW     | 0x1   | ALT_I2C_INTR_MSK_M_RX_FULL    
+ *  [3]     | RW     | 0x1   | ALT_I2C_INTR_MSK_M_TX_OVER    
+ *  [4]     | RW     | 0x1   | ALT_I2C_INTR_MSK_M_TX_EMPTY   
+ *  [5]     | RW     | 0x1   | ALT_I2C_INTR_MSK_M_RD_REQ     
+ *  [6]     | RW     | 0x1   | ALT_I2C_INTR_MSK_M_TX_ABRT    
+ *  [7]     | RW     | 0x1   | ALT_I2C_INTR_MSK_M_RX_DONE    
+ *  [8]     | RW     | 0x0   | ALT_I2C_INTR_MSK_M_ACTIVITY   
+ *  [9]     | RW     | 0x0   | ALT_I2C_INTR_MSK_M_STOP_DET   
+ *  [10]    | RW     | 0x0   | ALT_I2C_INTR_MSK_M_START_DET  
+ *  [11]    | RW     | 0x1   | ALT_I2C_INTR_MSK_M_GEN_CALL   
+ *  [12]    | RW     | 0x0   | ALT_I2C_INTR_MSK_M_RESTART_DET
+ *  [13]    | RW     | 0x0   | ALT_I2C_INTR_MSK_M_MST_ON_HOLD
+ *  [31:14] | ???    | 0x0   | *UNDEFINED*                   
  * 
  */
 /*
- * Field : Mask RX Under - m_rx_under
+ * Field : m_rx_under
  * 
- * Set if the processor attempts to read the receive buffer when it is empty by
- * reading from the ic_data_cmd register. If the module is disabled ic_enable[0]=0,
- * this bit keeps its level until the master or slave state machines go into idle,
- * and then this interrupt is cleared.
+ * This bit masks the R_RX_UNDER interrupt in IC_INTR_STAT register.
+ * 
+ * Reset value: 0x1
  * 
  * Field Access Macros:
  * 
@@ -1704,13 +2468,11 @@ typedef volatile struct ALT_I2C_INTR_STAT_s  ALT_I2C_INTR_STAT_t;
 #define ALT_I2C_INTR_MSK_M_RX_UNDER_SET(value) (((value) << 0) & 0x00000001)
 
 /*
- * Field : RX Buffer Over - m_rx_over
+ * Field : m_rx_over
  * 
- * Set if the receive buffer is completely filled to 64 and an additional byte is
- * received from an external I2C device. The I2C acknowledges this, but any data
- * bytes received after the FIFO is full are lost. If the module is disabled
- * ic_enable[0]=0, this bit keeps its level until the master or slave state
- * machines go into idle, then this interrupt is cleared.
+ * This bit masks the R_RX_OVER interrupt in IC_INTR_STAT register.
+ * 
+ * Reset value: 0x1
  * 
  * Field Access Macros:
  * 
@@ -1733,14 +2495,11 @@ typedef volatile struct ALT_I2C_INTR_STAT_s  ALT_I2C_INTR_STAT_t;
 #define ALT_I2C_INTR_MSK_M_RX_OVER_SET(value) (((value) << 1) & 0x00000002)
 
 /*
- * Field : RX Buffer Full - m_rx_full
+ * Field : m_rx_full
  * 
- * Set when the receive buffer reaches or goes above the RX_TL threshold in the
- * ic_rx_tl register. It is automatically cleared by hardware when buffer level
- * goes below the threshold. If the module is disabled ic_enable[0]=0, the RX FIFO
- * is flushed and held in reset; therefore the RX FIFO is not full. So this bit is
- * cleared once the ic_enable bit 0 is programmed with a 0, regardless of the
- * activity that continues.
+ * This bit masks the R_RX_FULL interrupt in IC_INTR_STAT register.
+ * 
+ * Reset value: 0x1
  * 
  * Field Access Macros:
  * 
@@ -1763,12 +2522,11 @@ typedef volatile struct ALT_I2C_INTR_STAT_s  ALT_I2C_INTR_STAT_t;
 #define ALT_I2C_INTR_MSK_M_RX_FULL_SET(value) (((value) << 2) & 0x00000004)
 
 /*
- * Field : TX Buffer Over - m_tx_over
+ * Field : m_tx_over
  * 
- * Set during transmit if the transmit buffer is filled to 64 and the processor
- * attempts to issue another I2C command by writing to the ic_data_cmd register.
- * When the module is disabled, this bit keeps its level until the master or slave
- * state machines go into idle, then this interrupt is cleared.
+ * This bit masks the R_TX_OVER interrupt in IC_INTR_STAT register.
+ * 
+ * Reset value: 0x1
  * 
  * Field Access Macros:
  * 
@@ -1791,15 +2549,11 @@ typedef volatile struct ALT_I2C_INTR_STAT_s  ALT_I2C_INTR_STAT_t;
 #define ALT_I2C_INTR_MSK_M_TX_OVER_SET(value) (((value) << 3) & 0x00000008)
 
 /*
- * Field : TX Buffer Empty - m_tx_empty
+ * Field : m_tx_empty
  * 
- * This bit is set to 1 when the transmit buffer is at or below the threshold value
- * set in the ic_tx_tl register. It is automatically cleared by hardware when the
- * buffer level goes above the threshold. When the ic_enable bit 0 is 0, the TX
- * FIFO is flushed and held in reset. There the TX FIFO looks like it has no data
- * within it, so this bit is set to 1, provided there is activity in the master or
- * slave state machines. When there is no longer activity, then this bit is set to
- * 0.
+ * This bit masks the R_TX_EMPTY interrupt in IC_INTR_STAT register.
+ * 
+ * Reset value: 0x1
  * 
  * Field Access Macros:
  * 
@@ -1822,15 +2576,11 @@ typedef volatile struct ALT_I2C_INTR_STAT_s  ALT_I2C_INTR_STAT_t;
 #define ALT_I2C_INTR_MSK_M_TX_EMPTY_SET(value) (((value) << 4) & 0x00000010)
 
 /*
- * Field : Read Request - m_rd_req
+ * Field : m_rd_req
  * 
- * This bit is set to 1 when I2C is acting as a slave and another I2C master is
- * attempting to read data from I2C. The I2C holds the I2C bus in a wait state
- * (SCL=0) until this interrupt is serviced, which means that the slave has been
- * addressed by a remote master that is asking for data to be transferred. The
- * processor must respond to this interrupt and then write the requested data to
- * the ic_data_cmd register. This bit is set to 0 just after the processor reads
- * the ic_clr_rd_req register.
+ * This bit masks the R_RD_REQ interrupt in IC_INTR_STAT register.
+ * 
+ * Reset value: 0x1
  * 
  * Field Access Macros:
  * 
@@ -1853,18 +2603,11 @@ typedef volatile struct ALT_I2C_INTR_STAT_s  ALT_I2C_INTR_STAT_t;
 #define ALT_I2C_INTR_MSK_M_RD_REQ_SET(value) (((value) << 5) & 0x00000020)
 
 /*
- * Field : TX Abort - m_tx_abrt
+ * Field : m_tx_abrt
  * 
- * This bit indicates if I2C, as an I2C transmitter, is unable to complete the
- * intended actions on the contents of the transmit FIFO. This situation can occur
- * both as an I2C master or an I2C slave, and is referred to as a 'transmit abort'.
- * When this bit is set to 1, the ic_tx_abrt_source register indicates the reason
- * why the transmit abort takes places.
+ * This bit masks the R_TX_ABRT interrupt in IC_INTR_STAT register.
  * 
- * NOTE: The I2C flushes/resets/empties the TX FIFO whenever this bit is set. The
- * TX FIFO remains in this flushed state until the register ic_clr_tx_abrt is read.
- * Once this read is performed, the TX FIFO is then ready to accept more data bytes
- * from the APB interface.
+ * Reset value: 0x1
  * 
  * Field Access Macros:
  * 
@@ -1887,11 +2630,11 @@ typedef volatile struct ALT_I2C_INTR_STAT_s  ALT_I2C_INTR_STAT_t;
 #define ALT_I2C_INTR_MSK_M_TX_ABRT_SET(value) (((value) << 6) & 0x00000040)
 
 /*
- * Field : RX Done - m_rx_done
+ * Field : m_rx_done
  * 
- * When the I2C is acting as a slave-transmitter, this bit is set to 1, if the
- * master does not acknowledge a transmitted byte. This occurs on the last byte of
- * the transmission, indicating that the transmission is done.
+ * This bit masks the R_RX_DONE interrupt in IC_INTR_STAT register.
+ * 
+ * Reset value: 0x1
  * 
  * Field Access Macros:
  * 
@@ -1914,22 +2657,11 @@ typedef volatile struct ALT_I2C_INTR_STAT_s  ALT_I2C_INTR_STAT_t;
 #define ALT_I2C_INTR_MSK_M_RX_DONE_SET(value) (((value) << 7) & 0x00000080)
 
 /*
- * Field : Activity Bit - m_activity
+ * Field : m_activity
  * 
- * This bit captures i2c activity and stays set until it is cleared. There are four
- * ways to clear it:
+ * This bit masks the R_ACTIVITY interrupt in IC_INTR_STAT register.
  * 
- * * Disabling the i2c
- * 
- * * Reading the ic_clr_activity register
- * 
- * * Reading the ic_clr_intr register
- * 
- * * System reset
- * 
- * Once this bit is set, it stays set unless one of the four methods is used to
- * clear it. Even if the I2C module is idle, this bit remains set until cleared,
- * indicating that there was activity on the bus.
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -1952,10 +2684,11 @@ typedef volatile struct ALT_I2C_INTR_STAT_s  ALT_I2C_INTR_STAT_t;
 #define ALT_I2C_INTR_MSK_M_ACTIVITY_SET(value) (((value) << 8) & 0x00000100)
 
 /*
- * Field : Stop Detect - m_stop_det
+ * Field : m_stop_det
  * 
- * Indicates whether a STOP condition has occurred on the I2C interface regardless
- * of whether i2c is operating in slave or master mode.
+ * This bit masks the R_STOP_DET interrupt in IC_INTR_STAT register.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -1978,10 +2711,11 @@ typedef volatile struct ALT_I2C_INTR_STAT_s  ALT_I2C_INTR_STAT_t;
 #define ALT_I2C_INTR_MSK_M_STOP_DET_SET(value) (((value) << 9) & 0x00000200)
 
 /*
- * Field : Start Detect - m_start_det
+ * Field : m_start_det
  * 
- * Indicates whether a START or RESTART condition has occurred on the I2C interface
- * regardless of whether I2C is operating in slave or master mode.
+ * This bit masks the R_START_DET interrupt in IC_INTR_STAT register.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -2004,12 +2738,11 @@ typedef volatile struct ALT_I2C_INTR_STAT_s  ALT_I2C_INTR_STAT_t;
 #define ALT_I2C_INTR_MSK_M_START_DET_SET(value) (((value) << 10) & 0x00000400)
 
 /*
- * Field : General Call - m_gen_call
+ * Field : m_gen_call
  * 
- * Set only when a General Call address is received and it is acknowledged. It
- * stays set until it is cleared either by disabling I2C or when the CPU reads bit
- * 0 of the ic_clr_gen_call register. I2C stores the received data in the Rx
- * buffer.
+ * This bit masks the R_GEN_CALL interrupt in IC_INTR_STAT register.
+ * 
+ * Reset value: 0x1
  * 
  * Field Access Macros:
  * 
@@ -2031,6 +2764,60 @@ typedef volatile struct ALT_I2C_INTR_STAT_s  ALT_I2C_INTR_STAT_t;
 /* Produces a ALT_I2C_INTR_MSK_M_GEN_CALL register field value suitable for setting the register. */
 #define ALT_I2C_INTR_MSK_M_GEN_CALL_SET(value) (((value) << 11) & 0x00000800)
 
+/*
+ * Field : m_restart_det
+ * 
+ * This bit masks the R_RESTART_DET interrupt in IC_INTR_STAT register.
+ * 
+ * Reset value: 0x0
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_INTR_MSK_M_RESTART_DET register field. */
+#define ALT_I2C_INTR_MSK_M_RESTART_DET_LSB        12
+/* The Most Significant Bit (MSB) position of the ALT_I2C_INTR_MSK_M_RESTART_DET register field. */
+#define ALT_I2C_INTR_MSK_M_RESTART_DET_MSB        12
+/* The width in bits of the ALT_I2C_INTR_MSK_M_RESTART_DET register field. */
+#define ALT_I2C_INTR_MSK_M_RESTART_DET_WIDTH      1
+/* The mask used to set the ALT_I2C_INTR_MSK_M_RESTART_DET register field value. */
+#define ALT_I2C_INTR_MSK_M_RESTART_DET_SET_MSK    0x00001000
+/* The mask used to clear the ALT_I2C_INTR_MSK_M_RESTART_DET register field value. */
+#define ALT_I2C_INTR_MSK_M_RESTART_DET_CLR_MSK    0xffffefff
+/* The reset value of the ALT_I2C_INTR_MSK_M_RESTART_DET register field. */
+#define ALT_I2C_INTR_MSK_M_RESTART_DET_RESET      0x0
+/* Extracts the ALT_I2C_INTR_MSK_M_RESTART_DET field value from a register. */
+#define ALT_I2C_INTR_MSK_M_RESTART_DET_GET(value) (((value) & 0x00001000) >> 12)
+/* Produces a ALT_I2C_INTR_MSK_M_RESTART_DET register field value suitable for setting the register. */
+#define ALT_I2C_INTR_MSK_M_RESTART_DET_SET(value) (((value) << 12) & 0x00001000)
+
+/*
+ * Field : m_master_on_hold
+ * 
+ * This bit masks the R_MASTER_ON_HOLD interrupt in IC_INTR_STAT register.
+ * 
+ * Reset value: 0x0
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_INTR_MSK_M_MST_ON_HOLD register field. */
+#define ALT_I2C_INTR_MSK_M_MST_ON_HOLD_LSB        13
+/* The Most Significant Bit (MSB) position of the ALT_I2C_INTR_MSK_M_MST_ON_HOLD register field. */
+#define ALT_I2C_INTR_MSK_M_MST_ON_HOLD_MSB        13
+/* The width in bits of the ALT_I2C_INTR_MSK_M_MST_ON_HOLD register field. */
+#define ALT_I2C_INTR_MSK_M_MST_ON_HOLD_WIDTH      1
+/* The mask used to set the ALT_I2C_INTR_MSK_M_MST_ON_HOLD register field value. */
+#define ALT_I2C_INTR_MSK_M_MST_ON_HOLD_SET_MSK    0x00002000
+/* The mask used to clear the ALT_I2C_INTR_MSK_M_MST_ON_HOLD register field value. */
+#define ALT_I2C_INTR_MSK_M_MST_ON_HOLD_CLR_MSK    0xffffdfff
+/* The reset value of the ALT_I2C_INTR_MSK_M_MST_ON_HOLD register field. */
+#define ALT_I2C_INTR_MSK_M_MST_ON_HOLD_RESET      0x0
+/* Extracts the ALT_I2C_INTR_MSK_M_MST_ON_HOLD field value from a register. */
+#define ALT_I2C_INTR_MSK_M_MST_ON_HOLD_GET(value) (((value) & 0x00002000) >> 13)
+/* Produces a ALT_I2C_INTR_MSK_M_MST_ON_HOLD register field value suitable for setting the register. */
+#define ALT_I2C_INTR_MSK_M_MST_ON_HOLD_SET(value) (((value) << 13) & 0x00002000)
+
 #ifndef __ASSEMBLY__
 /*
  * WARNING: The C register and register group struct declarations are provided for
@@ -2044,62 +2831,82 @@ typedef volatile struct ALT_I2C_INTR_STAT_s  ALT_I2C_INTR_STAT_t;
  */
 struct ALT_I2C_INTR_MSK_s
 {
-    uint32_t  m_rx_under  :  1;  /* Mask RX Under */
-    uint32_t  m_rx_over   :  1;  /* RX Buffer Over */
-    uint32_t  m_rx_full   :  1;  /* RX Buffer Full */
-    uint32_t  m_tx_over   :  1;  /* TX Buffer Over */
-    uint32_t  m_tx_empty  :  1;  /* TX Buffer Empty */
-    uint32_t  m_rd_req    :  1;  /* Read Request */
-    uint32_t  m_tx_abrt   :  1;  /* TX Abort */
-    uint32_t  m_rx_done   :  1;  /* RX Done */
-    uint32_t  m_activity  :  1;  /* Activity Bit */
-    uint32_t  m_stop_det  :  1;  /* Stop Detect */
-    uint32_t  m_start_det :  1;  /* Start Detect */
-    uint32_t  m_gen_call  :  1;  /* General Call */
-    uint32_t              : 20;  /* *UNDEFINED* */
+    uint32_t  m_rx_under       :  1;  /* ALT_I2C_INTR_MSK_M_RX_UNDER */
+    uint32_t  m_rx_over        :  1;  /* ALT_I2C_INTR_MSK_M_RX_OVER */
+    uint32_t  m_rx_full        :  1;  /* ALT_I2C_INTR_MSK_M_RX_FULL */
+    uint32_t  m_tx_over        :  1;  /* ALT_I2C_INTR_MSK_M_TX_OVER */
+    uint32_t  m_tx_empty       :  1;  /* ALT_I2C_INTR_MSK_M_TX_EMPTY */
+    uint32_t  m_rd_req         :  1;  /* ALT_I2C_INTR_MSK_M_RD_REQ */
+    uint32_t  m_tx_abrt        :  1;  /* ALT_I2C_INTR_MSK_M_TX_ABRT */
+    uint32_t  m_rx_done        :  1;  /* ALT_I2C_INTR_MSK_M_RX_DONE */
+    uint32_t  m_activity       :  1;  /* ALT_I2C_INTR_MSK_M_ACTIVITY */
+    uint32_t  m_stop_det       :  1;  /* ALT_I2C_INTR_MSK_M_STOP_DET */
+    uint32_t  m_start_det      :  1;  /* ALT_I2C_INTR_MSK_M_START_DET */
+    uint32_t  m_gen_call       :  1;  /* ALT_I2C_INTR_MSK_M_GEN_CALL */
+    uint32_t  m_restart_det    :  1;  /* ALT_I2C_INTR_MSK_M_RESTART_DET */
+    uint32_t  m_master_on_hold :  1;  /* ALT_I2C_INTR_MSK_M_MST_ON_HOLD */
+    uint32_t                   : 18;  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register ALT_I2C_INTR_MSK. */
 typedef volatile struct ALT_I2C_INTR_MSK_s  ALT_I2C_INTR_MSK_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_INTR_MSK register. */
+#define ALT_I2C_INTR_MSK_RESET       0x000008ff
 /* The byte offset of the ALT_I2C_INTR_MSK register from the beginning of the component. */
 #define ALT_I2C_INTR_MSK_OFST        0x30
 /* The address of the ALT_I2C_INTR_MSK register. */
 #define ALT_I2C_INTR_MSK_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_INTR_MSK_OFST))
 
 /*
- * Register : Raw Interrupt Status Register - ic_raw_intr_stat
+ * Register : ic_raw_intr_stat
  * 
- * Unlike the ic_intr_stat register, these bits are not masked so they always show
- * the true status of the I2C.
+ * Name: I2C Raw Interrupt Status Register
+ * 
+ * Size: 14 bits
+ * 
+ * Address Offset: 0x34
+ * 
+ * Read/Write Access: Read
+ * 
+ * Unlike the IC_INTR_STAT register, these bits are not masked so they
+ * 
+ * always show the true status of the DW_apb_i2c.
  * 
  * Register Layout
  * 
- *  Bits    | Access | Reset | Description               
- * :--------|:-------|:------|:---------------------------
- *  [0]     | R      | 0x0   | I2C Raw Interrupt RX Under
- *  [1]     | R      | 0x0   | Raw Interrupt RX Over     
- *  [2]     | R      | 0x0   | Raw Interrupt RX Full     
- *  [3]     | R      | 0x0   | Raw Interrupt TX Over     
- *  [4]     | R      | 0x0   | Raw Interrupt TX Empty    
- *  [5]     | R      | 0x0   | Raw Interrupt Read Request
- *  [6]     | R      | 0x0   | Raw Interrupt TX Abort    
- *  [7]     | R      | 0x0   | Raw Interrupt RX Done     
- *  [8]     | R      | 0x0   | Raw Interrupt Activity    
- *  [9]     | R      | 0x0   | Raw Interrupt Stop Detect 
- *  [10]    | R      | 0x0   | Raw Interrupt Start Detect
- *  [11]    | R      | 0x0   | Raw Interrupt General Call
- *  [31:12] | ???    | 0x0   | *UNDEFINED*               
+ *  Bits    | Access | Reset | Description                      
+ * :--------|:-------|:------|:----------------------------------
+ *  [0]     | R      | 0x0   | ALT_I2C_RAW_INTR_STAT_RX_UNDER   
+ *  [1]     | R      | 0x0   | ALT_I2C_RAW_INTR_STAT_RX_OVER    
+ *  [2]     | R      | 0x0   | ALT_I2C_RAW_INTR_STAT_RX_FULL    
+ *  [3]     | R      | 0x0   | ALT_I2C_RAW_INTR_STAT_TX_OVER    
+ *  [4]     | R      | 0x0   | ALT_I2C_RAW_INTR_STAT_TX_EMPTY   
+ *  [5]     | R      | 0x0   | ALT_I2C_RAW_INTR_STAT_RD_REQ     
+ *  [6]     | R      | 0x0   | ALT_I2C_RAW_INTR_STAT_TX_ABRT    
+ *  [7]     | R      | 0x0   | ALT_I2C_RAW_INTR_STAT_RX_DONE    
+ *  [8]     | R      | 0x0   | ALT_I2C_RAW_INTR_STAT_ACTIVITY   
+ *  [9]     | R      | 0x0   | ALT_I2C_RAW_INTR_STAT_STOP_DET   
+ *  [10]    | R      | 0x0   | ALT_I2C_RAW_INTR_STAT_START_DET  
+ *  [11]    | R      | 0x0   | ALT_I2C_RAW_INTR_STAT_GEN_CALL   
+ *  [12]    | R      | 0x0   | ALT_I2C_RAW_INTR_STAT_RESTART_DET
+ *  [13]    | R      | 0x0   | ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD
+ *  [31:14] | ???    | 0x0   | *UNDEFINED*                      
  * 
  */
 /*
- * Field : I2C Raw Interrupt RX Under - rx_under
+ * Field : rx_under
  * 
  * Set if the processor attempts to read the receive buffer when it is empty by
- * reading from the ic_data_cmd register. If the module is disabled ic_enable[0]=0,
- * this bit keeps its level until the master or slave state machines go into idle,
- * then this interrupt is cleared.
+ * 
+ * reading from the IC_DATA_CMD register. If the module is disabled
+ * 
+ * (IC_ENABLE[0]=0), this bit keeps its level until the master or slave state
+ * 
+ * machines go into idle, and when ic_en goes to 0, this interrupt is cleared.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -2122,13 +2929,26 @@ typedef volatile struct ALT_I2C_INTR_MSK_s  ALT_I2C_INTR_MSK_t;
 #define ALT_I2C_RAW_INTR_STAT_RX_UNDER_SET(value) (((value) << 0) & 0x00000001)
 
 /*
- * Field : Raw Interrupt RX Over - rx_over
+ * Field : rx_over
  * 
- * Set if the receive buffer is completely filled to  64 and an additional byte is
- * received from an external I2C device. The I2C acknowledges this, but any data
- * bytes received after the FIFO is full are lost. If the module is disabled
- * ic_enable[0]=0), this bit keeps its level until the master or slave state
- * machines go into then, this interrupt is cleared.
+ * Set if the receive buffer is completely filled to IC_RX_BUFFER_DEPTH and
+ * 
+ * an additional byte is received from an external I2C device. The DW_apb_i2c
+ * 
+ * acknowledges this, but any data bytes received after the FIFO is full are lost.
+ * If
+ * 
+ * the module is disabled (IC_ENABLE[0]=0), this bit keeps its level until the
+ * 
+ * master or slave state machines go into idle, and when ic_en goes to 0, this
+ * 
+ * interrupt is cleared.
+ * 
+ * NOTE: If the parameter IC_RX_FULL_HLD_BUS_EN=1, then the RX_OVER interrupt is
+ * 
+ * never set to 1, because the criteria to set this interrupt are never met.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -2151,14 +2971,21 @@ typedef volatile struct ALT_I2C_INTR_MSK_s  ALT_I2C_INTR_MSK_t;
 #define ALT_I2C_RAW_INTR_STAT_RX_OVER_SET(value) (((value) << 1) & 0x00000002)
 
 /*
- * Field : Raw Interrupt RX Full - rx_full
+ * Field : rx_full
  * 
  * Set when the receive buffer reaches or goes above the RX_TL threshold in the
- * ic_rx_tl register. It is automatically cleared by hardware when buffer level
- * goes below the threshold. If the module is disabled ic_enable[0]=0, the RX FIFO
- * is flushed and held in reset; therefore the RX FIFO is not full. So this bit is
- * cleared once the ic_enable bit 0 is programmed with a 0, regardless of the
- * activity that continues.
+ * 
+ * IC_RX_TL register. It is automatically cleared by hardware when buffer level
+ * 
+ * goes below the threshold. If the module is disabled (IC_ENABLE[0]=0), the
+ * 
+ * RX FIFO is flushed and held in reset; therefore the RX FIFO is not full. So this
+ * 
+ * bit is cleared once the IC_ENABLE bit 0 is programmed with a 0, regardless of
+ * 
+ * the activity that continues.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -2181,12 +3008,19 @@ typedef volatile struct ALT_I2C_INTR_MSK_s  ALT_I2C_INTR_MSK_t;
 #define ALT_I2C_RAW_INTR_STAT_RX_FULL_SET(value) (((value) << 2) & 0x00000004)
 
 /*
- * Field : Raw Interrupt TX Over - tx_over
+ * Field : tx_over
  * 
- * Set during transmit if the transmit buffer is filled to 64  and the processor
- * attempts to issue another I2C command by writing to the ic_data_cmd register.
- * When the module is disabled, this bit keeps its level until the master or slave
- * state machines go into idle, then this interrupt is cleared.
+ * Set during transmit if the transmit buffer is filled to IC_TX_BUFFER_DEPTH
+ * 
+ * and the processor attempts to issue another I2C command by writing to the
+ * 
+ * IC_DATA_CMD register. When the module is disabled, this bit keeps its level
+ * 
+ * until the master or slave state machines go into idle, and when ic_en goes to 0,
+ * 
+ * this interrupt is cleared.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -2209,15 +3043,39 @@ typedef volatile struct ALT_I2C_INTR_MSK_s  ALT_I2C_INTR_MSK_t;
 #define ALT_I2C_RAW_INTR_STAT_TX_OVER_SET(value) (((value) << 3) & 0x00000008)
 
 /*
- * Field : Raw Interrupt TX Empty - tx_empty
+ * Field : tx_empty
+ * 
+ * The behavior of the TX_EMPTY interrupt status
+ * 
+ * differs based on the TX_EMPTY_CTRL selection in the IC_CON register.
+ * 
+ * When TX_EMPTY_CTRL = 0:
  * 
  * This bit is set to 1 when the transmit buffer is at or below the threshold value
- * set in the ic_tx_tl register. It is automatically cleared by hardware when the
- * buffer level goes above the threshold. When the IC_ENABLE bit 0 is 0, the TX
- * FIFO is flushed and held in reset. There the TX FIFO looks like it has no data
- * within it, so this bit is set to 1, provided there is activity in the master or
- * slave state machines. When there is no longer activity, then this bit is set to
- * 0.
+ * set in the IC_TX_TL register.
+ * 
+ * When TX_EMPTY_CTRL = 1:
+ * 
+ * This bit is set to 1 when the transmit buffer is at or below the threshold
+ * value.
+ * 
+ * set in the IC_TX_TL register and the transmission of the address/data from
+ * 
+ * the internal shift register for the most recently popped command is completed.
+ * 
+ * It is automatically cleared by hardware when the buffer level goes above the
+ * 
+ * threshold. When IC_ENABLE[0] is set to 0, the TX FIFO is flushed and held in
+ * 
+ * reset. There the TX FIFO looks like it has no data within it, so this bit is set
+ * to 1,
+ * 
+ * provided there is activity in the master or slave state machines. When there is
+ * no
+ * 
+ * longer any activity, then with ic_en=0, this bit is set to 0.
+ * 
+ * Reset value: 0x0.
  * 
  * Field Access Macros:
  * 
@@ -2240,15 +3098,24 @@ typedef volatile struct ALT_I2C_INTR_MSK_s  ALT_I2C_INTR_MSK_t;
 #define ALT_I2C_RAW_INTR_STAT_TX_EMPTY_SET(value) (((value) << 4) & 0x00000010)
 
 /*
- * Field : Raw Interrupt Read Request - rd_req
+ * Field : rd_req
  * 
- * This bit is set to 1 when I2C is acting as a slave and another I2C master is
- * attempting to read data from I2C. The i2c holds the I2C bus in a wait state
- * (SCL=0) until this interrupt is serviced, which means that the slave has been
- * addressed by a remote master that is asking for data to be transferred. The
- * processor must respond to this interrupt and then write the requested data to
- * the ic_data_cmd register. This bit is set to 0 just after the processor reads
- * the ic_clr_rd_req register.
+ * This bit is set to 1 when DW_apb_i2c is acting as a slave and another I2C
+ * 
+ * master is attempting to read data from DW_apb_i2c. The DW_apb_i2c holds
+ * 
+ * the I2C bus in a wait state (SCL=0) until this interrupt is serviced, which
+ * means
+ * 
+ * that the slave has been addressed by a remote master that is asking for data to
+ * 
+ * be transferred. The processor must respond to this interrupt and then write the
+ * 
+ * requested data to the IC_DATA_CMD register. This bit is set to 0 just after the
+ * 
+ * processor reads the IC_CLR_RD_REQ register.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -2271,18 +3138,31 @@ typedef volatile struct ALT_I2C_INTR_MSK_s  ALT_I2C_INTR_MSK_t;
 #define ALT_I2C_RAW_INTR_STAT_RD_REQ_SET(value) (((value) << 5) & 0x00000020)
 
 /*
- * Field : Raw Interrupt TX Abort - tx_abrt
+ * Field : tx_abrt
  * 
- * This bit indicates if I2C, as an I2C transmitter, is unable to complete the
- * intended actions on the contents of the transmit FIFO. This situation can occur
- * both as an I2C master or an I2C slave, and is referred to as a 'transmit abort'.
- * When this bit is set to 1, the IC_TX_ABRT_SOURCE register indicates the reason
- * why the transmit abort takes places.
+ * This bit indicates if DW_apb_i2c, as an I2C transmitter,
  * 
- * NOTE: The I2C flushes/resets/empties the TX FIFO whenever this bit is set. The
- * TX FIFO remains in this flushed state until the register ic_clr_tx_abrt is read.
- * Once this read is performed, the TX FIFO is then ready to accept more data bytes
- * from the APB interface.
+ * is unable to complete the intended actions on the
+ * 
+ * contents of the transmit FIFO. This situation can
+ * 
+ * occur both as an I2C master or an I2C slave, and is
+ * 
+ * referred to as a 'transmit abort'.
+ * 
+ * When this bit is set to 1, the IC_TX_ABRT_SOURCE register
+ * 
+ * indicates the reason why the transmit abort takes places.
+ * 
+ * NOTE: The DW_apb_i2c flushes/resets/empties the TX FIFO whenever this
+ * 
+ * bit is set. The TX FIFO remains in this flushed state until the register
+ * 
+ * IC_CLR_TX_ABRT is read. Once this read is performed, the TX FIFO is then
+ * 
+ * ready to accept more data bytes from the APB interface.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -2305,11 +3185,17 @@ typedef volatile struct ALT_I2C_INTR_MSK_s  ALT_I2C_INTR_MSK_t;
 #define ALT_I2C_RAW_INTR_STAT_TX_ABRT_SET(value) (((value) << 6) & 0x00000040)
 
 /*
- * Field : Raw Interrupt RX Done - rx_done
+ * Field : rx_done
  * 
- * When the I2C is acting as a slave-transmitter, this bit is set to 1 if the
- * master does not acknowledge a transmitted byte. This occurs on the last byte of
+ * When the DW_apb_i2c is acting as a slave-transmitter,
+ * 
+ * this bit is set to 1 if the master does not acknowledge
+ * 
+ * a transmitted byte. This occurs on the last byte of
+ * 
  * the transmission, indicating that the transmission is done.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -2332,22 +3218,28 @@ typedef volatile struct ALT_I2C_INTR_MSK_s  ALT_I2C_INTR_MSK_t;
 #define ALT_I2C_RAW_INTR_STAT_RX_DONE_SET(value) (((value) << 7) & 0x00000080)
 
 /*
- * Field : Raw Interrupt Activity - activity
+ * Field : activity
  * 
- * This bit captures i2c activity and stays set until it is cleared. There are four
- * ways to clear it:
+ * This bit captures DW_apb_i2c activity and stays set until it is cleared. There
  * 
- * * Disabling the I2C
+ * are four ways to clear it:
  * 
- * * Reading the ic_clr_activity register
+ * * Disabling the DW_apb_i2c
  * 
- * * Reading the ic_clr_intr register
+ * * Reading the IC_CLR_ACTIVITY register
+ * 
+ * * Reading the IC_CLR_INTR register
  * 
  * * System reset
  * 
  * Once this bit is set, it stays set unless one of the four methods is used to
- * clear it. Even if the i2c module is idle, this bit remains set until cleared,
+ * clear it.
+ * 
+ * Even if the DW_apb_i2c module is idle, this bit remains set until cleared,
+ * 
  * indicating that there was activity on the bus.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -2370,10 +3262,39 @@ typedef volatile struct ALT_I2C_INTR_MSK_s  ALT_I2C_INTR_MSK_t;
 #define ALT_I2C_RAW_INTR_STAT_ACTIVITY_SET(value) (((value) << 8) & 0x00000100)
 
 /*
- * Field : Raw Interrupt Stop Detect - stop_det
+ * Field : stop_det
+ * 
+ * The behavior of the STOP_DET interrupt status
+ * 
+ * differs based on the STOP_DET_IFADDRESSED selection in the IC_CON register
+ * 
+ * When STOP_DET_IFADDRESSED =0
  * 
  * Indicates whether a STOP condition has occurred on the I2C interface regardless
- * of whether I2C is operating in slave or master mode.
+ * 
+ * of whether DW_apb_i2c is operating in slave or master mode. In slave mode,
+ * 
+ * a STOP_DET interrupt is generated irrespective of whether the
+ * 
+ * slave is addressed or not.
+ * 
+ * When STOP_DET_IFADDRESSED = 1
+ * 
+ * In Master Mode (MASTER_MODE = 1), indicates a STOP condition has occured on the
+ * I2C interface.
+ * 
+ * In Slave Mode (MASTER_MODE = 0), a STOP_DET interrupt is generated only if the
+ * slave is addressed.
+ * 
+ * NOTE: During a general call address, this slave does not issue a STOP_DET
+ * 
+ * interrupt if STOP_DET_IFADDRESSED=1, even if the slave responds to the
+ * 
+ * general call address by generating ACK. The STOP_DET interrupt is generated
+ * 
+ * only when the transmitted address matches the slave address (SAR).
+ * 
+ * Reset value: 0x0.
  * 
  * Field Access Macros:
  * 
@@ -2396,10 +3317,15 @@ typedef volatile struct ALT_I2C_INTR_MSK_s  ALT_I2C_INTR_MSK_t;
 #define ALT_I2C_RAW_INTR_STAT_STOP_DET_SET(value) (((value) << 9) & 0x00000200)
 
 /*
- * Field : Raw Interrupt Start Detect - start_det
+ * Field : start_det
  * 
- * Indicates whether a START or RESTART condition has occurred on the I2C interface
- * regardless of whether I2C is operating in slave or master mode.
+ * Indicates whether a START or RESTART condition has occurred on the I2C
+ * 
+ * interface regardless of whether DW_apb_i2c is operating in slave or master
+ * 
+ * mode.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -2422,12 +3348,17 @@ typedef volatile struct ALT_I2C_INTR_MSK_s  ALT_I2C_INTR_MSK_t;
 #define ALT_I2C_RAW_INTR_STAT_START_DET_SET(value) (((value) << 10) & 0x00000400)
 
 /*
- * Field : Raw Interrupt General Call - gen_call
+ * Field : gen_call
  * 
  * Set only when a General Call address is received and it is acknowledged. It
- * stays set until it is cleared either by disabling I2C or when the CPU reads bit
- * 0 of the ic_clr_gen_call register. I2C stores the received data in the Rx
- * buffer.
+ * 
+ * stays set until it is cleared either by disabling DW_apb_i2c or when the CPU
+ * 
+ * reads bit 0 of the IC_CLR_GEN_CALL register. DW_apb_i2c stores the
+ * 
+ * received data in the Rx buffer.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -2449,6 +3380,74 @@ typedef volatile struct ALT_I2C_INTR_MSK_s  ALT_I2C_INTR_MSK_t;
 /* Produces a ALT_I2C_RAW_INTR_STAT_GEN_CALL register field value suitable for setting the register. */
 #define ALT_I2C_RAW_INTR_STAT_GEN_CALL_SET(value) (((value) << 11) & 0x00000800)
 
+/*
+ * Field : restart_det
+ * 
+ * Indicates whether a RESTART condition has occurred on the I2C interface
+ * 
+ * when DW_apb_i2c is operating in Slave mode and the slave is being addressed.
+ * Enabled only when IC_SLV_RESTART_DET_EN=1.
+ * 
+ * (Note:Following are exceptions where the Restart interrupt will not get
+ * generated.
+ * 
+ * In the case of High speed Mode or Startbyte transfer, where the Restart comes
+ * before the Address field as per the
+ * 
+ * I2C protocol defined format, the Slave is still not in the addressed mode and
+ * hence will not generate the RESTART_DET interrupt.)
+ * 
+ * Reset value: 0x0
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_RAW_INTR_STAT_RESTART_DET register field. */
+#define ALT_I2C_RAW_INTR_STAT_RESTART_DET_LSB        12
+/* The Most Significant Bit (MSB) position of the ALT_I2C_RAW_INTR_STAT_RESTART_DET register field. */
+#define ALT_I2C_RAW_INTR_STAT_RESTART_DET_MSB        12
+/* The width in bits of the ALT_I2C_RAW_INTR_STAT_RESTART_DET register field. */
+#define ALT_I2C_RAW_INTR_STAT_RESTART_DET_WIDTH      1
+/* The mask used to set the ALT_I2C_RAW_INTR_STAT_RESTART_DET register field value. */
+#define ALT_I2C_RAW_INTR_STAT_RESTART_DET_SET_MSK    0x00001000
+/* The mask used to clear the ALT_I2C_RAW_INTR_STAT_RESTART_DET register field value. */
+#define ALT_I2C_RAW_INTR_STAT_RESTART_DET_CLR_MSK    0xffffefff
+/* The reset value of the ALT_I2C_RAW_INTR_STAT_RESTART_DET register field. */
+#define ALT_I2C_RAW_INTR_STAT_RESTART_DET_RESET      0x0
+/* Extracts the ALT_I2C_RAW_INTR_STAT_RESTART_DET field value from a register. */
+#define ALT_I2C_RAW_INTR_STAT_RESTART_DET_GET(value) (((value) & 0x00001000) >> 12)
+/* Produces a ALT_I2C_RAW_INTR_STAT_RESTART_DET register field value suitable for setting the register. */
+#define ALT_I2C_RAW_INTR_STAT_RESTART_DET_SET(value) (((value) << 12) & 0x00001000)
+
+/*
+ * Field : master_on_hold
+ * 
+ * Indicates whether master is holding the bus and TX FIFO is empty.
+ * 
+ * Enabled only when I2C_DYNAMIC_TAR_UPDATE=1 and IC_EMPTYFIFO_HOLD_MASTER_EN=1.
+ * 
+ * Reset value: 0x0
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD register field. */
+#define ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD_LSB        13
+/* The Most Significant Bit (MSB) position of the ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD register field. */
+#define ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD_MSB        13
+/* The width in bits of the ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD register field. */
+#define ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD_WIDTH      1
+/* The mask used to set the ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD register field value. */
+#define ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD_SET_MSK    0x00002000
+/* The mask used to clear the ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD register field value. */
+#define ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD_CLR_MSK    0xffffdfff
+/* The reset value of the ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD register field. */
+#define ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD_RESET      0x0
+/* Extracts the ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD field value from a register. */
+#define ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD_GET(value) (((value) & 0x00002000) >> 13)
+/* Produces a ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD register field value suitable for setting the register. */
+#define ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD_SET(value) (((value) << 13) & 0x00002000)
+
 #ifndef __ASSEMBLY__
 /*
  * WARNING: The C register and register group struct declarations are provided for
@@ -2462,52 +3461,75 @@ typedef volatile struct ALT_I2C_INTR_MSK_s  ALT_I2C_INTR_MSK_t;
  */
 struct ALT_I2C_RAW_INTR_STAT_s
 {
-    const uint32_t  rx_under  :  1;  /* I2C Raw Interrupt RX Under */
-    const uint32_t  rx_over   :  1;  /* Raw Interrupt RX Over */
-    const uint32_t  rx_full   :  1;  /* Raw Interrupt RX Full */
-    const uint32_t  tx_over   :  1;  /* Raw Interrupt TX Over */
-    const uint32_t  tx_empty  :  1;  /* Raw Interrupt TX Empty */
-    const uint32_t  rd_req    :  1;  /* Raw Interrupt Read Request */
-    const uint32_t  tx_abrt   :  1;  /* Raw Interrupt TX Abort */
-    const uint32_t  rx_done   :  1;  /* Raw Interrupt RX Done */
-    const uint32_t  activity  :  1;  /* Raw Interrupt Activity */
-    const uint32_t  stop_det  :  1;  /* Raw Interrupt Stop Detect */
-    const uint32_t  start_det :  1;  /* Raw Interrupt Start Detect */
-    const uint32_t  gen_call  :  1;  /* Raw Interrupt General Call */
-    uint32_t                  : 20;  /* *UNDEFINED* */
+    const uint32_t  rx_under       :  1;  /* ALT_I2C_RAW_INTR_STAT_RX_UNDER */
+    const uint32_t  rx_over        :  1;  /* ALT_I2C_RAW_INTR_STAT_RX_OVER */
+    const uint32_t  rx_full        :  1;  /* ALT_I2C_RAW_INTR_STAT_RX_FULL */
+    const uint32_t  tx_over        :  1;  /* ALT_I2C_RAW_INTR_STAT_TX_OVER */
+    const uint32_t  tx_empty       :  1;  /* ALT_I2C_RAW_INTR_STAT_TX_EMPTY */
+    const uint32_t  rd_req         :  1;  /* ALT_I2C_RAW_INTR_STAT_RD_REQ */
+    const uint32_t  tx_abrt        :  1;  /* ALT_I2C_RAW_INTR_STAT_TX_ABRT */
+    const uint32_t  rx_done        :  1;  /* ALT_I2C_RAW_INTR_STAT_RX_DONE */
+    const uint32_t  activity       :  1;  /* ALT_I2C_RAW_INTR_STAT_ACTIVITY */
+    const uint32_t  stop_det       :  1;  /* ALT_I2C_RAW_INTR_STAT_STOP_DET */
+    const uint32_t  start_det      :  1;  /* ALT_I2C_RAW_INTR_STAT_START_DET */
+    const uint32_t  gen_call       :  1;  /* ALT_I2C_RAW_INTR_STAT_GEN_CALL */
+    const uint32_t  restart_det    :  1;  /* ALT_I2C_RAW_INTR_STAT_RESTART_DET */
+    const uint32_t  master_on_hold :  1;  /* ALT_I2C_RAW_INTR_STAT_MST_ON_HOLD */
+    uint32_t                       : 18;  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register ALT_I2C_RAW_INTR_STAT. */
 typedef volatile struct ALT_I2C_RAW_INTR_STAT_s  ALT_I2C_RAW_INTR_STAT_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_RAW_INTR_STAT register. */
+#define ALT_I2C_RAW_INTR_STAT_RESET       0x00000000
 /* The byte offset of the ALT_I2C_RAW_INTR_STAT register from the beginning of the component. */
 #define ALT_I2C_RAW_INTR_STAT_OFST        0x34
 /* The address of the ALT_I2C_RAW_INTR_STAT register. */
 #define ALT_I2C_RAW_INTR_STAT_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_RAW_INTR_STAT_OFST))
 
 /*
- * Register : Receive FIFO Threshold Register - ic_rx_tl
+ * Register : ic_rx_tl
  * 
- * I2C Receive FIFO Threshold Register.
+ * Name: I2C Receive FIFO Threshold Register
+ * 
+ * Size: 8bits
+ * 
+ * Address Offset: 0x38
+ * 
+ * Read/Write Access: Read/Write
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description                 
- * :-------|:-------|:------|:-----------------------------
- *  [7:0]  | RW     | 0x0   | Receive FIFO Threshold Level
- *  [31:8] | ???    | 0x0   | *UNDEFINED*                 
+ *  Bits   | Access | Reset | Description        
+ * :-------|:-------|:------|:--------------------
+ *  [7:0]  | RW     | 0x0   | ALT_I2C_RX_TL_RX_TL
+ *  [31:8] | ???    | 0x0   | *UNDEFINED*        
  * 
  */
 /*
- * Field : Receive FIFO Threshold Level - rx_tl
+ * Field : rx_tl
  * 
- * Controls the level of entries (or above) that triggers the RX_FULL interrupt
- * (bit 2 in IC_RAW_INTR_STAT register). The valid range is 0-255, with the
- * additional restriction that hardware does not allow this value to be set to a
- * value larger than the depth of the buffer. If an attempt is made to do that, the
- * actual value set will be the maximum depth of the buffer. A value of 0 sets the
- * threshold for 1 entry, and a value of 255 sets the threshold for 256 entries.
+ * Receive FIFO Threshold Level
+ * 
+ * Controls the level of entries (or above) that triggers
+ * 
+ * the RX_FULL interrupt (bit 2 in IC_RAW_INTR_STAT register).
+ * 
+ * The valid range is 0-255, with the additional restriction that
+ * 
+ * hardware does not allow this value to be set to a value larger
+ * 
+ * than the depth of the buffer. If an attempt is made to do that,
+ * 
+ * the actual value set will be the maximum depth of the buffer.
+ * 
+ * A value of 0 sets the threshold for 1 entry, and a value of 255
+ * 
+ * sets the threshold for 256 entries.
+ * 
+ * Reset value: IC_RX_TL configuration parameter
  * 
  * Field Access Macros:
  * 
@@ -2542,7 +3564,7 @@ typedef volatile struct ALT_I2C_RAW_INTR_STAT_s  ALT_I2C_RAW_INTR_STAT_t;
  */
 struct ALT_I2C_RX_TL_s
 {
-    uint32_t  rx_tl :  8;  /* Receive FIFO Threshold Level */
+    uint32_t  rx_tl :  8;  /* ALT_I2C_RX_TL_RX_TL */
     uint32_t        : 24;  /* *UNDEFINED* */
 };
 
@@ -2550,33 +3572,54 @@ struct ALT_I2C_RX_TL_s
 typedef volatile struct ALT_I2C_RX_TL_s  ALT_I2C_RX_TL_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_RX_TL register. */
+#define ALT_I2C_RX_TL_RESET       0x00000000
 /* The byte offset of the ALT_I2C_RX_TL register from the beginning of the component. */
 #define ALT_I2C_RX_TL_OFST        0x38
 /* The address of the ALT_I2C_RX_TL register. */
 #define ALT_I2C_RX_TL_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_RX_TL_OFST))
 
 /*
- * Register : Transmit FIFO Threshold Level Register - ic_tx_tl
+ * Register : ic_tx_tl
  * 
- * Sets FIFO depth for Interrupt.
+ * Name: I2C Transmit FIFO Threshold Register
+ * 
+ * Size: 8 bits
+ * 
+ * Address Offset: 0x3c
+ * 
+ * Read/Write Access: Read/Write
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description                  
- * :-------|:-------|:------|:------------------------------
- *  [7:0]  | RW     | 0x0   | Transmit FIFO Threshold Level
- *  [31:8] | ???    | 0x0   | *UNDEFINED*                  
+ *  Bits   | Access | Reset | Description        
+ * :-------|:-------|:------|:--------------------
+ *  [7:0]  | RW     | 0x0   | ALT_I2C_TX_TL_TX_TL
+ *  [31:8] | ???    | 0x0   | *UNDEFINED*        
  * 
  */
 /*
- * Field : Transmit FIFO Threshold Level - tx_tl
+ * Field : tx_tl
  * 
- * Controls the level of entries (or below) that trigger the TX_EMPTY interrupt
- * (bit 4 in ic_raw_intr_stat register). The valid range is 0-255, with the
- * additional restriction that it may not be set to value larger than the depth of
- * the buffer. If an attempt is made to do that, the actual value set will be the
- * maximum depth of the buffer. A value of 0 sets the threshold for 0 entries, and
- * a value of 255 sets the threshold for 255 entries.
+ * Transmit FIFO Threshold Level
+ * 
+ * Controls the level of entries (or below) that trigger
+ * 
+ * the TX_EMPTY interrupt (bit 4 in IC_RAW_INTR_STAT register).
+ * 
+ * The valid range is 0-255, with the additional restriction that
+ * 
+ * it may not be set to value larger than the depth of the buffer.
+ * 
+ * If an attempt is made to do that, the actual value set will be
+ * 
+ * the maximum depth of the buffer.
+ * 
+ * A value of 0 sets the threshold for 0 entries, and a value of 255
+ * 
+ * sets the threshold for 255 entries.
+ * 
+ * Reset value: IC_TX_TL configuration parameter
  * 
  * Field Access Macros:
  * 
@@ -2611,7 +3654,7 @@ typedef volatile struct ALT_I2C_RX_TL_s  ALT_I2C_RX_TL_t;
  */
 struct ALT_I2C_TX_TL_s
 {
-    uint32_t  tx_tl :  8;  /* Transmit FIFO Threshold Level */
+    uint32_t  tx_tl :  8;  /* ALT_I2C_TX_TL_TX_TL */
     uint32_t        : 24;  /* *UNDEFINED* */
 };
 
@@ -2619,31 +3662,46 @@ struct ALT_I2C_TX_TL_s
 typedef volatile struct ALT_I2C_TX_TL_s  ALT_I2C_TX_TL_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_TX_TL register. */
+#define ALT_I2C_TX_TL_RESET       0x00000000
 /* The byte offset of the ALT_I2C_TX_TL register from the beginning of the component. */
 #define ALT_I2C_TX_TL_OFST        0x3c
 /* The address of the ALT_I2C_TX_TL register. */
 #define ALT_I2C_TX_TL_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_TX_TL_OFST))
 
 /*
- * Register : Combined and Individual Interrupt Register - ic_clr_intr
+ * Register : ic_clr_intr
  * 
- * Controls Interrupts
+ * Name: Clear Combined and Individual Interrupt Register
+ * 
+ * Size: 1 bit
+ * 
+ * Address Offset: 0x40
+ * 
+ * Read/Write Access: Read
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description                           
- * :-------|:-------|:------|:---------------------------------------
- *  [0]    | R      | 0x0   | Combined and Individual Interrupt Bits
- *  [31:1] | ???    | 0x0   | *UNDEFINED*                           
+ *  Bits   | Access | Reset | Description              
+ * :-------|:-------|:------|:--------------------------
+ *  [0]    | R      | 0x0   | ALT_I2C_CLR_INTR_CLR_INTR
+ *  [31:1] | ???    | 0x0   | *UNDEFINED*              
  * 
  */
 /*
- * Field : Combined and Individual Interrupt Bits - clr_intr
+ * Field : clr_intr
  * 
- * Read this register to clear the combined interrupt, all individual interrupts,
- * and the IC_TX_ABRT_SOURCE register. This bit does not clear hardware clearable
- * interrupts but software clearable interrupts. Refer to Bit 9 of the
- * ic_tx_abrt_source register for an exception to clearing ic_tx_abrt_source.
+ * Read this register to clear the combined interrupt,
+ * 
+ * all individual interrupts, and the IC_TX_ABRT_SOURCE register.
+ * 
+ * This bit does not clear hardware clearable interrupts but software
+ * 
+ * clearable interrupts. Refer to Bit 9 of the IC_TX_ABRT_SOURCE register
+ * 
+ * for an exception to clearing IC_TX_ABRT_SOURCE.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -2678,7 +3736,7 @@ typedef volatile struct ALT_I2C_TX_TL_s  ALT_I2C_TX_TL_t;
  */
 struct ALT_I2C_CLR_INTR_s
 {
-    const uint32_t  clr_intr :  1;  /* Combined and Individual Interrupt Bits */
+    const uint32_t  clr_intr :  1;  /* ALT_I2C_CLR_INTR_CLR_INTR */
     uint32_t                 : 31;  /* *UNDEFINED* */
 };
 
@@ -2686,29 +3744,40 @@ struct ALT_I2C_CLR_INTR_s
 typedef volatile struct ALT_I2C_CLR_INTR_s  ALT_I2C_CLR_INTR_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_CLR_INTR register. */
+#define ALT_I2C_CLR_INTR_RESET       0x00000000
 /* The byte offset of the ALT_I2C_CLR_INTR register from the beginning of the component. */
 #define ALT_I2C_CLR_INTR_OFST        0x40
 /* The address of the ALT_I2C_CLR_INTR register. */
 #define ALT_I2C_CLR_INTR_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_CLR_INTR_OFST))
 
 /*
- * Register : Rx Under Interrupt Register - ic_clr_rx_under
+ * Register : ic_clr_rx_under
  * 
- * Rx Under Interrupt Bits.
+ * Name: Clear RX_UNDER Interrupt Register
+ * 
+ * Size: 1 bit
+ * 
+ * Address Offset: 0x44
+ * 
+ * Read/Write Access: Read
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description                 
- * :-------|:-------|:------|:-----------------------------
- *  [0]    | R      | 0x0   | Clear Rx Under Interrupt Bit
- *  [31:1] | ???    | 0x0   | *UNDEFINED*                 
+ *  Bits   | Access | Reset | Description                      
+ * :-------|:-------|:------|:----------------------------------
+ *  [0]    | R      | 0x0   | ALT_I2C_CLR_RX_UNDER_CLR_RX_UNDER
+ *  [31:1] | ???    | 0x0   | *UNDEFINED*                      
  * 
  */
 /*
- * Field : Clear Rx Under Interrupt Bit - clr_rx_under
+ * Field : clr_rx_under
  * 
- * Read this register to clear the RX_UNDER interrupt bit 0 of the ic_raw_intr_stat
- * register.
+ * Read this register to clear the RX_UNDER
+ * 
+ * interrupt (bit 0) of the IC_RAW_INTR_STAT register.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -2743,7 +3812,7 @@ typedef volatile struct ALT_I2C_CLR_INTR_s  ALT_I2C_CLR_INTR_t;
  */
 struct ALT_I2C_CLR_RX_UNDER_s
 {
-    const uint32_t  clr_rx_under :  1;  /* Clear Rx Under Interrupt Bit */
+    const uint32_t  clr_rx_under :  1;  /* ALT_I2C_CLR_RX_UNDER_CLR_RX_UNDER */
     uint32_t                     : 31;  /* *UNDEFINED* */
 };
 
@@ -2751,29 +3820,40 @@ struct ALT_I2C_CLR_RX_UNDER_s
 typedef volatile struct ALT_I2C_CLR_RX_UNDER_s  ALT_I2C_CLR_RX_UNDER_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_CLR_RX_UNDER register. */
+#define ALT_I2C_CLR_RX_UNDER_RESET       0x00000000
 /* The byte offset of the ALT_I2C_CLR_RX_UNDER register from the beginning of the component. */
 #define ALT_I2C_CLR_RX_UNDER_OFST        0x44
 /* The address of the ALT_I2C_CLR_RX_UNDER register. */
 #define ALT_I2C_CLR_RX_UNDER_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_CLR_RX_UNDER_OFST))
 
 /*
- * Register : RX Over Interrupt Register - ic_clr_rx_over
+ * Register : ic_clr_rx_over
  * 
- * Clears Rx over Interrupt Bit
+ * Name: Clear RX_OVER Interrupt Register
+ * 
+ * Size: 1 bit
+ * 
+ * Address Offset: 0x48
+ * 
+ * Read/Write Access: Read
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description          
- * :-------|:-------|:------|:----------------------
- *  [0]    | R      | 0x0   | RX Over Interrupt Bit
- *  [31:1] | ???    | 0x0   | *UNDEFINED*          
+ *  Bits   | Access | Reset | Description                    
+ * :-------|:-------|:------|:--------------------------------
+ *  [0]    | R      | 0x0   | ALT_I2C_CLR_RX_OVER_CLR_RX_OVER
+ *  [31:1] | ???    | 0x0   | *UNDEFINED*                    
  * 
  */
 /*
- * Field : RX Over Interrupt Bit - clr_rx_over
+ * Field : clr_rx_over
  * 
- * Read this register to clear the RX_OVER interrupt bit 1 of the ic_raw_intr_stat
- * register.
+ * Read this register to clear the RX_OVER
+ * 
+ * interrupt (bit 1) of the IC_RAW_INTR_STAT register.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -2808,7 +3888,7 @@ typedef volatile struct ALT_I2C_CLR_RX_UNDER_s  ALT_I2C_CLR_RX_UNDER_t;
  */
 struct ALT_I2C_CLR_RX_OVER_s
 {
-    const uint32_t  clr_rx_over :  1;  /* RX Over Interrupt Bit */
+    const uint32_t  clr_rx_over :  1;  /* ALT_I2C_CLR_RX_OVER_CLR_RX_OVER */
     uint32_t                    : 31;  /* *UNDEFINED* */
 };
 
@@ -2816,29 +3896,40 @@ struct ALT_I2C_CLR_RX_OVER_s
 typedef volatile struct ALT_I2C_CLR_RX_OVER_s  ALT_I2C_CLR_RX_OVER_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_CLR_RX_OVER register. */
+#define ALT_I2C_CLR_RX_OVER_RESET       0x00000000
 /* The byte offset of the ALT_I2C_CLR_RX_OVER register from the beginning of the component. */
 #define ALT_I2C_CLR_RX_OVER_OFST        0x48
 /* The address of the ALT_I2C_CLR_RX_OVER register. */
 #define ALT_I2C_CLR_RX_OVER_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_CLR_RX_OVER_OFST))
 
 /*
- * Register : TX Over Interrupt Register - ic_clr_tx_over
+ * Register : ic_clr_tx_over
  * 
- * Clears Over Interrupts
+ * Name: Clear TX_OVER Interrupt Register
+ * 
+ * Size: 1 bit
+ * 
+ * Address Offset: 0x4c
+ * 
+ * Read/Write Access: Read
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description          
- * :-------|:-------|:------|:----------------------
- *  [0]    | R      | 0x0   | TX Over Interrupt Bit
- *  [31:1] | ???    | 0x0   | *UNDEFINED*          
+ *  Bits   | Access | Reset | Description                    
+ * :-------|:-------|:------|:--------------------------------
+ *  [0]    | R      | 0x0   | ALT_I2C_CLR_TX_OVER_CLR_TX_OVER
+ *  [31:1] | ???    | 0x0   | *UNDEFINED*                    
  * 
  */
 /*
- * Field : TX Over Interrupt Bit - clr_tx_over
+ * Field : clr_tx_over
  * 
- * Read this register to clear the TX_OVER interrupt (bit 3) of the
- * ic_raw_intr_stat register.
+ * Read this register to clear the TX_OVER
+ * 
+ * interrupt (bit 3) of the IC_RAW_INTR_STAT register.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -2873,7 +3964,7 @@ typedef volatile struct ALT_I2C_CLR_RX_OVER_s  ALT_I2C_CLR_RX_OVER_t;
  */
 struct ALT_I2C_CLR_TX_OVER_s
 {
-    const uint32_t  clr_tx_over :  1;  /* TX Over Interrupt Bit */
+    const uint32_t  clr_tx_over :  1;  /* ALT_I2C_CLR_TX_OVER_CLR_TX_OVER */
     uint32_t                    : 31;  /* *UNDEFINED* */
 };
 
@@ -2881,29 +3972,40 @@ struct ALT_I2C_CLR_TX_OVER_s
 typedef volatile struct ALT_I2C_CLR_TX_OVER_s  ALT_I2C_CLR_TX_OVER_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_CLR_TX_OVER register. */
+#define ALT_I2C_CLR_TX_OVER_RESET       0x00000000
 /* The byte offset of the ALT_I2C_CLR_TX_OVER register from the beginning of the component. */
 #define ALT_I2C_CLR_TX_OVER_OFST        0x4c
 /* The address of the ALT_I2C_CLR_TX_OVER register. */
 #define ALT_I2C_CLR_TX_OVER_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_CLR_TX_OVER_OFST))
 
 /*
- * Register : Interrupt Read Request Register - ic_clr_rd_req
+ * Register : ic_clr_rd_req
  * 
- * Clear RD_REQ Interrupt Register
+ * Name: Clear RD_REQ Interrupt Register
+ * 
+ * Size: 1 bit
+ * 
+ * Address Offset: 0x50
+ * 
+ * Read/Write Access: Read
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description                        
- * :-------|:-------|:------|:------------------------------------
- *  [0]    | R      | 0x0   | Interrupt Register Read Request Bit
- *  [31:1] | ???    | 0x0   | *UNDEFINED*                        
+ *  Bits   | Access | Reset | Description                  
+ * :-------|:-------|:------|:------------------------------
+ *  [0]    | R      | 0x0   | ALT_I2C_CLR_RD_REQ_CLR_RD_REQ
+ *  [31:1] | ???    | 0x0   | *UNDEFINED*                  
  * 
  */
 /*
- * Field : Interrupt Register Read Request Bit - clr_rd_req
+ * Field : clr_rd_req
  * 
- * Read this register to clear the RD_REQ interrupt (bit 5) of the ic_raw_intr_stat
- * register.
+ * Read this register to clear the RD_REQ
+ * 
+ * interrupt (bit 5) of the IC_RAW_INTR_STAT register.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -2938,7 +4040,7 @@ typedef volatile struct ALT_I2C_CLR_TX_OVER_s  ALT_I2C_CLR_TX_OVER_t;
  */
 struct ALT_I2C_CLR_RD_REQ_s
 {
-    const uint32_t  clr_rd_req :  1;  /* Interrupt Register Read Request Bit */
+    const uint32_t  clr_rd_req :  1;  /* ALT_I2C_CLR_RD_REQ_CLR_RD_REQ */
     uint32_t                   : 31;  /* *UNDEFINED* */
 };
 
@@ -2946,32 +4048,50 @@ struct ALT_I2C_CLR_RD_REQ_s
 typedef volatile struct ALT_I2C_CLR_RD_REQ_s  ALT_I2C_CLR_RD_REQ_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_CLR_RD_REQ register. */
+#define ALT_I2C_CLR_RD_REQ_RESET       0x00000000
 /* The byte offset of the ALT_I2C_CLR_RD_REQ register from the beginning of the component. */
 #define ALT_I2C_CLR_RD_REQ_OFST        0x50
 /* The address of the ALT_I2C_CLR_RD_REQ register. */
 #define ALT_I2C_CLR_RD_REQ_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_CLR_RD_REQ_OFST))
 
 /*
- * Register : Tx Abort Interrupt Register - ic_clr_tx_abrt
+ * Register : ic_clr_tx_abrt
  * 
- * Clear TX_ABRT Interrupt
+ * Name: Clear TX_ABRT Interrupt Register
+ * 
+ * Size: 1 bit
+ * 
+ * Address Offset: 0x54
+ * 
+ * Read/Write Access: Read
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description           
- * :-------|:-------|:------|:-----------------------
- *  [0]    | R      | 0x0   | Tx Abort Interrupt Bit
- *  [31:1] | ???    | 0x0   | *UNDEFINED*           
+ *  Bits   | Access | Reset | Description                   
+ * :-------|:-------|:------|:-------------------------------
+ *  [0]    | R      | 0x0   | ALT_I2C_CLR_TX_ABRT_CLR_TX_ABT
+ *  [31:1] | ???    | 0x0   | *UNDEFINED*                   
  * 
  */
 /*
- * Field : Tx Abort Interrupt Bit - clr_tx_abort
+ * Field : clr_tx_abort
  * 
- * Read this register to clear the TX_ABRT interrupt (bit 6) of the
- * ic_raw_intr_stat register, and the ic_tx_abrt_source register. This also
- * releases the TX FIFO from the flushed/reset state, allowing more writes to the
- * TX FIFO. Refer to Bit 9 of the ic_tx_abrt_source register for an exception to
- * clearing ic_tx_abrt_source.
+ * Read this register to clear the TX_ABRT
+ * 
+ * interrupt (bit 6) of the IC_RAW_INTR_STAT register,
+ * 
+ * and the IC_TX_ABRT_SOURCE register.
+ * 
+ * This also releases the TX FIFO from the flushed/reset
+ * 
+ * state, allowing more writes to the TX FIFO.
+ * 
+ * Refer to Bit 9 of the IC_TX_ABRT_SOURCE register for
+ * 
+ * an exception to clearing IC_TX_ABRT_SOURCE.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -3006,7 +4126,7 @@ typedef volatile struct ALT_I2C_CLR_RD_REQ_s  ALT_I2C_CLR_RD_REQ_t;
  */
 struct ALT_I2C_CLR_TX_ABRT_s
 {
-    const uint32_t  clr_tx_abort :  1;  /* Tx Abort Interrupt Bit */
+    const uint32_t  clr_tx_abort :  1;  /* ALT_I2C_CLR_TX_ABRT_CLR_TX_ABT */
     uint32_t                     : 31;  /* *UNDEFINED* */
 };
 
@@ -3014,29 +4134,40 @@ struct ALT_I2C_CLR_TX_ABRT_s
 typedef volatile struct ALT_I2C_CLR_TX_ABRT_s  ALT_I2C_CLR_TX_ABRT_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_CLR_TX_ABRT register. */
+#define ALT_I2C_CLR_TX_ABRT_RESET       0x00000000
 /* The byte offset of the ALT_I2C_CLR_TX_ABRT register from the beginning of the component. */
 #define ALT_I2C_CLR_TX_ABRT_OFST        0x54
 /* The address of the ALT_I2C_CLR_TX_ABRT register. */
 #define ALT_I2C_CLR_TX_ABRT_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_CLR_TX_ABRT_OFST))
 
 /*
- * Register : Rx Done Interrupt Register - ic_clr_rx_done
+ * Register : ic_clr_rx_done
  * 
- * Clear RX_DONE Interrupt Register
+ * Name: Clear RX_DONE Interrupt Register
+ * 
+ * Size: 1 bit
+ * 
+ * Address Offset: 0x58
+ * 
+ * Read/Write Access: Read
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description          
- * :-------|:-------|:------|:----------------------
- *  [0]    | R      | 0x0   | RX_DONE Interrupt Bit
- *  [31:1] | ???    | 0x0   | *UNDEFINED*          
+ *  Bits   | Access | Reset | Description                    
+ * :-------|:-------|:------|:--------------------------------
+ *  [0]    | R      | 0x0   | ALT_I2C_CLR_RX_DONE_CLR_RX_DONE
+ *  [31:1] | ???    | 0x0   | *UNDEFINED*                    
  * 
  */
 /*
- * Field : RX_DONE Interrupt Bit - clr_rx_done
+ * Field : clr_rx_done
  * 
- * Read this register to clear the RX_DONE interrupt (bit 7) of the
- * ic_raw_intr_stat register.
+ * Read this register to clear the RX_DONE
+ * 
+ * interrupt (bit 7) of the IC_RAW_INTR_STAT register.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -3071,7 +4202,7 @@ typedef volatile struct ALT_I2C_CLR_TX_ABRT_s  ALT_I2C_CLR_TX_ABRT_t;
  */
 struct ALT_I2C_CLR_RX_DONE_s
 {
-    const uint32_t  clr_rx_done :  1;  /* RX_DONE Interrupt Bit */
+    const uint32_t  clr_rx_done :  1;  /* ALT_I2C_CLR_RX_DONE_CLR_RX_DONE */
     uint32_t                    : 31;  /* *UNDEFINED* */
 };
 
@@ -3079,33 +4210,52 @@ struct ALT_I2C_CLR_RX_DONE_s
 typedef volatile struct ALT_I2C_CLR_RX_DONE_s  ALT_I2C_CLR_RX_DONE_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_CLR_RX_DONE register. */
+#define ALT_I2C_CLR_RX_DONE_RESET       0x00000000
 /* The byte offset of the ALT_I2C_CLR_RX_DONE register from the beginning of the component. */
 #define ALT_I2C_CLR_RX_DONE_OFST        0x58
 /* The address of the ALT_I2C_CLR_RX_DONE register. */
 #define ALT_I2C_CLR_RX_DONE_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_CLR_RX_DONE_OFST))
 
 /*
- * Register : Activity Interrupt Register - ic_clr_activity
+ * Register : ic_clr_activity
  * 
- * Clears ACTIVITY Interrupt
+ * Name: Clear ACTIVITY Interrupt Register
+ * 
+ * Size: 1 bit
+ * 
+ * Address Offset: 0x5c
+ * 
+ * Read/Write Access: Read
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description           
- * :-------|:-------|:------|:-----------------------
- *  [0]    | R      | 0x0   | Activity Interrupt Bit
- *  [31:1] | ???    | 0x0   | *UNDEFINED*           
+ *  Bits   | Access | Reset | Description                      
+ * :-------|:-------|:------|:----------------------------------
+ *  [0]    | R      | 0x0   | ALT_I2C_CLR_ACTIVITY_CLR_ACTIVITY
+ *  [31:1] | ???    | 0x0   | *UNDEFINED*                      
  * 
  */
 /*
- * Field : Activity Interrupt Bit - clr_activity
+ * Field : clr_activity
  * 
- * Reading this register clears the ACTIVITY interrupt if the I2C is not active
- * anymore. If the I2C module is still active on the bus, the ACTIVITY interrupt
- * bit continues to be set. It is automatically cleared by hardware if the module
- * is disabled and if there is no further activity on the bus. The value read from
- * this register to get status of the ACTIVITY interrupt (bit 8) of the
- * ic_raw_intr_stat register.
+ * Reading this register clears the ACTIVITY
+ * 
+ * interrupt if the I2C is not active anymore. If the
+ * 
+ * I2C module is still active on the bus, the ACTIVITY
+ * 
+ * interrupt bit continues to be set. It is automatically
+ * 
+ * cleared by hardware if the module is disabled and if
+ * 
+ * there is no further activity on the bus. The value read
+ * 
+ * from this register to get status of the ACTIVITY interrupt
+ * 
+ * (bit 8) of the IC_RAW_INTR_STAT register.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -3140,7 +4290,7 @@ typedef volatile struct ALT_I2C_CLR_RX_DONE_s  ALT_I2C_CLR_RX_DONE_t;
  */
 struct ALT_I2C_CLR_ACTIVITY_s
 {
-    const uint32_t  clr_activity :  1;  /* Activity Interrupt Bit */
+    const uint32_t  clr_activity :  1;  /* ALT_I2C_CLR_ACTIVITY_CLR_ACTIVITY */
     uint32_t                     : 31;  /* *UNDEFINED* */
 };
 
@@ -3148,29 +4298,40 @@ struct ALT_I2C_CLR_ACTIVITY_s
 typedef volatile struct ALT_I2C_CLR_ACTIVITY_s  ALT_I2C_CLR_ACTIVITY_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_CLR_ACTIVITY register. */
+#define ALT_I2C_CLR_ACTIVITY_RESET       0x00000000
 /* The byte offset of the ALT_I2C_CLR_ACTIVITY register from the beginning of the component. */
 #define ALT_I2C_CLR_ACTIVITY_OFST        0x5c
 /* The address of the ALT_I2C_CLR_ACTIVITY register. */
 #define ALT_I2C_CLR_ACTIVITY_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_CLR_ACTIVITY_OFST))
 
 /*
- * Register : Stop Detect Interrupt Register - ic_clr_stop_det
+ * Register : ic_clr_stop_det
  * 
- * Clear Interrupts.
+ * Name: Clear STOP_DET Interrupt Register
+ * 
+ * Size: 1 bit
+ * 
+ * Address Offset: 0x60
+ * 
+ * Read/Write Access: Read
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description              
- * :-------|:-------|:------|:--------------------------
- *  [0]    | R      | 0x0   | Stop Detect Interrupt Bit
- *  [31:1] | ???    | 0x0   | *UNDEFINED*              
+ *  Bits   | Access | Reset | Description                      
+ * :-------|:-------|:------|:----------------------------------
+ *  [0]    | R      | 0x0   | ALT_I2C_CLR_STOP_DET_CLR_STOP_DET
+ *  [31:1] | ???    | 0x0   | *UNDEFINED*                      
  * 
  */
 /*
- * Field : Stop Detect Interrupt Bit - clr_stop_det
+ * Field : clr_stop_det
  * 
- * Read this register to clear the clr_stop_det interrupt (bit 9) of the
- * ic_raw_intr_stat register.
+ * Read this register to clear the STOP_DET
+ * 
+ * interrupt (bit 9) of the IC_RAW_INTR_STAT register.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -3205,7 +4366,7 @@ typedef volatile struct ALT_I2C_CLR_ACTIVITY_s  ALT_I2C_CLR_ACTIVITY_t;
  */
 struct ALT_I2C_CLR_STOP_DET_s
 {
-    const uint32_t  clr_stop_det :  1;  /* Stop Detect Interrupt Bit */
+    const uint32_t  clr_stop_det :  1;  /* ALT_I2C_CLR_STOP_DET_CLR_STOP_DET */
     uint32_t                     : 31;  /* *UNDEFINED* */
 };
 
@@ -3213,29 +4374,40 @@ struct ALT_I2C_CLR_STOP_DET_s
 typedef volatile struct ALT_I2C_CLR_STOP_DET_s  ALT_I2C_CLR_STOP_DET_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_CLR_STOP_DET register. */
+#define ALT_I2C_CLR_STOP_DET_RESET       0x00000000
 /* The byte offset of the ALT_I2C_CLR_STOP_DET register from the beginning of the component. */
 #define ALT_I2C_CLR_STOP_DET_OFST        0x60
 /* The address of the ALT_I2C_CLR_STOP_DET register. */
 #define ALT_I2C_CLR_STOP_DET_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_CLR_STOP_DET_OFST))
 
 /*
- * Register : Start Detect Interrupt Register - ic_clr_start_det
+ * Register : ic_clr_start_det
  * 
- * Clears START_DET Interrupt
+ * Name: Clear START_DET Interrupt Register
+ * 
+ * Size: 1 bit
+ * 
+ * Address Offset: 0x64
+ * 
+ * Read/Write Access: Read
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description               
- * :-------|:-------|:------|:---------------------------
- *  [0]    | R      | 0x0   | Start Detect Interrupt Bit
- *  [31:1] | ???    | 0x0   | *UNDEFINED*               
+ *  Bits   | Access | Reset | Description                        
+ * :-------|:-------|:------|:------------------------------------
+ *  [0]    | R      | 0x0   | ALT_I2C_CLR_START_DET_CLR_START_DET
+ *  [31:1] | ???    | 0x0   | *UNDEFINED*                        
  * 
  */
 /*
- * Field : Start Detect Interrupt Bit - clr_start_det
+ * Field : clr_start_det
  * 
- * Read this register to clear the start_det interrupt (bit 10) of the
- * ic_raw_intr_stat register.
+ * Read this register to clear the START_DET
+ * 
+ * interrupt (bit 10) of the IC_RAW_INTR_STAT register.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -3270,7 +4442,7 @@ typedef volatile struct ALT_I2C_CLR_STOP_DET_s  ALT_I2C_CLR_STOP_DET_t;
  */
 struct ALT_I2C_CLR_START_DET_s
 {
-    const uint32_t  clr_start_det :  1;  /* Start Detect Interrupt Bit */
+    const uint32_t  clr_start_det :  1;  /* ALT_I2C_CLR_START_DET_CLR_START_DET */
     uint32_t                      : 31;  /* *UNDEFINED* */
 };
 
@@ -3278,29 +4450,40 @@ struct ALT_I2C_CLR_START_DET_s
 typedef volatile struct ALT_I2C_CLR_START_DET_s  ALT_I2C_CLR_START_DET_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_CLR_START_DET register. */
+#define ALT_I2C_CLR_START_DET_RESET       0x00000000
 /* The byte offset of the ALT_I2C_CLR_START_DET register from the beginning of the component. */
 #define ALT_I2C_CLR_START_DET_OFST        0x64
 /* The address of the ALT_I2C_CLR_START_DET register. */
 #define ALT_I2C_CLR_START_DET_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_CLR_START_DET_OFST))
 
 /*
- * Register : GEN CALL Interrupt Register - ic_clr_gen_call
+ * Register : ic_clr_gen_call
  * 
- * Clear GEN_CALL Interrupt Register
+ * Name: Clear GEN_CALL Interrupt Register
+ * 
+ * Size: 1 bit
+ * 
+ * Address Offset: 0x68
+ * 
+ * Read/Write Access: Read
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description           
- * :-------|:-------|:------|:-----------------------
- *  [0]    | R      | 0x0   | GEN CALL Interrupt Bit
- *  [31:1] | ???    | 0x0   | *UNDEFINED*           
+ *  Bits   | Access | Reset | Description                      
+ * :-------|:-------|:------|:----------------------------------
+ *  [0]    | R      | 0x0   | ALT_I2C_CLR_GEN_CALL_CLR_GEN_CALL
+ *  [31:1] | ???    | 0x0   | *UNDEFINED*                      
  * 
  */
 /*
- * Field : GEN CALL Interrupt Bit - clr_gen_call
+ * Field : clr_gen_call
  * 
- * Read this register to clear the GEN_CALL interrupt (bit 11) of ic_raw_intr_stat
- * register.
+ * Read this register to clear the GEN_CALL
+ * 
+ * interrupt (bit 11) of IC_RAW_INTR_STAT register.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -3335,7 +4518,7 @@ typedef volatile struct ALT_I2C_CLR_START_DET_s  ALT_I2C_CLR_START_DET_t;
  */
 struct ALT_I2C_CLR_GEN_CALL_s
 {
-    const uint32_t  clr_gen_call :  1;  /* GEN CALL Interrupt Bit */
+    const uint32_t  clr_gen_call :  1;  /* ALT_I2C_CLR_GEN_CALL_CLR_GEN_CALL */
     uint32_t                     : 31;  /* *UNDEFINED* */
 };
 
@@ -3343,61 +4526,75 @@ struct ALT_I2C_CLR_GEN_CALL_s
 typedef volatile struct ALT_I2C_CLR_GEN_CALL_s  ALT_I2C_CLR_GEN_CALL_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_CLR_GEN_CALL register. */
+#define ALT_I2C_CLR_GEN_CALL_RESET       0x00000000
 /* The byte offset of the ALT_I2C_CLR_GEN_CALL register from the beginning of the component. */
 #define ALT_I2C_CLR_GEN_CALL_OFST        0x68
 /* The address of the ALT_I2C_CLR_GEN_CALL register. */
 #define ALT_I2C_CLR_GEN_CALL_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_CLR_GEN_CALL_OFST))
 
 /*
- * Register : Enable Register - ic_enable
+ * Register : ic_enable
  * 
- * Enable and disable i2c operation
+ * Name: I2C Enable Register
+ * 
+ * Size: 2 bits
+ * 
+ * Address Offset: 0x6c
+ * 
+ * Read/Write Access: Read/Write
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description 
- * :-------|:-------|:------|:-------------
- *  [0]    | RW     | 0x0   | Enable Bit  
- *  [1]    | RW     | 0x0   | TX abort Bit
- *  [31:2] | ???    | 0x0   | *UNDEFINED* 
+ *  Bits   | Access | Reset | Description     
+ * :-------|:-------|:------|:-----------------
+ *  [0]    | RW     | 0x0   | ALT_I2C_EN_EN   
+ *  [1]    | RW     | 0x0   | ALT_I2C_EN_TXABT
+ *  [31:2] | ???    | 0x0   | *UNDEFINED*     
  * 
  */
 /*
- * Field : Enable Bit - enable
+ * Field : enable
  * 
- * Controls whether the I2C is enabled. Software can disable I2C while it is
- * active. However, it is important that care be taken to ensure that I2C is
- * disabled properly. When the I2C is disabled, the following occurs:
+ * Controls whether the DW_apb_i2c is enabled.
  * 
- * The TX FIFO and RX FIFO get flushed. Status bits in the IC_INTR_STAT register
- * are still active until I2C goes into IDLE state. If the module is transmitting,
- * it stops as well as deletes the contents of the transmit buffer after the
- * current transfer is complete. If the module is receiving, the I2C stops the
- * current transfer at the end of the current byte and does not acknowledge the
- * transfer. The l4_sp_clk synchronizes pclk and ic_clk. The register
- * ic_enable_status is added to allow software to determine when the hardware has
- * completely shutdown in response to the IC_ENABLE register being set from 1 to 0.
- * Only one register is required to be monitored. Procedure for Disabling I2C
+ * 0: Disables DW_apb_i2c (TX and RX FIFOs are
  * 
- * 1. Define a timer interval (ti2c_poll) equal to the 10 times the signaling
- * period for the highest I2C transfer speed used in the system and supported by
- * I2C. For example, if the highest I2C transfer mode is 400 kb/s, then this
- * ti2c_poll is 25us.
+ * held in an erased state)
  * 
- * 2. Define a maximum time-out parameter, MAX_T_POLL_COUNT, such that if any
- * repeated polling operation exceeds this maximum value, an error is reported. 3.
- * Execute a blocking thread/process/function that prevents any further I2C master
- * transactions to be started by software, but allows any pending transfers to be
- * completed.
+ * 1: Enables DW_apb_i2c
  * 
- * 4. The variable POLL_COUNT is initialized to zero. 5. Set IC_ENABLE to 0.
+ * Software can disable DW_apb_i2c while it is active.
  * 
- * 6. Read the IC_ENABLE_STATUS register and test the IC_EN bit (bit 0). Increment
- * POLL_COUNT by one. If POLL_COUNT >= MAX_T_POLL_COUNT, exit with the relevant
- * error code.
+ * However, it is important that care be taken to ensure
  * 
- * 7. If IC_ENABLE_STATUS[0] is 1, then sleep for ti2c_poll and proceed to the
- * previous step. Otherwise, exit with a relevant success code.
+ * that DW_apb_i2c is disabled properly.
+ * 
+ * When DW_apb_i2c is disabled, the following occurs:
+ * 
+ * * The TX FIFO and RX FIFO get flushed.
+ * 
+ * * Status bits in the IC_INTR_STAT register are still
+ * 
+ * active until DW_apb_i2c goes into IDLE state.
+ * 
+ * If the module is transmitting, it stops as well as deletes
+ * 
+ * the contents of the transmit buffer after the current transfer
+ * 
+ * is complete. If the module is receiving, the DW_apb_i2c stops
+ * 
+ * the current transfer at the end of the current byte and does not
+ * 
+ * acknowledge the transfer.
+ * 
+ * In systems with asynchronous pclk and ic_clk when IC_CLK_TYPE
+ * 
+ * parameter set to asynchronous (1), there is a two ic_clk delay
+ * 
+ * when enabling or disabling the DW_apb_i2c.
+ * 
+ * Reset value: 0x0
  * 
  * Field Enumeration Values:
  * 
@@ -3442,9 +4639,32 @@ typedef volatile struct ALT_I2C_CLR_GEN_CALL_s  ALT_I2C_CLR_GEN_CALL_t;
 #define ALT_I2C_EN_EN_SET(value) (((value) << 0) & 0x00000001)
 
 /*
- * Field : TX abort Bit - txabort
+ * Field : txabort
  * 
- * Write 1 does a TX abort. Self cleared on abort completion
+ * When set, the controller initiates the transfer abort.
+ * 
+ * 0: ABORT not initiated or ABORT done
+ * 
+ * 1: ABORT operation in progress
+ * 
+ * The software can abort the I2C transfer in master mode by setting this bit. The
+ * software
+ * 
+ * can set this bit only when ENABLE is already set; otherwise, the controller
+ * ignores any
+ * 
+ * write to ABORT bit. The software cannot clear the ABORT bit once set. In
+ * response to
+ * 
+ * an ABORT, the controller issues a STOP and flushes the Tx FIFO after completing
+ * the
+ * 
+ * current transfer, then sets the TX_ABORT interrupt after the abort operation.
+ * The
+ * 
+ * ABORT bit is cleared automatically after the abort operation.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -3479,8 +4699,8 @@ typedef volatile struct ALT_I2C_CLR_GEN_CALL_s  ALT_I2C_CLR_GEN_CALL_t;
  */
 struct ALT_I2C_EN_s
 {
-    uint32_t  enable  :  1;  /* Enable Bit */
-    uint32_t  txabort :  1;  /* TX abort Bit */
+    uint32_t  enable  :  1;  /* ALT_I2C_EN_EN */
+    uint32_t  txabort :  1;  /* ALT_I2C_EN_TXABT */
     uint32_t          : 30;  /* *UNDEFINED* */
 };
 
@@ -3488,18 +4708,35 @@ struct ALT_I2C_EN_s
 typedef volatile struct ALT_I2C_EN_s  ALT_I2C_EN_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_EN register. */
+#define ALT_I2C_EN_RESET       0x00000000
 /* The byte offset of the ALT_I2C_EN register from the beginning of the component. */
 #define ALT_I2C_EN_OFST        0x6c
 /* The address of the ALT_I2C_EN register. */
 #define ALT_I2C_EN_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_EN_OFST))
 
 /*
- * Register : Status Register - ic_status
+ * Register : ic_status
  * 
- * This is a read-only register used to indicate the current transfer status and
- * FIFO status. The status register may be read at any time. None of the bits in
- * this register request an interrupt.When the I2C is disabled by writing 0 in bit
- * 0 of the ic_enable register:
+ * Name: I2C Status Register
+ * 
+ * Size: 7 bits
+ * 
+ * Address Offset: 0x70
+ * 
+ * Read/Write Access: Read
+ * 
+ * This is a read-only register used to indicate the current
+ * 
+ * transfer status and FIFO status. The status register may be
+ * 
+ * read at any time. None of the bits in this register request
+ * 
+ * an interrupt.
+ * 
+ * When the I2C is disabled by writing 0 in bit 0 of the
+ * 
+ * IC_ENABLE register:
  * 
  * * Bits 1 and 2 are set to 1
  * 
@@ -3507,26 +4744,30 @@ typedef volatile struct ALT_I2C_EN_s  ALT_I2C_EN_t;
  * 
  * When the master or slave state machines goes to idle
  * 
+ * and ic_en=0:
+ * 
  * * Bits 5 and 6 are set to 0
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description                   
- * :-------|:-------|:------|:-------------------------------
- *  [0]    | R      | 0x0   | Activity Status Bit           
- *  [1]    | R      | 0x1   | TX FIFO Not Full Bit          
- *  [2]    | R      | 0x1   | TX FIFO Empty Bit             
- *  [3]    | R      | 0x0   | RX FIFO Empty Bit             
- *  [4]    | R      | 0x0   | RX FIFO Full Bit              
- *  [5]    | R      | 0x0   | Master FSM Activity Status Bit
- *  [6]    | R      | 0x0   | Slave FSM Activity Status Bit 
- *  [31:7] | ???    | 0x0   | *UNDEFINED*                   
+ *  Bits   | Access | Reset | Description              
+ * :-------|:-------|:------|:--------------------------
+ *  [0]    | R      | 0x0   | ALT_I2C_STAT_ACTIVITY    
+ *  [1]    | R      | 0x1   | ALT_I2C_STAT_TFNF        
+ *  [2]    | R      | 0x1   | ALT_I2C_STAT_TFE         
+ *  [3]    | R      | 0x0   | ALT_I2C_STAT_RFNE        
+ *  [4]    | R      | 0x0   | ALT_I2C_STAT_RFF         
+ *  [5]    | R      | 0x0   | ALT_I2C_STAT_MST_ACTIVITY
+ *  [6]    | R      | 0x0   | ALT_I2C_STAT_SLV_ACTIVITY
+ *  [31:7] | ???    | 0x0   | *UNDEFINED*              
  * 
  */
 /*
- * Field : Activity Status Bit - activity
+ * Field : activity
  * 
- * I2C Activity.
+ * I2C Activity Status.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -3549,9 +4790,19 @@ typedef volatile struct ALT_I2C_EN_s  ALT_I2C_EN_t;
 #define ALT_I2C_STAT_ACTIVITY_SET(value) (((value) << 0) & 0x00000001)
 
 /*
- * Field : TX FIFO Not Full Bit - tfnf
+ * Field : tfnf
  * 
- * Transmit Fifo Full
+ * Transmit FIFO Not Full.
+ * 
+ * Set when the transmit FIFO contains one or more
+ * 
+ * empty locations, and is cleared when the FIFO is full.
+ * 
+ * 0: Transmit FIFO is full
+ * 
+ * 1: Transmit FIFO is not full
+ * 
+ * Reset value: 0x1
  * 
  * Field Enumeration Values:
  * 
@@ -3594,9 +4845,21 @@ typedef volatile struct ALT_I2C_EN_s  ALT_I2C_EN_t;
 #define ALT_I2C_STAT_TFNF_SET(value) (((value) << 1) & 0x00000002)
 
 /*
- * Field : TX FIFO Empty Bit - tfe
+ * Field : tfe
  * 
- * Transmit FIFO Empty.
+ * Transmit FIFO Completely Empty.
+ * 
+ * When the transmit FIFO is completely empty, this bit is set.
+ * 
+ * When it contains one or more valid entries, this bit is
+ * 
+ * cleared. This bit field does not request an interrupt.
+ * 
+ * 0: Transmit FIFO is not empty
+ * 
+ * 1: Transmit FIFO is empty
+ * 
+ * Reset value: 0x1
  * 
  * Field Enumeration Values:
  * 
@@ -3639,9 +4902,19 @@ typedef volatile struct ALT_I2C_EN_s  ALT_I2C_EN_t;
 #define ALT_I2C_STAT_TFE_SET(value) (((value) << 2) & 0x00000004)
 
 /*
- * Field : RX FIFO Empty Bit - rfne
+ * Field : rfne
  * 
  * Receive FIFO Not Empty.
+ * 
+ * This bit is set when the receive FIFO contains one or
+ * 
+ * more entries; it is cleared when the receive FIFO is empty.
+ * 
+ * 0: Receive FIFO is empty
+ * 
+ * 1: Receive FIFO is not empty
+ * 
+ * Reset value: 0x0
  * 
  * Field Enumeration Values:
  * 
@@ -3684,9 +4957,21 @@ typedef volatile struct ALT_I2C_EN_s  ALT_I2C_EN_t;
 #define ALT_I2C_STAT_RFNE_SET(value) (((value) << 3) & 0x00000008)
 
 /*
- * Field : RX FIFO Full Bit - rff
+ * Field : rff
  * 
  * Receive FIFO Completely Full.
+ * 
+ * When the receive FIFO is completely full, this
+ * 
+ * bit is set. When the receive FIFO contains one
+ * 
+ * or more empty location, this bit is cleared.
+ * 
+ * 0: Receive FIFO is not full
+ * 
+ * 1: Receive FIFO is full
+ * 
+ * Reset value: 0x0
  * 
  * Field Enumeration Values:
  * 
@@ -3729,11 +5014,29 @@ typedef volatile struct ALT_I2C_EN_s  ALT_I2C_EN_t;
 #define ALT_I2C_STAT_RFF_SET(value) (((value) << 4) & 0x00000010)
 
 /*
- * Field : Master FSM Activity Status Bit - mst_activity
+ * Field : mst_activity
  * 
- * When the Master Finite State Machine (FSM) is not in the IDLE state, this bit is
- * set. Note:IC_STATUS[0]-that is, ACTIVITY bit-is the OR of SLV_ACTIVITY and
- * MST_ACTIVITY bits.
+ * Master FSM Activity Status.
+ * 
+ * When the Master Finite State Machine (FSM) is
+ * 
+ * not in the IDLE state, this bit is set.
+ * 
+ * 0: Master FSM is in IDLE state so the Master part
+ * 
+ * of DW_apb_i2c is not Active
+ * 
+ * 1: Master FSM is not in IDLE state so the Master
+ * 
+ * part of DW_apb_i2c is Active
+ * 
+ * Note
+ * 
+ * IC_STATUS[0]-that is, ACTIVITY bit-is the OR of
+ * 
+ * SLV_ACTIVITY and MST_ACTIVITY bits.
+ * 
+ * Reset value: 0x0
  * 
  * Field Enumeration Values:
  * 
@@ -3778,10 +5081,23 @@ typedef volatile struct ALT_I2C_EN_s  ALT_I2C_EN_t;
 #define ALT_I2C_STAT_MST_ACTIVITY_SET(value) (((value) << 5) & 0x00000020)
 
 /*
- * Field : Slave FSM Activity Status Bit - slv_activity
+ * Field : slv_activity
  * 
- * Slave FSM Activity Status. When the Slave Finite State Machine (FSM) is not in
- * the IDLE state, this bit is set.
+ * Slave FSM Activity Status.
+ * 
+ * When the Slave Finite State Machine (FSM) is not
+ * 
+ * in the IDLE state, this bit is set.
+ * 
+ * 0: Slave FSM is in IDLE state so the Slave part of
+ * 
+ * DW_apb_i2c is not Active
+ * 
+ * 1: Slave FSM is not in IDLE state so the Slave part
+ * 
+ * of DW_apb_i2c is Active
+ * 
+ * Reset value: 0x0
  * 
  * Field Enumeration Values:
  * 
@@ -3838,13 +5154,13 @@ typedef volatile struct ALT_I2C_EN_s  ALT_I2C_EN_t;
  */
 struct ALT_I2C_STAT_s
 {
-    const uint32_t  activity     :  1;  /* Activity Status Bit */
-    const uint32_t  tfnf         :  1;  /* TX FIFO Not Full Bit */
-    const uint32_t  tfe          :  1;  /* TX FIFO Empty Bit */
-    const uint32_t  rfne         :  1;  /* RX FIFO Empty Bit */
-    const uint32_t  rff          :  1;  /* RX FIFO Full Bit */
-    const uint32_t  mst_activity :  1;  /* Master FSM Activity Status Bit */
-    const uint32_t  slv_activity :  1;  /* Slave FSM Activity Status Bit */
+    const uint32_t  activity     :  1;  /* ALT_I2C_STAT_ACTIVITY */
+    const uint32_t  tfnf         :  1;  /* ALT_I2C_STAT_TFNF */
+    const uint32_t  tfe          :  1;  /* ALT_I2C_STAT_TFE */
+    const uint32_t  rfne         :  1;  /* ALT_I2C_STAT_RFNE */
+    const uint32_t  rff          :  1;  /* ALT_I2C_STAT_RFF */
+    const uint32_t  mst_activity :  1;  /* ALT_I2C_STAT_MST_ACTIVITY */
+    const uint32_t  slv_activity :  1;  /* ALT_I2C_STAT_SLV_ACTIVITY */
     uint32_t                     : 25;  /* *UNDEFINED* */
 };
 
@@ -3852,37 +5168,62 @@ struct ALT_I2C_STAT_s
 typedef volatile struct ALT_I2C_STAT_s  ALT_I2C_STAT_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_STAT register. */
+#define ALT_I2C_STAT_RESET       0x00000006
 /* The byte offset of the ALT_I2C_STAT register from the beginning of the component. */
 #define ALT_I2C_STAT_OFST        0x70
 /* The address of the ALT_I2C_STAT register. */
 #define ALT_I2C_STAT_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_STAT_OFST))
 
 /*
- * Register : Transmit FIFO Level Register - ic_txflr
+ * Register : ic_txflr
  * 
- * This register contains the number of valid data entries in the transmit FIFO
- * buffer. It is cleared whenever:
+ * Name: I2C Transmit FIFO Level Register
+ * 
+ * Size: TX_ABW + 1
+ * 
+ * Address Offset: 0x74
+ * 
+ * Read/Write Access: Read
+ * 
+ * This register contains the number of valid data
+ * 
+ * entries in the transmit FIFO buffer. It is cleared
+ * 
+ * whenever:
  * 
  * * The I2C is disabled
  * 
- * * There is a transmit abort that is, TX_ABRT bit is set in the ic_raw_intr_stat
- *   register. The slave bulk transmit mode is aborted The register increments
- *   whenever data is placed into the transmit FIFO and decrements when data is
- *   taken from the transmit FIFO.
+ * * There is a transmit abort that is, TX_ABRT bit is
+ * 
+ * set in the IC_RAW_INTR_STAT register
+ * 
+ * * The slave bulk transmit mode is aborted
+ * 
+ * The register increments whenever data is placed into
+ * 
+ * the transmit FIFO and decrements when data is
+ * 
+ * taken from the transmit FIFO.
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description            
- * :-------|:-------|:------|:------------------------
- *  [6:0]  | R      | 0x0   | Transmit FIFO Level Bit
- *  [31:7] | ???    | 0x0   | *UNDEFINED*            
+ *  Bits   | Access | Reset | Description        
+ * :-------|:-------|:------|:--------------------
+ *  [6:0]  | R      | 0x0   | ALT_I2C_TXFLR_TXFLR
+ *  [31:7] | ???    | 0x0   | *UNDEFINED*        
  * 
  */
 /*
- * Field : Transmit FIFO Level Bit - txflr
+ * Field : txflr
  * 
- * Transmit FIFO Level.Contains the number of valid data entries in the transmit
- * FIFO.
+ * Transmit FIFO Level.
+ * 
+ * Contains the number of valid data entries in the
+ * 
+ * transmit FIFO.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -3917,7 +5258,7 @@ typedef volatile struct ALT_I2C_STAT_s  ALT_I2C_STAT_t;
  */
 struct ALT_I2C_TXFLR_s
 {
-    const uint32_t  txflr :  7;  /* Transmit FIFO Level Bit */
+    const uint32_t  txflr :  7;  /* ALT_I2C_TXFLR_TXFLR */
     uint32_t              : 25;  /* *UNDEFINED* */
 };
 
@@ -3925,36 +5266,60 @@ struct ALT_I2C_TXFLR_s
 typedef volatile struct ALT_I2C_TXFLR_s  ALT_I2C_TXFLR_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_TXFLR register. */
+#define ALT_I2C_TXFLR_RESET       0x00000000
 /* The byte offset of the ALT_I2C_TXFLR register from the beginning of the component. */
 #define ALT_I2C_TXFLR_OFST        0x74
 /* The address of the ALT_I2C_TXFLR register. */
 #define ALT_I2C_TXFLR_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_TXFLR_OFST))
 
 /*
- * Register : Receive FIFO Level Register - ic_rxflr
+ * Register : ic_rxflr
  * 
- * This register contains the number of valid data entries in the receive FIFO
- * buffer. It is cleared whenever:
+ * Name: I2C Receive FIFO Level Register
+ * 
+ * Size: RX_ABW + 1
+ * 
+ * Address Offset: 0x78
+ * 
+ * Read/Write Access: Read
+ * 
+ * This register contains the number of valid data
+ * 
+ * entries in the receive FIFO buffer. It is cleared
+ * 
+ * whenever:
  * 
  * * The I2C is disabled
  * 
- * * Whenever there is a transmit abort caused by any of the events tracked in
- *   ic_tx_abrt_source The register increments whenever data is placed into the
- *   receive FIFO and decrements when data is taken from the receive FIFO.
+ * * Whenever there is a transmit abort caused by any
+ * 
+ * of the events tracked in IC_TX_ABRT_SOURCE
+ * 
+ * The register increments whenever data is placed into
+ * 
+ * the receive FIFO and decrements when data is
+ * 
+ * taken from the receive FIFO.
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description           
- * :-------|:-------|:------|:-----------------------
- *  [6:0]  | R      | 0x0   | Receive FIFO Level Bit
- *  [31:7] | ???    | 0x0   | *UNDEFINED*           
+ *  Bits   | Access | Reset | Description        
+ * :-------|:-------|:------|:--------------------
+ *  [6:0]  | R      | 0x0   | ALT_I2C_RXFLR_RXFLR
+ *  [31:7] | ???    | 0x0   | *UNDEFINED*        
  * 
  */
 /*
- * Field : Receive FIFO Level Bit - rxflr
+ * Field : rxflr
  * 
- * Receive FIFO Level. Contains the number of valid data entries in the receive
- * FIFO.
+ * Receive FIFO Level.
+ * 
+ * Contains the number of valid data entries in the
+ * 
+ * receive FIFO.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -3989,7 +5354,7 @@ typedef volatile struct ALT_I2C_TXFLR_s  ALT_I2C_TXFLR_t;
  */
 struct ALT_I2C_RXFLR_s
 {
-    const uint32_t  rxflr :  7;  /* Receive FIFO Level Bit */
+    const uint32_t  rxflr :  7;  /* ALT_I2C_RXFLR_RXFLR */
     uint32_t              : 25;  /* *UNDEFINED* */
 };
 
@@ -3997,51 +5362,106 @@ struct ALT_I2C_RXFLR_s
 typedef volatile struct ALT_I2C_RXFLR_s  ALT_I2C_RXFLR_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_RXFLR register. */
+#define ALT_I2C_RXFLR_RESET       0x00000000
 /* The byte offset of the ALT_I2C_RXFLR register from the beginning of the component. */
 #define ALT_I2C_RXFLR_OFST        0x78
 /* The address of the ALT_I2C_RXFLR register. */
 #define ALT_I2C_RXFLR_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_RXFLR_OFST))
 
 /*
- * Register : SDA Hold Register - ic_sda_hold
+ * Register : ic_sda_hold
  * 
- * This register controls the amount of time delay (in terms of number of l4_sp_clk
- * clock periods) introduced in the falling edge of SCL, relative to SDA changing,
- * when I2C services a read request in a slave-transmitter operation.  The relevant
- * I2C requirement is thd:DAT as detailed in the I2C Bus Specification.
+ * Name: I2C SDA Hold Time Length Register
+ * 
+ * Size: 24 bits
+ * 
+ * Address Offset: 0x7c
+ * 
+ * Read/Write Access: Read/Write
+ * 
+ * The bits [15:0] of this register are used to control the hold time of SDA during
+ * 
+ * transmit in both slave and master mode (after SCL goes from HIGH to LOW).
+ * 
+ * The bits [23:16] of this register are used to extend the SDA transition (if any)
+ * 
+ * whenever SCL is HIGH in the receiver in either master or slave mode.
+ * 
+ * The values in this register are in units of ic_clk period.
+ * 
+ * This register controls the amount of time delay.
+ * 
+ * The relevant I2C requirement is thd:DAT as detailed in the I2C
+ * 
+ * Bus Specification.
  * 
  * Register Layout
  * 
- *  Bits    | Access | Reset | Description 
- * :--------|:-------|:------|:-------------
- *  [15:0]  | RW     | 0x1   | SDA Hold Bit
- *  [31:16] | ???    | 0x0   | *UNDEFINED* 
+ *  Bits    | Access | Reset | Description                    
+ * :--------|:-------|:------|:--------------------------------
+ *  [15:0]  | RW     | 0x1   | ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD
+ *  [23:16] | RW     | 0x0   | ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD
+ *  [31:24] | ???    | 0x0   | *UNDEFINED*                    
  * 
  */
 /*
- * Field : SDA Hold Bit - ic_sda_hold
+ * Field : ic_sda_tx_hold
  * 
- * Program to a minimum 0f 300ns.
+ * Sets the required SDA hold time
+ * 
+ * in units of ic_clk period, when DW_apb_i2c acts as a transmitter.
+ * 
+ * Reset value: IC_DEFAULT_SDA_HOLD[15:0].
  * 
  * Field Access Macros:
  * 
  */
-/* The Least Significant Bit (LSB) position of the ALT_I2C_SDA_HOLD_IC_SDA_HOLD register field. */
-#define ALT_I2C_SDA_HOLD_IC_SDA_HOLD_LSB        0
-/* The Most Significant Bit (MSB) position of the ALT_I2C_SDA_HOLD_IC_SDA_HOLD register field. */
-#define ALT_I2C_SDA_HOLD_IC_SDA_HOLD_MSB        15
-/* The width in bits of the ALT_I2C_SDA_HOLD_IC_SDA_HOLD register field. */
-#define ALT_I2C_SDA_HOLD_IC_SDA_HOLD_WIDTH      16
-/* The mask used to set the ALT_I2C_SDA_HOLD_IC_SDA_HOLD register field value. */
-#define ALT_I2C_SDA_HOLD_IC_SDA_HOLD_SET_MSK    0x0000ffff
-/* The mask used to clear the ALT_I2C_SDA_HOLD_IC_SDA_HOLD register field value. */
-#define ALT_I2C_SDA_HOLD_IC_SDA_HOLD_CLR_MSK    0xffff0000
-/* The reset value of the ALT_I2C_SDA_HOLD_IC_SDA_HOLD register field. */
-#define ALT_I2C_SDA_HOLD_IC_SDA_HOLD_RESET      0x1
-/* Extracts the ALT_I2C_SDA_HOLD_IC_SDA_HOLD field value from a register. */
-#define ALT_I2C_SDA_HOLD_IC_SDA_HOLD_GET(value) (((value) & 0x0000ffff) >> 0)
-/* Produces a ALT_I2C_SDA_HOLD_IC_SDA_HOLD register field value suitable for setting the register. */
-#define ALT_I2C_SDA_HOLD_IC_SDA_HOLD_SET(value) (((value) << 0) & 0x0000ffff)
+/* The Least Significant Bit (LSB) position of the ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD register field. */
+#define ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD_LSB        0
+/* The Most Significant Bit (MSB) position of the ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD register field. */
+#define ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD_MSB        15
+/* The width in bits of the ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD register field. */
+#define ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD_WIDTH      16
+/* The mask used to set the ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD register field value. */
+#define ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD_SET_MSK    0x0000ffff
+/* The mask used to clear the ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD register field value. */
+#define ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD_CLR_MSK    0xffff0000
+/* The reset value of the ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD register field. */
+#define ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD_RESET      0x1
+/* Extracts the ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD field value from a register. */
+#define ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD_GET(value) (((value) & 0x0000ffff) >> 0)
+/* Produces a ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD register field value suitable for setting the register. */
+#define ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD_SET(value) (((value) << 0) & 0x0000ffff)
+
+/*
+ * Field : ic_sda_rx_hold
+ * 
+ * Sets the required SDA hold time
+ * 
+ * in units of ic_clk period, when DW_apb_i2c acts as a receiver.
+ * 
+ * Reset value: IC_DEFAULT_SDA_HOLD[23:16].
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD register field. */
+#define ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD_LSB        16
+/* The Most Significant Bit (MSB) position of the ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD register field. */
+#define ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD_MSB        23
+/* The width in bits of the ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD register field. */
+#define ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD_WIDTH      8
+/* The mask used to set the ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD register field value. */
+#define ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD_SET_MSK    0x00ff0000
+/* The mask used to clear the ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD register field value. */
+#define ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD_CLR_MSK    0xff00ffff
+/* The reset value of the ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD register field. */
+#define ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD_RESET      0x0
+/* Extracts the ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD field value from a register. */
+#define ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD_GET(value) (((value) & 0x00ff0000) >> 16)
+/* Produces a ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD register field value suitable for setting the register. */
+#define ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD_SET(value) (((value) << 16) & 0x00ff0000)
 
 #ifndef __ASSEMBLY__
 /*
@@ -4056,60 +5476,96 @@ typedef volatile struct ALT_I2C_RXFLR_s  ALT_I2C_RXFLR_t;
  */
 struct ALT_I2C_SDA_HOLD_s
 {
-    uint32_t  ic_sda_hold : 16;  /* SDA Hold Bit */
-    uint32_t              : 16;  /* *UNDEFINED* */
+    uint32_t  ic_sda_tx_hold : 16;  /* ALT_I2C_SDA_HOLD_IC_SDA_TX_HOLD */
+    uint32_t  ic_sda_rx_hold :  8;  /* ALT_I2C_SDA_HOLD_IC_SDA_RX_HOLD */
+    uint32_t                 :  8;  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register ALT_I2C_SDA_HOLD. */
 typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_SDA_HOLD register. */
+#define ALT_I2C_SDA_HOLD_RESET       0x00000001
 /* The byte offset of the ALT_I2C_SDA_HOLD register from the beginning of the component. */
 #define ALT_I2C_SDA_HOLD_OFST        0x7c
 /* The address of the ALT_I2C_SDA_HOLD register. */
 #define ALT_I2C_SDA_HOLD_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_SDA_HOLD_OFST))
 
 /*
- * Register : Transmit Abort Source Register - ic_tx_abrt_source
+ * Register : ic_tx_abrt_source
  * 
- * This register has 16 bits that indicate the source of the TX_ABRT bit. Except
- * for Bit 9, this register is cleared whenever the ic_clr_tx_abrt register or the
- * ic_clr_intr register is read. To clear Bit 9, the source of the
- * abrt_sbyte_norstrt must be fixed first; RESTART must be enabled (ic_con[5]=1),
- * the special bit must be cleared (ic_tar[11]), or the gc_or_start bit must be
- * cleared (ic_tar[10]). Once the source of the abrt_sbyte_norstrt is fixed, then
- * this bit can be cleared in the same manner as other bits in this  register. If
- * the source of the abrt_sbyte_norstrt is not fixed before attempting to clear
- * this bit, Bit 9 clears for one cycle and is then re-asserted.
+ * Name: I2C Transmit Abort Source Register
+ * 
+ * Size: 32 bits
+ * 
+ * Address Offset: 0x80
+ * 
+ * Read/Write Access: Read
+ * 
+ * This register has 32 bits that indicate the source
+ * 
+ * of the TX_ABRT bit. Except for Bit 9, this register is
+ * 
+ * cleared whenever the IC_CLR_TX_ABRT register or the
+ * 
+ * IC_CLR_INTR register is read. To clear Bit 9, the source
+ * 
+ * of the ABRT_SBYTE_NORSTRT must be fixed first; RESTART must
+ * 
+ * be enabled (IC_CON[5]=1), the SPECIAL bit must be cleared
+ * 
+ * (IC_TAR[11]), or the GC_OR_START bit must be cleared (IC_TAR[10]).
+ * 
+ * Once the source of the ABRT_SBYTE_NORSTRT is fixed, then this
+ * 
+ * bit can be cleared in the same manner as other bits in this
+ * 
+ * register. If the source of the ABRT_SBYTE_NORSTRT is not fixed
+ * 
+ * before attempting to clear this bit, Bit 9 clears for one cycle
+ * 
+ * and is then re-asserted.
  * 
  * Register Layout
  * 
- *  Bits    | Access | Reset | Description                       
- * :--------|:-------|:------|:-----------------------------------
- *  [0]     | RW     | 0x0   | Master Abort 7 Bit Address        
- *  [1]     | RW     | 0x0   | Master Abort 10 Bit Address Byte 1
- *  [2]     | RW     | 0x0   | Master Abort 10 Bit Address Byte 2
- *  [3]     | RW     | 0x0   | Master Abort TX Noack Bit         
- *  [4]     | RW     | 0x0   | Master Abort GC Noack Bit         
- *  [5]     | RW     | 0x0   | Master Abort GC Read Bit          
- *  [6]     | RW     | 0x0   | Master HS MC Ack                  
- *  [7]     | RW     | 0x0   | Master Abort START Byte           
- *  [8]     | RW     | 0x0   | Master HS Restart Disabled        
- *  [9]     | RW     | 0x0   | Master Abort START No Restart     
- *  [10]    | RW     | 0x0   | Master Abort 10 Bit No Restart    
- *  [11]    | RW     | 0x0   | Master Oper Master Dis            
- *  [12]    | RW     | 0x0   | Master Abort Arbitration Lost     
- *  [13]    | RW     | 0x0   | Slave Abort Flush TXFIFO          
- *  [14]    | RW     | 0x0   | Slave Abort Arbitration Lost      
- *  [15]    | RW     | 0x0   | Slave Abort Read TX               
- *  [31:16] | ???    | 0x0   | *UNDEFINED*                       
+ *  Bits    | Access | Reset | Description                                   
+ * :--------|:-------|:------|:-----------------------------------------------
+ *  [0]     | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ABRT_7B_ADDR_NOACK        
+ *  [1]     | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ABRT_10ADDR1_NOACK        
+ *  [2]     | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ABRT_10ADDR2_NOACK        
+ *  [3]     | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ABRT_TXDATA_NOACK         
+ *  [4]     | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ABRT_GCALL_NOACK          
+ *  [5]     | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ABRT_GCALL_RD             
+ *  [6]     | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ABRT_HS_ACKDET            
+ *  [7]     | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ABRT_SBYTE_ACKDET         
+ *  [8]     | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ABRT_HS_NORSTRT           
+ *  [9]     | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ABRT_SBYTE_NORSTRT        
+ *  [10]    | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ABRT_10B_RD_NORSTRT       
+ *  [11]    | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ABRT_MST_DIS              
+ *  [12]    | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ARB_LOST                  
+ *  [13]    | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ABRT_SLVFLUSH_TXFIFO      
+ *  [14]    | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ABRT_SLV_ARBLOST          
+ *  [15]    | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ABRT_SLVRD_INTX           
+ *  [16]    | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT            
+ *  [22:17] | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17
+ *  [31:23] | R      | 0x0   | ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT              
  * 
  */
 /*
- * Field : Master Abort 7 Bit Address - abrt_7b_addr_noack
+ * Field : abrt_7b_addr_noack
  * 
- * Master is in 7-bit addressing mode and the address sent was not acknowledged by
- * any slave. Role of i2c: Master-Transmitter or Master-Receiver
+ * 1: Master is in 7-bit addressing mode
+ * 
+ * and the address sent was not
+ * 
+ * acknowledged by any slave.
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Master-Transmitter
+ * 
+ * or Master-Receiver
  * 
  * Field Access Macros:
  * 
@@ -4132,10 +5588,19 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 #define ALT_I2C_TX_ABRT_SRC_ABRT_7B_ADDR_NOACK_SET(value) (((value) << 0) & 0x00000001)
 
 /*
- * Field : Master Abort 10 Bit Address Byte 1 - abrt_10addr1_noack
+ * Field : abrt_10addr1_noack
  * 
- * Master is in 10-bit address mode and the first 10-bit address byte was not
- * acknowledged by any slave. Role of i2c: Master-Transmitter or Master-Receiver
+ * 1: Master is in 10-bit address mode and
+ * 
+ * the first 10-bit address byte was not
+ * 
+ * acknowledged by any slave.
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Master-Transmitter
+ * 
+ * or Master-Receiver
  * 
  * Field Access Macros:
  * 
@@ -4158,11 +5623,19 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 #define ALT_I2C_TX_ABRT_SRC_ABRT_10ADDR1_NOACK_SET(value) (((value) << 1) & 0x00000002)
 
 /*
- * Field : Master Abort 10 Bit Address Byte 2 - abrt_10addr2_noack
+ * Field : abrt_10addr2_noack
  * 
- * Master is in 10-bit address mode and the second address byte of the 10-bit
- * address was not acknowledged by any slave. Role of i2c: Master-Transmitter or
- * Master-Receiver
+ * 1: Master is in 10-bit address mode and
+ * 
+ * the second address byte of the 10-bit
+ * 
+ * address was not acknowledged by any slave.
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Master-Transmitter
+ * 
+ * or Master-Receiver
  * 
  * Field Access Macros:
  * 
@@ -4185,11 +5658,23 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 #define ALT_I2C_TX_ABRT_SRC_ABRT_10ADDR2_NOACK_SET(value) (((value) << 2) & 0x00000004)
 
 /*
- * Field : Master Abort TX Noack Bit - abrt_txdata_noack
+ * Field : abrt_txdata_noack
  * 
- * This is a master-mode only bit. Master has received an acknowledgement for the
- * address, but when it sent data byte(s) following the address, it did not receive
- * an acknowledge from the remote slave(s). Role of i2c: Master-Transmitter
+ * 1: This is a master-mode only bit.
+ * 
+ * Master has received an
+ * 
+ * acknowledgement for the address, but
+ * 
+ * when it sent data byte(s) following the
+ * 
+ * address, it did not receive an
+ * 
+ * acknowledge from the remote slave(s).
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Master-Transmitter
  * 
  * Field Access Macros:
  * 
@@ -4212,10 +5697,17 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 #define ALT_I2C_TX_ABRT_SRC_ABRT_TXDATA_NOACK_SET(value) (((value) << 3) & 0x00000008)
 
 /*
- * Field : Master Abort GC Noack Bit - abrt_gcall_noack
+ * Field : abrt_gcall_noack
  * 
- * i2c in master mode sent a General Call and no slave on the bus acknowledged the
- * General Call. Role of i2c: Master-Transmitter
+ * 1: DW_apb_i2c in master mode sent a
+ * 
+ * General Call and no slave on the bus
+ * 
+ * acknowledged the General Call.
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Master-Transmitter
  * 
  * Field Access Macros:
  * 
@@ -4238,11 +5730,21 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 #define ALT_I2C_TX_ABRT_SRC_ABRT_GCALL_NOACK_SET(value) (((value) << 4) & 0x00000010)
 
 /*
- * Field : Master Abort GC Read Bit - abrt_gcall_read
+ * Field : abrt_gcall_read
  * 
- * i2c in master mode sent a General Call but the user programmed the byte
- * following the General Call to be a read from the bus (IC_DATA_CMD[9] is set to
- * 1). Role of i2c: Master-Transmitter
+ * 1: DW_apb_i2c in master mode sent a
+ * 
+ * General Call but the user programmed
+ * 
+ * the byte following the General Call to
+ * 
+ * be a read from the bus
+ * 
+ * (IC_DATA_CMD[9] is set to 1).
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Master-Transmitter
  * 
  * Field Access Macros:
  * 
@@ -4265,10 +5767,17 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 #define ALT_I2C_TX_ABRT_SRC_ABRT_GCALL_RD_SET(value) (((value) << 5) & 0x00000020)
 
 /*
- * Field : Master HS MC Ack - abrt_hs_ackdet
+ * Field : abrt_hs_ackdet
  * 
- * Master is in High Speed mode and the High Speed Master code was  acknowledged
- * (wrong behavior). Role of i2c: Master
+ * 1: Master is in High Speed mode and
+ * 
+ * the High Speed Master code was
+ * 
+ * acknowledged (wrong behavior).
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Master
  * 
  * Field Access Macros:
  * 
@@ -4291,10 +5800,15 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 #define ALT_I2C_TX_ABRT_SRC_ABRT_HS_ACKDET_SET(value) (((value) << 6) & 0x00000040)
 
 /*
- * Field : Master Abort START Byte - abrt_sbyte_ackdet
+ * Field : abrt_sbyte_ackdet
  * 
- * Master has sent a START Byte and the START Byte was acknowledged (wrong
- * behavior). Role of i2c: Master
+ * 1: Master has sent a START Byte and
+ * 
+ * the START Byte was acknowledged (wrong behavior).
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Master
  * 
  * Field Access Macros:
  * 
@@ -4317,11 +5831,23 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 #define ALT_I2C_TX_ABRT_SRC_ABRT_SBYTE_ACKDET_SET(value) (((value) << 7) & 0x00000080)
 
 /*
- * Field : Master HS Restart Disabled - abrt_hs_norstrt
+ * Field : abrt_hs_norstrt
  * 
- * The restart is disabled (IC_RESTART_EN bit (IC_CON[5]) =0) and the user is
- * trying to use the master to transfer data in High Speed mode. Role of i2c:
- * Master-Transmitter or Master-Receiver
+ * 1: The restart is disabled
+ * 
+ * (IC_RESTART_EN bit (IC_CON[5]) =0)
+ * 
+ * and the user is trying to use the
+ * 
+ * master to transfer data in High Speed
+ * 
+ * mode.
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Master-Transmitter
+ * 
+ * or Master-Receiver
  * 
  * Field Access Macros:
  * 
@@ -4344,17 +5870,41 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 #define ALT_I2C_TX_ABRT_SRC_ABRT_HS_NORSTRT_SET(value) (((value) << 8) & 0x00000100)
 
 /*
- * Field : Master Abort START No Restart - abrt_sbyte_norstrt
+ * Field : abrt_sbyte_norstrt
  * 
- * To clear Bit 9, the source of then abrt_sbyte_norstrt must be fixed first;
- * restart must be enabled (ic_con[5]=1), the SPECIAL bit must be cleared
- * (ic_tar[11]), or the GC_OR_START bit must be cleared (ic_tar[10]). Once the
- * source of the abrt_sbyte_norstrt is fixed, then this bit can be cleared in the
- * same manner as other bits in this register. If the source of the
- * abrt_sbyte_norstrt is not fixed before attempting to clear this bit, bit 9
- * clears for one cycle and then gets reasserted. 1: The restart is disabled
- * (IC_RESTART_EN bit (ic_con[5]) =0) and the user is trying to send a START Byte.
- * Role of I2C: Master
+ * To clear Bit 9, the source of the
+ * 
+ * ABRT_SBYTE_NORSTRT must be fixed first;
+ * 
+ * restart must be enabled (IC_CON[5]=1),
+ * 
+ * the SPECIAL bit must be cleared (IC_TAR[11]),
+ * 
+ * or the GC_OR_START bit must be cleared
+ * 
+ * (IC_TAR[10]). Once the source of the
+ * 
+ * ABRT_SBYTE_NORSTRT is fixed,
+ * 
+ * then this bit can be cleared in the same
+ * 
+ * manner as other bits in this register. If
+ * 
+ * the source of the ABRT_SBYTE_NORSTRT is not fixed
+ * 
+ * before attempting to clear this bit, bit 9
+ * 
+ * clears for one cycle and then gets reasserted.
+ * 
+ * 1: The restart is disabled (IC_RESTART_EN bit
+ * 
+ * (IC_CON[5]) =0) and the user is trying to
+ * 
+ * send a START Byte.
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Master
  * 
  * Field Access Macros:
  * 
@@ -4377,10 +5927,19 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 #define ALT_I2C_TX_ABRT_SRC_ABRT_SBYTE_NORSTRT_SET(value) (((value) << 9) & 0x00000200)
 
 /*
- * Field : Master Abort 10 Bit No Restart - abrt_10b_rd_norstrt
+ * Field : abrt_10b_rd_norstrt
  * 
- * The restart is disabled (ic_restart_en bit (ic_con[5]) =0) and the master sends
- * a read command in 10-bit addressing mode. Role of I2C: Master-Receiver
+ * 1: The restart is disabled
+ * 
+ * (IC_RESTART_EN bit (IC_CON[5]) =0)
+ * 
+ * and the master sends a read
+ * 
+ * command in 10-bit addressing mode.
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Master-Receiver
  * 
  * Field Access Macros:
  * 
@@ -4403,10 +5962,17 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 #define ALT_I2C_TX_ABRT_SRC_ABRT_10B_RD_NORSTRT_SET(value) (((value) << 10) & 0x00000400)
 
 /*
- * Field : Master Oper Master Dis - abrt_master_dis
+ * Field : abrt_master_dis
  * 
- * User tries to initiate a Master operation with the Master mode disabled. Role of
- * I2C: Master-Transmitter or Master-Receiver
+ * 1: User tries to initiate a Master
+ * 
+ * operation with the Master mode disabled.
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Master-Transmitter
+ * 
+ * or Master-Receiver
  * 
  * Field Access Macros:
  * 
@@ -4429,11 +5995,21 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 #define ALT_I2C_TX_ABRT_SRC_ABRT_MST_DIS_SET(value) (((value) << 11) & 0x00000800)
 
 /*
- * Field : Master Abort Arbitration Lost - arb_lost
+ * Field : arb_lost
  * 
- * Master has lost arbitration, or if IC_TX_ABRT_SOURCE[14] is also set, then the
- * slave transmitter has lost arbitration. Note: I2C can be both master and slave
- * at the same time. Role of i2c: Master-Transmitter or Slave-Transmitter
+ * 1: Master has lost arbitration, or if
+ * 
+ * IC_TX_ABRT_SOURCE[14] is also
+ * 
+ * set, then the slave transmitter has lost
+ * 
+ * arbitration.
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Master-Transmitter
+ * 
+ * or Slave-Transmitter
  * 
  * Field Access Macros:
  * 
@@ -4456,11 +6032,19 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 #define ALT_I2C_TX_ABRT_SRC_ARB_LOST_SET(value) (((value) << 12) & 0x00001000)
 
 /*
- * Field : Slave Abort Flush TXFIFO - abrt_slvflush_txfifo
+ * Field : abrt_slvflush_txfifo
  * 
- * Slave has received a read command and some data exists in the TX FIFO so the
- * slave issues a TX_ABRT interrupt to flush old data in TX FIFO. Role of I2C:
- * Slave-Transmitter
+ * 1: Slave has received a read command
+ * 
+ * and some data exists in the TX FIFO so
+ * 
+ * the slave issues a TX_ABRT interrupt to
+ * 
+ * flush old data in TX FIFO.
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Slave-Transmitter
  * 
  * Field Access Macros:
  * 
@@ -4483,14 +6067,37 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 #define ALT_I2C_TX_ABRT_SRC_ABRT_SLVFLUSH_TXFIFO_SET(value) (((value) << 13) & 0x00002000)
 
 /*
- * Field : Slave Abort Arbitration Lost - abrt_slv_arblost
+ * Field : abrt_slv_arblost
  * 
- * Slave lost the bus while transmitting data to a remote master.
- * IC_TX_ABRT_SOURCE[12] is set at the same time. Note: Even though the slave never
- * 'owns' the bus, something could go wrong on the bus. This is a fail safe check.
- * For instance, during a data transmission at the low-to-high transition of SCL,
- * if what is on the data bus is not what is supposed to be transmitted, then i2c
- * no longer own the bus. Role of I2C: Slave-Transmitter
+ * 1: Slave lost the bus while transmitting
+ * 
+ * data to a remote master.
+ * 
+ * IC_TX_ABRT_SOURCE[12] is set at
+ * 
+ * the same time.
+ * 
+ * Note: Even though the slave never
+ * 
+ * 'owns' the bus, something could go
+ * 
+ * wrong on the bus. This is a fail safe
+ * 
+ * check. For instance, during a data
+ * 
+ * transmission at the low-to-high
+ * 
+ * transition of SCL, if what is on the data
+ * 
+ * bus is not what is supposed to be
+ * 
+ * transmitted, then DW_apb_i2c no
+ * 
+ * longer own the bus.
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Slave-Transmitter
  * 
  * Field Access Macros:
  * 
@@ -4513,11 +6120,21 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 #define ALT_I2C_TX_ABRT_SRC_ABRT_SLV_ARBLOST_SET(value) (((value) << 14) & 0x00004000)
 
 /*
- * Field : Slave Abort Read TX - abrt_slvrd_intx
+ * Field : abrt_slvrd_intx
  * 
- * When the processor side responds to a slave mode request for data to be
- * transmitted to a remote master and user writes a 1 in CMD (bit 8) of IC_DATA_CMD
- * register. Role of I2C: Slave-Transmitter
+ * 1: When the processor side responds to
+ * 
+ * a slave mode request for data to be
+ * 
+ * transmitted to a remote master and user
+ * 
+ * writes a 1 in CMD (bit 8) of
+ * 
+ * IC_DATA_CMD register.
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Slave-Transmitter
  * 
  * Field Access Macros:
  * 
@@ -4539,6 +6156,97 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
 /* Produces a ALT_I2C_TX_ABRT_SRC_ABRT_SLVRD_INTX register field value suitable for setting the register. */
 #define ALT_I2C_TX_ABRT_SRC_ABRT_SLVRD_INTX_SET(value) (((value) << 15) & 0x00008000)
 
+/*
+ * Field : abrt_user_abrt
+ * 
+ * This is a master-mode-only bit. Master has
+ * 
+ * detected the transfer abort (IC_ENABLE[1])
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Master-Transmitter
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT register field. */
+#define ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT_LSB        16
+/* The Most Significant Bit (MSB) position of the ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT register field. */
+#define ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT_MSB        16
+/* The width in bits of the ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT register field. */
+#define ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT_WIDTH      1
+/* The mask used to set the ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT register field value. */
+#define ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT_SET_MSK    0x00010000
+/* The mask used to clear the ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT register field value. */
+#define ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT_CLR_MSK    0xfffeffff
+/* The reset value of the ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT register field. */
+#define ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT_RESET      0x0
+/* Extracts the ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT field value from a register. */
+#define ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT_GET(value) (((value) & 0x00010000) >> 16)
+/* Produces a ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT register field value suitable for setting the register. */
+#define ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT_SET(value) (((value) << 16) & 0x00010000)
+
+/*
+ * Field : rsvd_ic_tx_abrt_source_22to17
+ * 
+ * Reserved
+ * 
+ * Reset value: 0x0
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17 register field. */
+#define ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17_LSB        17
+/* The Most Significant Bit (MSB) position of the ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17 register field. */
+#define ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17_MSB        22
+/* The width in bits of the ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17 register field. */
+#define ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17_WIDTH      6
+/* The mask used to set the ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17 register field value. */
+#define ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17_SET_MSK    0x007e0000
+/* The mask used to clear the ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17 register field value. */
+#define ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17_CLR_MSK    0xff81ffff
+/* The reset value of the ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17 register field. */
+#define ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17_RESET      0x0
+/* Extracts the ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17 field value from a register. */
+#define ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17_GET(value) (((value) & 0x007e0000) >> 17)
+/* Produces a ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17 register field value suitable for setting the register. */
+#define ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17_SET(value) (((value) << 17) & 0x007e0000)
+
+/*
+ * Field : tx_flush_cnt
+ * 
+ * This field indicates the
+ * 
+ * number of Tx FIFO Data Commands which are flushed due to TX_ABRT interrupt.
+ * 
+ * It is cleared whenever I2C is disabled.
+ * 
+ * Reset value: 0x0
+ * 
+ * Role of DW_apb_i2c: Master-Transmitter or Slave-Transmitter
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT register field. */
+#define ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT_LSB        23
+/* The Most Significant Bit (MSB) position of the ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT register field. */
+#define ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT_MSB        31
+/* The width in bits of the ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT register field. */
+#define ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT_WIDTH      9
+/* The mask used to set the ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT register field value. */
+#define ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT_SET_MSK    0xff800000
+/* The mask used to clear the ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT register field value. */
+#define ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT_CLR_MSK    0x007fffff
+/* The reset value of the ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT register field. */
+#define ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT_RESET      0x0
+/* Extracts the ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT field value from a register. */
+#define ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT_GET(value) (((value) & 0xff800000) >> 23)
+/* Produces a ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT register field value suitable for setting the register. */
+#define ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT_SET(value) (((value) << 23) & 0xff800000)
+
 #ifndef __ASSEMBLY__
 /*
  * WARNING: The C register and register group struct declarations are provided for
@@ -4552,59 +6260,102 @@ typedef volatile struct ALT_I2C_SDA_HOLD_s  ALT_I2C_SDA_HOLD_t;
  */
 struct ALT_I2C_TX_ABRT_SRC_s
 {
-    uint32_t  abrt_7b_addr_noack   :  1;  /* Master Abort 7 Bit Address */
-    uint32_t  abrt_10addr1_noack   :  1;  /* Master Abort 10 Bit Address Byte 1 */
-    uint32_t  abrt_10addr2_noack   :  1;  /* Master Abort 10 Bit Address Byte 2 */
-    uint32_t  abrt_txdata_noack    :  1;  /* Master Abort TX Noack Bit */
-    uint32_t  abrt_gcall_noack     :  1;  /* Master Abort GC Noack Bit */
-    uint32_t  abrt_gcall_read      :  1;  /* Master Abort GC Read Bit */
-    uint32_t  abrt_hs_ackdet       :  1;  /* Master HS MC Ack */
-    uint32_t  abrt_sbyte_ackdet    :  1;  /* Master Abort START Byte */
-    uint32_t  abrt_hs_norstrt      :  1;  /* Master HS Restart Disabled */
-    uint32_t  abrt_sbyte_norstrt   :  1;  /* Master Abort START No Restart */
-    uint32_t  abrt_10b_rd_norstrt  :  1;  /* Master Abort 10 Bit No Restart */
-    uint32_t  abrt_master_dis      :  1;  /* Master Oper Master Dis */
-    uint32_t  arb_lost             :  1;  /* Master Abort Arbitration Lost */
-    uint32_t  abrt_slvflush_txfifo :  1;  /* Slave Abort Flush TXFIFO */
-    uint32_t  abrt_slv_arblost     :  1;  /* Slave Abort Arbitration Lost */
-    uint32_t  abrt_slvrd_intx      :  1;  /* Slave Abort Read TX */
-    uint32_t                       : 16;  /* *UNDEFINED* */
+    const uint32_t  abrt_7b_addr_noack            :  1;  /* ALT_I2C_TX_ABRT_SRC_ABRT_7B_ADDR_NOACK */
+    const uint32_t  abrt_10addr1_noack            :  1;  /* ALT_I2C_TX_ABRT_SRC_ABRT_10ADDR1_NOACK */
+    const uint32_t  abrt_10addr2_noack            :  1;  /* ALT_I2C_TX_ABRT_SRC_ABRT_10ADDR2_NOACK */
+    const uint32_t  abrt_txdata_noack             :  1;  /* ALT_I2C_TX_ABRT_SRC_ABRT_TXDATA_NOACK */
+    const uint32_t  abrt_gcall_noack              :  1;  /* ALT_I2C_TX_ABRT_SRC_ABRT_GCALL_NOACK */
+    const uint32_t  abrt_gcall_read               :  1;  /* ALT_I2C_TX_ABRT_SRC_ABRT_GCALL_RD */
+    const uint32_t  abrt_hs_ackdet                :  1;  /* ALT_I2C_TX_ABRT_SRC_ABRT_HS_ACKDET */
+    const uint32_t  abrt_sbyte_ackdet             :  1;  /* ALT_I2C_TX_ABRT_SRC_ABRT_SBYTE_ACKDET */
+    const uint32_t  abrt_hs_norstrt               :  1;  /* ALT_I2C_TX_ABRT_SRC_ABRT_HS_NORSTRT */
+    const uint32_t  abrt_sbyte_norstrt            :  1;  /* ALT_I2C_TX_ABRT_SRC_ABRT_SBYTE_NORSTRT */
+    const uint32_t  abrt_10b_rd_norstrt           :  1;  /* ALT_I2C_TX_ABRT_SRC_ABRT_10B_RD_NORSTRT */
+    const uint32_t  abrt_master_dis               :  1;  /* ALT_I2C_TX_ABRT_SRC_ABRT_MST_DIS */
+    const uint32_t  arb_lost                      :  1;  /* ALT_I2C_TX_ABRT_SRC_ARB_LOST */
+    const uint32_t  abrt_slvflush_txfifo          :  1;  /* ALT_I2C_TX_ABRT_SRC_ABRT_SLVFLUSH_TXFIFO */
+    const uint32_t  abrt_slv_arblost              :  1;  /* ALT_I2C_TX_ABRT_SRC_ABRT_SLV_ARBLOST */
+    const uint32_t  abrt_slvrd_intx               :  1;  /* ALT_I2C_TX_ABRT_SRC_ABRT_SLVRD_INTX */
+    const uint32_t  abrt_user_abrt                :  1;  /* ALT_I2C_TX_ABRT_SRC_ABRT_USER_ABRT */
+    const uint32_t  rsvd_ic_tx_abrt_source_22to17 :  6;  /* ALT_I2C_TX_ABRT_SRC_RSVD_IC_TX_ABRT_SRC_22TO17 */
+    const uint32_t  tx_flush_cnt                  :  9;  /* ALT_I2C_TX_ABRT_SRC_TX_FLUSH_CNT */
 };
 
 /* The typedef declaration for register ALT_I2C_TX_ABRT_SRC. */
 typedef volatile struct ALT_I2C_TX_ABRT_SRC_s  ALT_I2C_TX_ABRT_SRC_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_TX_ABRT_SRC register. */
+#define ALT_I2C_TX_ABRT_SRC_RESET       0x00000000
 /* The byte offset of the ALT_I2C_TX_ABRT_SRC register from the beginning of the component. */
 #define ALT_I2C_TX_ABRT_SRC_OFST        0x80
 /* The address of the ALT_I2C_TX_ABRT_SRC register. */
 #define ALT_I2C_TX_ABRT_SRC_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_TX_ABRT_SRC_OFST))
 
 /*
- * Register : Generate Slave Data NACK - ic_slv_data_nack_only
+ * Register : ic_slv_data_nack_only
  * 
- * The register is used to generate a NACK for the data part of a transfer when i2c
- * is acting as a slave-receiver.
+ * Name: Generate Slave Data NACK Register
+ * 
+ * Size: 1 bit
+ * 
+ * Address Offset: 0x84
+ * 
+ * Read/Write Access: Read/Write
+ * 
+ * The register is used to generate a NACK for
+ * 
+ * the data part of a transfer when DW_apb_i2c is
+ * 
+ * acting as a slave-receiver. This register only
+ * 
+ * exists when the IC_SLV_DATA_NACK_ONLY parameter
+ * 
+ * is set to 1. When this parameter disabled, this
+ * 
+ * register does not exist and writing to the register's
+ * 
+ * address has no effect.
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description      
- * :-------|:-------|:------|:------------------
- *  [0]    | RW     | 0x0   | Generate Nack Bit
- *  [31:1] | ???    | 0x0   | *UNDEFINED*      
+ *  Bits   | Access | Reset | Description                    
+ * :-------|:-------|:------|:--------------------------------
+ *  [0]    | RW     | 0x0   | ALT_I2C_SLV_DATA_NACK_ONLY_NACK
+ *  [31:1] | ???    | 0x0   | *UNDEFINED*                    
  * 
  */
 /*
- * Field : Generate Nack Bit - nack
+ * Field : nack
  * 
- * This Bit control Nack generation
+ * Generate NACK.
+ * 
+ * This NACK generation only occurs when DW_apb_i2c is a
+ * 
+ * slave-receiver. If this register is set to a value of 1,
+ * 
+ * it can only generate a NACK after a data byte is received;
+ * 
+ * hence, the data transfer is aborted and the data received
+ * 
+ * is not pushed to the receive buffer.
+ * 
+ * When the register is set to a value of 0, it generates
+ * 
+ * NACK/ACK, depending on normal criteria.
+ * 
+ * 1 = generate NACK after data byte received
+ * 
+ * 0 = generate NACK/ACK normally
+ * 
+ * Reset value: 0x0
  * 
  * Field Enumeration Values:
  * 
  *  Enum                                         | Value | Description                          
  * :---------------------------------------------|:------|:--------------------------------------
- *  ALT_I2C_SLV_DATA_NACK_ONLY_NACK_E_AFTERDBYTE | 0x1   | Generate NACK after data byte receive
  *  ALT_I2C_SLV_DATA_NACK_ONLY_NACK_E_NORM       | 0x0   | Generate NACK/ACK normally           
+ *  ALT_I2C_SLV_DATA_NACK_ONLY_NACK_E_AFTERDBYTE | 0x1   | Generate NACK after data byte receive
  * 
  * Field Access Macros:
  * 
@@ -4612,15 +6363,15 @@ typedef volatile struct ALT_I2C_TX_ABRT_SRC_s  ALT_I2C_TX_ABRT_SRC_t;
 /*
  * Enumerated value for register field ALT_I2C_SLV_DATA_NACK_ONLY_NACK
  * 
- * Generate NACK after data byte receive
- */
-#define ALT_I2C_SLV_DATA_NACK_ONLY_NACK_E_AFTERDBYTE    0x1
-/*
- * Enumerated value for register field ALT_I2C_SLV_DATA_NACK_ONLY_NACK
- * 
  * Generate NACK/ACK normally
  */
 #define ALT_I2C_SLV_DATA_NACK_ONLY_NACK_E_NORM          0x0
+/*
+ * Enumerated value for register field ALT_I2C_SLV_DATA_NACK_ONLY_NACK
+ * 
+ * Generate NACK after data byte receive
+ */
+#define ALT_I2C_SLV_DATA_NACK_ONLY_NACK_E_AFTERDBYTE    0x1
 
 /* The Least Significant Bit (LSB) position of the ALT_I2C_SLV_DATA_NACK_ONLY_NACK register field. */
 #define ALT_I2C_SLV_DATA_NACK_ONLY_NACK_LSB        0
@@ -4652,7 +6403,7 @@ typedef volatile struct ALT_I2C_TX_ABRT_SRC_s  ALT_I2C_TX_ABRT_SRC_t;
  */
 struct ALT_I2C_SLV_DATA_NACK_ONLY_s
 {
-    uint32_t  nack :  1;  /* Generate Nack Bit */
+    uint32_t  nack :  1;  /* ALT_I2C_SLV_DATA_NACK_ONLY_NACK */
     uint32_t       : 31;  /* *UNDEFINED* */
 };
 
@@ -4660,31 +6411,63 @@ struct ALT_I2C_SLV_DATA_NACK_ONLY_s
 typedef volatile struct ALT_I2C_SLV_DATA_NACK_ONLY_s  ALT_I2C_SLV_DATA_NACK_ONLY_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_SLV_DATA_NACK_ONLY register. */
+#define ALT_I2C_SLV_DATA_NACK_ONLY_RESET       0x00000000
 /* The byte offset of the ALT_I2C_SLV_DATA_NACK_ONLY register from the beginning of the component. */
 #define ALT_I2C_SLV_DATA_NACK_ONLY_OFST        0x84
 /* The address of the ALT_I2C_SLV_DATA_NACK_ONLY register. */
 #define ALT_I2C_SLV_DATA_NACK_ONLY_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_SLV_DATA_NACK_ONLY_OFST))
 
 /*
- * Register : DMA Control - ic_dma_cr
+ * Register : ic_dma_cr
  * 
- * The register is used to enable the DMA Controller interface operation. There is
- * a separate bit for transmit and receive. This can be programmed regardless of
- * the state of IC_ENABLE.
+ * Name: DMA Control Register
+ * 
+ * Size: 2 bits
+ * 
+ * Address Offset: 0x88
+ * 
+ * Read/Write Access: Read/Write
+ * 
+ * This register is only valid when DW_apb_i2c is configured
+ * 
+ * with a set of DMA Controller interface signals (IC_HAS_DMA = 1).
+ * 
+ * When DW_apb_i2c is not configured for DMA operation, this register
+ * 
+ * does not exist and writing to the register's address has no
+ * 
+ * effect and reading from this register address will return zero.
+ * 
+ * The register is used to enable the DMA Controller interface operation.
+ * 
+ * There is a separate bit for transmit and receive. This can be programmed
+ * 
+ * regardless of the state of IC_ENABLE.
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description            
- * :-------|:-------|:------|:------------------------
- *  [0]    | RW     | 0x0   | Receive DMA Enable Bit 
- *  [1]    | RW     | 0x0   | Transmit DMA Enable Bit
- *  [31:2] | ???    | 0x0   | *UNDEFINED*            
+ *  Bits   | Access | Reset | Description                        
+ * :-------|:-------|:------|:------------------------------------
+ *  [0]    | RW     | 0x0   | ALT_I2C_DMA_CR_RDMAE               
+ *  [1]    | RW     | 0x0   | ALT_I2C_DMA_CR_TDMAE               
+ *  [31:2] | R      | 0x0   | ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2
  * 
  */
 /*
- * Field : Receive DMA Enable Bit - rdmae
+ * Field : rdmae
  * 
- * This bit enables/disables the receive FIFO DMA channel.
+ * Receive DMA Enable.
+ * 
+ * This bit enables/disables the receive FIFO DMA
+ * 
+ * channel.
+ * 
+ * 0 = Receive DMA disabled
+ * 
+ * 1 = Receive DMA enabled
+ * 
+ * Reset value: 0x0
  * 
  * Field Enumeration Values:
  * 
@@ -4727,9 +6510,19 @@ typedef volatile struct ALT_I2C_SLV_DATA_NACK_ONLY_s  ALT_I2C_SLV_DATA_NACK_ONLY
 #define ALT_I2C_DMA_CR_RDMAE_SET(value) (((value) << 0) & 0x00000001)
 
 /*
- * Field : Transmit DMA Enable Bit - tdmae
+ * Field : tdmae
  * 
- * This bit enables/disables the transmit FIFO DMA channel.
+ * Transmit DMA Enable.
+ * 
+ * //This bit enables/disables the transmit FIFO DMA
+ * 
+ * channel.
+ * 
+ * 0 = Transmit DMA disabled
+ * 
+ * 1 = Transmit DMA enabled
+ * 
+ * Reset value: 0x0
  * 
  * Field Enumeration Values:
  * 
@@ -4771,6 +6564,31 @@ typedef volatile struct ALT_I2C_SLV_DATA_NACK_ONLY_s  ALT_I2C_SLV_DATA_NACK_ONLY
 /* Produces a ALT_I2C_DMA_CR_TDMAE register field value suitable for setting the register. */
 #define ALT_I2C_DMA_CR_TDMAE_SET(value) (((value) << 1) & 0x00000002)
 
+/*
+ * Field : rsvd_ic_dma_cr_31to2
+ * 
+ * Reserved bits [31:1] - Read Only
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2 register field. */
+#define ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2_LSB        2
+/* The Most Significant Bit (MSB) position of the ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2 register field. */
+#define ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2_MSB        31
+/* The width in bits of the ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2 register field. */
+#define ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2_WIDTH      30
+/* The mask used to set the ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2 register field value. */
+#define ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2_SET_MSK    0xfffffffc
+/* The mask used to clear the ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2 register field value. */
+#define ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2_CLR_MSK    0x00000003
+/* The reset value of the ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2 register field. */
+#define ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2_RESET      0x0
+/* Extracts the ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2 field value from a register. */
+#define ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2_GET(value) (((value) & 0xfffffffc) >> 2)
+/* Produces a ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2 register field value suitable for setting the register. */
+#define ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2_SET(value) (((value) << 2) & 0xfffffffc)
+
 #ifndef __ASSEMBLY__
 /*
  * WARNING: The C register and register group struct declarations are provided for
@@ -4784,40 +6602,71 @@ typedef volatile struct ALT_I2C_SLV_DATA_NACK_ONLY_s  ALT_I2C_SLV_DATA_NACK_ONLY
  */
 struct ALT_I2C_DMA_CR_s
 {
-    uint32_t  rdmae :  1;  /* Receive DMA Enable Bit */
-    uint32_t  tdmae :  1;  /* Transmit DMA Enable Bit */
-    uint32_t        : 30;  /* *UNDEFINED* */
+    uint32_t        rdmae                :  1;  /* ALT_I2C_DMA_CR_RDMAE */
+    uint32_t        tdmae                :  1;  /* ALT_I2C_DMA_CR_TDMAE */
+    const uint32_t  rsvd_ic_dma_cr_31to2 : 30;  /* ALT_I2C_DMA_CR_RSVD_IC_DMA_CR_31TO2 */
 };
 
 /* The typedef declaration for register ALT_I2C_DMA_CR. */
 typedef volatile struct ALT_I2C_DMA_CR_s  ALT_I2C_DMA_CR_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_DMA_CR register. */
+#define ALT_I2C_DMA_CR_RESET       0x00000000
 /* The byte offset of the ALT_I2C_DMA_CR register from the beginning of the component. */
 #define ALT_I2C_DMA_CR_OFST        0x88
 /* The address of the ALT_I2C_DMA_CR register. */
 #define ALT_I2C_DMA_CR_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_DMA_CR_OFST))
 
 /*
- * Register : DMA Transmit Data Level - ic_dma_tdlr
+ * Register : ic_dma_tdlr
  * 
- * This register supports DMA Transmit Operation.
+ * Name: DMA Transmit Data Level Register
+ * 
+ * Size: log2(IC_TX_BUFFER_DEPTH)  bits
+ * 
+ * Address Offset: 0x8c
+ * 
+ * Read/Write Access: Read/Write
+ * 
+ * This register is only valid when the DW_apb_i2c
+ * 
+ * is configured with a set of DMA interface signals
+ * 
+ * (IC_HAS_DMA = 1). When DW_apb_i2c is not configured
+ * 
+ * for DMA operation, this register does not exist;
+ * 
+ * writing to its address has no effect; reading from
+ * 
+ * its address returns zero.
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description                
- * :-------|:-------|:------|:----------------------------
- *  [5:0]  | RW     | 0x0   | DMA Transmit Data Level Bit
- *  [31:6] | ???    | 0x0   | *UNDEFINED*                
+ *  Bits   | Access | Reset | Description            
+ * :-------|:-------|:------|:------------------------
+ *  [5:0]  | RW     | 0x0   | ALT_I2C_DMA_TDLR_DMATDL
+ *  [31:6] | ???    | 0x0   | *UNDEFINED*            
  * 
  */
 /*
- * Field : DMA Transmit Data Level Bit - dmatdl
+ * Field : dmatdl
  * 
- * This bit field controls the level at which a DMA request is made by the transmit
- * logic. It is equal to the watermark level; that is, the i2c_dma_tx_req signal is
- * generated when the number of valid data entries in the transmit FIFO is equal to
- * or below this field value, and TDMAE = 1.
+ * Transmit Data Level.
+ * 
+ * This bit field controls the level at which a
+ * 
+ * DMA request is made by the transmit logic. It
+ * 
+ * is equal to the watermark level; that is, the
+ * 
+ * dma_tx_req signal is generated when the number
+ * 
+ * of valid data entries in the transmit FIFO is
+ * 
+ * equal to or below this field value, and TDMAE = 1.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -4852,7 +6701,7 @@ typedef volatile struct ALT_I2C_DMA_CR_s  ALT_I2C_DMA_CR_t;
  */
 struct ALT_I2C_DMA_TDLR_s
 {
-    uint32_t  dmatdl :  6;  /* DMA Transmit Data Level Bit */
+    uint32_t  dmatdl :  6;  /* ALT_I2C_DMA_TDLR_DMATDL */
     uint32_t         : 26;  /* *UNDEFINED* */
 };
 
@@ -4860,33 +6709,64 @@ struct ALT_I2C_DMA_TDLR_s
 typedef volatile struct ALT_I2C_DMA_TDLR_s  ALT_I2C_DMA_TDLR_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_DMA_TDLR register. */
+#define ALT_I2C_DMA_TDLR_RESET       0x00000000
 /* The byte offset of the ALT_I2C_DMA_TDLR register from the beginning of the component. */
 #define ALT_I2C_DMA_TDLR_OFST        0x8c
 /* The address of the ALT_I2C_DMA_TDLR register. */
 #define ALT_I2C_DMA_TDLR_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_DMA_TDLR_OFST))
 
 /*
- * Register : Receive Data Level - ic_dma_rdlr
+ * Register : ic_dma_rdlr
  * 
- * DMA Control Signals Interface.
+ * Name: I2C Receive Data Level Register
+ * 
+ * Size: log2(IC_RX_BUFFER_DEPTH)  bits
+ * 
+ * Address Offset: 0x90
+ * 
+ * Read/Write Access: Read/Write
+ * 
+ * This register is only valid when DW_apb_i2c
+ * 
+ * is configured with a set of DMA interface signals
+ * 
+ * (IC_HAS_DMA = 1). When DW_apb_i2c is not configured
+ * 
+ * for DMA operation, this register does not exist;
+ * 
+ * writing to its address has no effect; reading from
+ * 
+ * its address returns zero.
  * 
  * Register Layout
  * 
  *  Bits   | Access | Reset | Description            
  * :-------|:-------|:------|:------------------------
- *  [5:0]  | RW     | 0x0   | Receive Data Level Bits
+ *  [5:0]  | RW     | 0x0   | ALT_I2C_DMA_RDLR_DMARDL
  *  [31:6] | ???    | 0x0   | *UNDEFINED*            
  * 
  */
 /*
- * Field : Receive Data Level Bits - dmardl
+ * Field : dmardl
  * 
- * This bit field controls the level at which a DMA request is made by the receive
- * logic. The watermark level \= DMARDL+1; that is, dma_rx_req is generated when
- * the number of valid data entries in the receive FIFO is equal to or more than
- * this field value + 1, and RDMAE =1. For instance, when DMARDL is 0, then
- * dma_rx_req is asserted when or more data entries are present in the receive
- * FIFO.
+ * Receive Data Level.
+ * 
+ * This bit field controls the level at which a DMA
+ * 
+ * request is made by the receive logic. The watermark level =
+ * 
+ * DMARDL+1; that is, dma_rx_req is generated when the number
+ * 
+ * of valid data entries in the receive FIFO is equal to or more
+ * 
+ * than this field value + 1, and RDMAE =1. For instance, when
+ * 
+ * DMARDL is 0, then dma_rx_req is asserted when 1 or more data
+ * 
+ * entries are present in the receive FIFO.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -4921,7 +6801,7 @@ typedef volatile struct ALT_I2C_DMA_TDLR_s  ALT_I2C_DMA_TDLR_t;
  */
 struct ALT_I2C_DMA_RDLR_s
 {
-    uint32_t  dmardl :  6;  /* Receive Data Level Bits */
+    uint32_t  dmardl :  6;  /* ALT_I2C_DMA_RDLR_DMARDL */
     uint32_t         : 26;  /* *UNDEFINED* */
 };
 
@@ -4929,39 +6809,58 @@ struct ALT_I2C_DMA_RDLR_s
 typedef volatile struct ALT_I2C_DMA_RDLR_s  ALT_I2C_DMA_RDLR_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_DMA_RDLR register. */
+#define ALT_I2C_DMA_RDLR_RESET       0x00000000
 /* The byte offset of the ALT_I2C_DMA_RDLR register from the beginning of the component. */
 #define ALT_I2C_DMA_RDLR_OFST        0x90
 /* The address of the ALT_I2C_DMA_RDLR register. */
 #define ALT_I2C_DMA_RDLR_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_DMA_RDLR_OFST))
 
 /*
- * Register : SDA Setup Register - ic_sda_setup
+ * Register : ic_sda_setup
  * 
- * This register controls the amount of time delay (in terms of number of l4_sp_clk
- * clock periods) introduced in the rising edge of SCL relative to SDA changing by
- * holding SCL low when I2C services a read request while operating as a slave-
- * transmitter. The relevant I2C requirement is tSU:DAT (note 4) as detailed in the
- * I2C Bus Specification. This register must be programmed with a value equal to or
- * greater than 2.
+ * Name: I2C SDA Setup Register
  * 
- * Note: The length of setup time is calculated using [(IC_SDA_SETUP - 1) *
- * (l4_sp_clk)], so if the user requires 10 l4_sp_clk periods of setup time, they
- * should program a value of 11. The IC_SDA_SETUP register is only used by the I2C
- * when operating as a slave transmitter.
+ * Size: 8 bits
+ * 
+ * Address Offset: 0x94
+ * 
+ * Read/Write Access: Read/Write
+ * 
+ * This register controls the amount of time delay
+ * 
+ * (in terms of number of ic_clk clock periods) introduced
+ * 
+ * in the rising edge of SCL, relative to SDA changing, when
+ * 
+ * DW_apb_i2c services a read request in a slave-transmitter operation.
+ * 
+ * The relevant I2C requirement is tSU:DAT (note 4) as detailed in the
+ * 
+ * I2C Bus Specification.
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description    
- * :-------|:-------|:------|:----------------
- *  [7:0]  | RW     | 0x64  | SDA Setup Value
- *  [31:8] | ???    | 0x0   | *UNDEFINED*    
+ *  Bits   | Access | Reset | Description                
+ * :-------|:-------|:------|:----------------------------
+ *  [7:0]  | RW     | 0x64  | ALT_I2C_SDA_SETUP_SDA_SETUP
+ *  [31:8] | ???    | 0x0   | *UNDEFINED*                
  * 
  */
 /*
- * Field : SDA Setup Value - sda_setup
+ * Field : sda_setup
  * 
- * It is recommended that if the required delay is 1000ns, then for an l4_sp_clk
- * frequency of 10 MHz, ic_sda_setup should be programmed to a value of 11.
+ * SDA Setup.
+ * 
+ * It is recommended that if the required delay is 1000ns,
+ * 
+ * then for an ic_clk frequency of 10 MHz, IC_SDA_SETUP
+ * 
+ * should be programmed to a value of 11.
+ * 
+ * Default Reset value: 0x64, but can be hardcoded by setting
+ * 
+ * the IC_DEFAULT_SDA_SETUP configuration parameter.
  * 
  * Field Access Macros:
  * 
@@ -4996,7 +6895,7 @@ typedef volatile struct ALT_I2C_DMA_RDLR_s  ALT_I2C_DMA_RDLR_t;
  */
 struct ALT_I2C_SDA_SETUP_s
 {
-    uint32_t  sda_setup :  8;  /* SDA Setup Value */
+    uint32_t  sda_setup :  8;  /* ALT_I2C_SDA_SETUP_SDA_SETUP */
     uint32_t            : 24;  /* *UNDEFINED* */
 };
 
@@ -5004,30 +6903,56 @@ struct ALT_I2C_SDA_SETUP_s
 typedef volatile struct ALT_I2C_SDA_SETUP_s  ALT_I2C_SDA_SETUP_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_SDA_SETUP register. */
+#define ALT_I2C_SDA_SETUP_RESET       0x00000064
 /* The byte offset of the ALT_I2C_SDA_SETUP register from the beginning of the component. */
 #define ALT_I2C_SDA_SETUP_OFST        0x94
 /* The address of the ALT_I2C_SDA_SETUP register. */
 #define ALT_I2C_SDA_SETUP_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_SDA_SETUP_OFST))
 
 /*
- * Register : ACK General Call - ic_ack_general_call
+ * Register : ic_ack_general_call
  * 
- * The register controls whether i2c responds with a ACK or NACK when it receives
- * an I2C General Call address.
+ * Name: I2C ACK General Call Register
+ * 
+ * Size: 1 bit
+ * 
+ * Address Offset: 0x98
+ * 
+ * Read/Write Access: Read/Write
+ * 
+ * The register controls whether DW_apb_i2c responds
+ * 
+ * with a ACK or NACK when it receives an I2C
+ * 
+ * General Call address.
+ * 
+ * Note :This register is applicable only when the DW_apb_i2c is in slave mode
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description         
- * :-------|:-------|:------|:---------------------
- *  [0]    | RW     | 0x1   | ACK General Call Bit
- *  [31:1] | ???    | 0x0   | *UNDEFINED*         
+ *  Bits   | Access | Reset | Description                                   
+ * :-------|:-------|:------|:-----------------------------------------------
+ *  [0]    | RW     | 0x1   | ALT_I2C_ACK_GENERAL_CALL_ACK_GEN_CALL         
+ *  [31:1] | R      | 0x0   | ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1
  * 
  */
 /*
- * Field : ACK General Call Bit - ack_gen_call
+ * Field : ack_gen_call
  * 
- * When an ACK is asserted, (by asserting i2c_out_data) when it receives a General
- * call. Otherwise, i2c responds with a NACK (by negating i2c_out_data).
+ * ACK General Call.
+ * 
+ * When set to 1, DW_apb_i2c responds with a ACK
+ * 
+ * (by asserting ic_data_oe) when it receives a General Call.
+ * 
+ * Otherwise, DW_apb_i2c responds with a NACK
+ * 
+ * (by negating ic_data_oe).
+ * 
+ * Default Reset value: 0x1, but can be hardcoded by setting the
+ * 
+ * IC_DEFAULT_ACK_GENERAL_CALL configuration parameter.
  * 
  * Field Enumeration Values:
  * 
@@ -5069,6 +6994,31 @@ typedef volatile struct ALT_I2C_SDA_SETUP_s  ALT_I2C_SDA_SETUP_t;
 /* Produces a ALT_I2C_ACK_GENERAL_CALL_ACK_GEN_CALL register field value suitable for setting the register. */
 #define ALT_I2C_ACK_GENERAL_CALL_ACK_GEN_CALL_SET(value) (((value) << 0) & 0x00000001)
 
+/*
+ * Field : rsvd_ic_ack_gen_31to1
+ * 
+ * Reserved bits [31:1] - Read Only
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1 register field. */
+#define ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1_LSB        1
+/* The Most Significant Bit (MSB) position of the ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1 register field. */
+#define ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1_MSB        31
+/* The width in bits of the ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1 register field. */
+#define ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1_WIDTH      31
+/* The mask used to set the ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1 register field value. */
+#define ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1_SET_MSK    0xfffffffe
+/* The mask used to clear the ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1 register field value. */
+#define ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1_CLR_MSK    0x00000001
+/* The reset value of the ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1 register field. */
+#define ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1_RESET      0x0
+/* Extracts the ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1 field value from a register. */
+#define ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1_GET(value) (((value) & 0xfffffffe) >> 1)
+/* Produces a ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1 register field value suitable for setting the register. */
+#define ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1_SET(value) (((value) << 1) & 0xfffffffe)
+
 #ifndef __ASSEMBLY__
 /*
  * WARNING: The C register and register group struct declarations are provided for
@@ -5082,48 +7032,90 @@ typedef volatile struct ALT_I2C_SDA_SETUP_s  ALT_I2C_SDA_SETUP_t;
  */
 struct ALT_I2C_ACK_GENERAL_CALL_s
 {
-    uint32_t  ack_gen_call :  1;  /* ACK General Call Bit */
-    uint32_t               : 31;  /* *UNDEFINED* */
+    uint32_t        ack_gen_call          :  1;  /* ALT_I2C_ACK_GENERAL_CALL_ACK_GEN_CALL */
+    const uint32_t  rsvd_ic_ack_gen_31to1 : 31;  /* ALT_I2C_ACK_GENERAL_CALL_RSVD_IC_ACK_GEN_31TO1 */
 };
 
 /* The typedef declaration for register ALT_I2C_ACK_GENERAL_CALL. */
 typedef volatile struct ALT_I2C_ACK_GENERAL_CALL_s  ALT_I2C_ACK_GENERAL_CALL_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_ACK_GENERAL_CALL register. */
+#define ALT_I2C_ACK_GENERAL_CALL_RESET       0x00000001
 /* The byte offset of the ALT_I2C_ACK_GENERAL_CALL register from the beginning of the component. */
 #define ALT_I2C_ACK_GENERAL_CALL_OFST        0x98
 /* The address of the ALT_I2C_ACK_GENERAL_CALL register. */
 #define ALT_I2C_ACK_GENERAL_CALL_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_ACK_GENERAL_CALL_OFST))
 
 /*
- * Register : Enable Status Register - ic_enable_status
+ * Register : ic_enable_status
  * 
- * This register is used to report the i2c hardware status when the IC_ENABLE
- * register is set from 1 to 0; that is, when i2c is disabled. If IC_ENABLE has
- * been set to 1, bits 2:1 are forced to 0, and bit 0 is forced to 1. If IC_ENABLE
- * has been set to 0, bits 2:1 are only valid as soon as bit 0 is read as '0'.
+ * Name: I2C Enable Status Register
  * 
- * Note: When ic_enable has been written with '0' a delay occurs for bit 0 to be
- * read as '0' because disabling the i2c depends on I2C bus activities.
+ * Size: 3 bits
+ * 
+ * Address Offset: 0x9C
+ * 
+ * Read/Write Access: Read
+ * 
+ * The register is used to report the DW_apb_i2c hardware
+ * 
+ * status when the IC_ENABLE[0] register is set from 1 to 0;
+ * 
+ * that is, when DW_apb_i2c is disabled.
+ * 
+ * If IC_ENABLE[0] has been set to 1, bits 2:1 are forced to 0,
+ * 
+ * and bit 0 is forced to 1.
+ * 
+ * If IC_ENABLE[0] has been set to 0, bits 2:1 is only be valid
+ * 
+ * as soon as bit 0 is read as '0'.
+ * 
+ * Note
+ * 
+ * When IC_ENABLE[0] has been written with '0'a delay occurs for
+ * 
+ * bit 0 to be read as '0' because disabling the DW_apb_i2c
+ * 
+ * depends on I2C bus activities.
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description                  
- * :-------|:-------|:------|:------------------------------
- *  [0]    | R      | 0x0   | Enable Status Bit            
- *  [1]    | R      | 0x0   | Slave Disabled While Busy Bit
- *  [2]    | R      | 0x0   | Slave Received Data Lost Bit 
- *  [31:3] | ???    | 0x0   | *UNDEFINED*                  
+ *  Bits   | Access | Reset | Description                        
+ * :-------|:-------|:------|:------------------------------------
+ *  [0]    | R      | 0x0   | ALT_I2C_EN_STAT_IC_EN              
+ *  [1]    | R      | 0x0   | ALT_I2C_EN_STAT_SLV_DISD_WHILE_BUSY
+ *  [2]    | R      | 0x0   | ALT_I2C_EN_STAT_SLV_RX_DATA_LOST   
+ *  [31:3] | ???    | 0x0   | *UNDEFINED*                        
  * 
  */
 /*
- * Field : Enable Status Bit - ic_en
+ * Field : ic_en
  * 
- * This bit always reflects the value driven on the output port ic_en. Not used in
- * current application. When read as 1, i2c is deemed to be in an enabled state.
- * When read as 0, i2c is deemed completely inactive. NOTE: The CPU can safely read
- * this bit anytime. When this bit is read as 0, the CPU can safely read
- * slv_rx_data_lost (bit 2) and slv_disabled_while_busy (bit 1).
+ * ic_en Status.
+ * 
+ * This bit always reflects the value driven
+ * 
+ * on the output port ic_en.
+ * 
+ * When read as 1, DW_apb_i2c is deemed to be in
+ * 
+ * an enabled state.
+ * 
+ * When read as 0, DW_apb_i2c is deemed completely
+ * 
+ * inactive.
+ * 
+ * NOTE: The CPU can safely read this bit anytime.
+ * 
+ * When this bit is read as 0, the CPU can safely
+ * 
+ * read SLV_RX_DATA_LOST (bit 2) and
+ * 
+ * SLV_DISABLED_WHILE_BUSY (bit 1).
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -5146,22 +7138,55 @@ typedef volatile struct ALT_I2C_ACK_GENERAL_CALL_s  ALT_I2C_ACK_GENERAL_CALL_t;
 #define ALT_I2C_EN_STAT_IC_EN_SET(value) (((value) << 0) & 0x00000001)
 
 /*
- * Field : Slave Disabled While Busy Bit - slv_disabled_while_busy
+ * Field : slv_disabled_while_busy
  * 
- * This bit indicates if a potential or active Slave operation has been aborted due
- * to the setting of the ic_enable register from 1 to 0. This bit is set when the
- * CPU writes a 0 to the ic_enable register while: (a) I2C is receiving the address
- * byte of the Slave-Transmitter operation from a remote master; OR, (b) address
- * and data bytes of the Slave-Receiver operation from a remote master. When read
- * as 1, I2C is deemed to have forced a NACK during any part of an I2C transfer,
- * irrespective of whether the I2C address matches the slave address set in i2c
- * (IC_SAR register) OR if the transfer is completed before IC_ENABLE is set to 0
- * but has not taken effect. NOTE: If the remote I2C master terminates the transfer
- * with a STOP condition before the i2c has a chance to NACK a transfer, and
- * IC_ENABLE has been set to 0, then this bit will also be set to 1. When read as
- * 0, i2c is deemed to have been disabled when there is master activity, or when
- * the I2C bus is idle. NOTE: The CPU can safely read this bit when IC_EN (bit 0)
+ * Slave Disabled While Busy (Transmit, Receive).
+ * 
+ * This bit indicates if a potential or active Slave
+ * 
+ * operation has been aborted due to the setting bit 0 of
+ * 
+ * the IC_ENABLE register from 1 to 0. This bit is set
+ * 
+ * when the CPU writes a 0 to the IC_ENABLE register
+ * 
+ * while: (a) DW_apb_i2c is receiving the address byte
+ * 
+ * of the Slave-Transmitter operation from a remote master;
+ * 
+ * OR, (b) address and data bytes of the Slave-Receiver
+ * 
+ * operation from a remote master.
+ * 
+ * When read as 1, DW_apb_i2c is deemed to have forced a
+ * 
+ * NACK during any part of an I2C transfer, irrespective
+ * 
+ * of whether the I2C address matches the slave address set
+ * 
+ * in DW_apb_i2c (IC_SAR register) OR if the transfer is
+ * 
+ * completed before IC_ENABLE is set to 0 but has not
+ * 
+ * taken effect.
+ * 
+ * NOTE: If the remote I2C master terminates the transfer
+ * 
+ * with a STOP condition before the DW_apb_i2c has a chance
+ * 
+ * to NACK a transfer, and IC_ENABLE[0] has been set to 0, then
+ * 
+ * this bit will also be set to 1.
+ * 
+ * When read as 0, DW_apb_i2c is deemed to have been disabled
+ * 
+ * when there is master activity, or when the I2C bus is idle.
+ * 
+ * NOTE: The CPU can safely read this bit when IC_EN (bit 0)
+ * 
  * is read as 0.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -5184,19 +7209,41 @@ typedef volatile struct ALT_I2C_ACK_GENERAL_CALL_s  ALT_I2C_ACK_GENERAL_CALL_t;
 #define ALT_I2C_EN_STAT_SLV_DISD_WHILE_BUSY_SET(value) (((value) << 1) & 0x00000002)
 
 /*
- * Field : Slave Received Data Lost Bit - slv_rx_data_lost
+ * Field : slv_rx_data_lost
  * 
- * This bit indicates if a Slave-Receiver operation has been aborted with at least
- * one data byte received from an I2C transfer due to the setting of IC ENABLE from
- * 1 to 0. When read as 1, i2c is deemed to have been actively engaged in an
- * aborted I2C transfer (with matching address) and the data phase of the I2C
- * transfer has been entered, even though a data byte has been responded with a
- * NACK. NOTE: If the remote I2C master terminates the transfer with a STOP
- * condition before the i2c has a chance to NACK a transfer, and ic_enable has been
- * set to 0, then this bit is also set to 1. When read as 0, i2c is deemed to have
- * been disabled without being actively involved in the data phase of a Slave-
- * Receiver transfer. NOTE: The CPU can safely read this bit when IC_EN (bit 0) is
+ * Slave Received Data Lost.
+ * 
+ * This bit indicates if a Slave-Receiver operation has been
+ * 
+ * aborted with at least one data byte received from an
+ * 
+ * I2C transfer due to the setting bit 0 of IC_ENABLE from 1 to 0.
+ * 
+ * When read as 1, DW_apb_i2c is deemed to have been actively engaged
+ * 
+ * in an aborted I2C transfer (with matching address) and the
+ * 
+ * data phase of the I2C transfer has been entered, even though
+ * 
+ * a data byte has been responded with a NACK.
+ * 
+ * NOTE: If the remote I2C master terminates the transfer with a
+ * 
+ * STOP condition before the DW_apb_i2c has a chance to NACK a
+ * 
+ * transfer, and IC_ENABLE[0] has been set to 0, then this bit is
+ * 
+ * also set to 1.
+ * 
+ * When read as 0, DW_apb_i2c is deemed to have been disabled without
+ * 
+ * being actively involved in the data phase of a Slave-Receiver transfer.
+ * 
+ * NOTE: The CPU can safely read this bit when IC_EN (bit 0) is
+ * 
  * read as 0.
+ * 
+ * Reset value: 0x0
  * 
  * Field Access Macros:
  * 
@@ -5231,9 +7278,9 @@ typedef volatile struct ALT_I2C_ACK_GENERAL_CALL_s  ALT_I2C_ACK_GENERAL_CALL_t;
  */
 struct ALT_I2C_EN_STAT_s
 {
-    const uint32_t  ic_en                   :  1;  /* Enable Status Bit */
-    const uint32_t  slv_disabled_while_busy :  1;  /* Slave Disabled While Busy Bit */
-    const uint32_t  slv_rx_data_lost        :  1;  /* Slave Received Data Lost Bit */
+    const uint32_t  ic_en                   :  1;  /* ALT_I2C_EN_STAT_IC_EN */
+    const uint32_t  slv_disabled_while_busy :  1;  /* ALT_I2C_EN_STAT_SLV_DISD_WHILE_BUSY */
+    const uint32_t  slv_rx_data_lost        :  1;  /* ALT_I2C_EN_STAT_SLV_RX_DATA_LOST */
     uint32_t                                : 29;  /* *UNDEFINED* */
 };
 
@@ -5241,57 +7288,87 @@ struct ALT_I2C_EN_STAT_s
 typedef volatile struct ALT_I2C_EN_STAT_s  ALT_I2C_EN_STAT_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_EN_STAT register. */
+#define ALT_I2C_EN_STAT_RESET       0x00000000
 /* The byte offset of the ALT_I2C_EN_STAT register from the beginning of the component. */
 #define ALT_I2C_EN_STAT_OFST        0x9c
 /* The address of the ALT_I2C_EN_STAT register. */
 #define ALT_I2C_EN_STAT_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_EN_STAT_OFST))
 
 /*
- * Register : SS and FS Spike Suppression Limit Register - ic_fs_spklen
+ * Register : ic_fs_spklen
  * 
- * This register is used to store the duration, measured in ic_clk cycles, of the
- * longest spike that is filtered out by the spike suppression logic when the
- * component is operating in SS or FS modes.
+ * Name: I2C SS, FS or FM+  spike suppression limit
+ * 
+ * Size: 8 bits
+ * 
+ * Address: 0xA0
+ * 
+ * Read/Write Access: Read/Write
+ * 
+ * This register is used to store the duration, measured in ic_clk cycles,
+ * 
+ * of the longest spike that is filtered out by the spike suppression logic w
+ * 
+ * hen the component is operating in SS, FS or FM+ modes.
+ * 
+ * The relevant I2C requirement is tSP (table 4) as detailed in the
+ * 
+ * I2C Bus Specification. This register must be programmed with a minimum value of
+ * 1.
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset | Description                     
- * :-------|:-------|:------|:---------------------------------
- *  [7:0]  | RW     | 0x2   | Spike Suppression Limit Register
- *  [31:8] | ???    | 0x0   | *UNDEFINED*                     
+ *  Bits   | Access | Reset | Description                   
+ * :-------|:-------|:------|:-------------------------------
+ *  [7:0]  | RW     | 0x2   | ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN
+ *  [31:8] | ???    | 0x0   | *UNDEFINED*                   
  * 
  */
 /*
- * Field : Spike Suppression Limit Register - spklen
+ * Field : ic_fs_spklen
  * 
  * This register must be set before any I2C bus transaction can take place to
+ * 
  * ensure stable operation. This register sets the duration, measured in ic_clk
- * cycles, of the longest spike in the SCL or SDA lines that are filtered out by
- * the spike suppression logic. This register can be written only when the I2C
- * interface is disabled, which corresponds to the IC_ENABLE register being set to
- * 0. Writes at other times have no effect. The minimum valid value is 1; hardware
- * prevents values less than this being written, and if attempted results in 2
- * being set.
+ * cycles,
+ * 
+ * of the longest spike in the SCL or SDA lines that will be filtered out by the
+ * spike
+ * 
+ * suppression logic.
+ * 
+ * This register can be written only when the I2C interface is disabled which
+ * 
+ * corresponds to the IC_ENABLE[0] register being set to 0. Writes at other times
+ * 
+ * have no effect.
+ * 
+ * The minimum valid value is 1; hardware prevents values less than this being
+ * 
+ * written, and if attempted results in 1 being set.
+ * 
+ * Default Reset value: IC_DEFAULT_FS_SPKLEN configuration parameter.
  * 
  * Field Access Macros:
  * 
  */
-/* The Least Significant Bit (LSB) position of the ALT_I2C_FS_SPKLEN_SPKLEN register field. */
-#define ALT_I2C_FS_SPKLEN_SPKLEN_LSB        0
-/* The Most Significant Bit (MSB) position of the ALT_I2C_FS_SPKLEN_SPKLEN register field. */
-#define ALT_I2C_FS_SPKLEN_SPKLEN_MSB        7
-/* The width in bits of the ALT_I2C_FS_SPKLEN_SPKLEN register field. */
-#define ALT_I2C_FS_SPKLEN_SPKLEN_WIDTH      8
-/* The mask used to set the ALT_I2C_FS_SPKLEN_SPKLEN register field value. */
-#define ALT_I2C_FS_SPKLEN_SPKLEN_SET_MSK    0x000000ff
-/* The mask used to clear the ALT_I2C_FS_SPKLEN_SPKLEN register field value. */
-#define ALT_I2C_FS_SPKLEN_SPKLEN_CLR_MSK    0xffffff00
-/* The reset value of the ALT_I2C_FS_SPKLEN_SPKLEN register field. */
-#define ALT_I2C_FS_SPKLEN_SPKLEN_RESET      0x2
-/* Extracts the ALT_I2C_FS_SPKLEN_SPKLEN field value from a register. */
-#define ALT_I2C_FS_SPKLEN_SPKLEN_GET(value) (((value) & 0x000000ff) >> 0)
-/* Produces a ALT_I2C_FS_SPKLEN_SPKLEN register field value suitable for setting the register. */
-#define ALT_I2C_FS_SPKLEN_SPKLEN_SET(value) (((value) << 0) & 0x000000ff)
+/* The Least Significant Bit (LSB) position of the ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN register field. */
+#define ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN_LSB        0
+/* The Most Significant Bit (MSB) position of the ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN register field. */
+#define ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN_MSB        7
+/* The width in bits of the ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN register field. */
+#define ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN_WIDTH      8
+/* The mask used to set the ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN register field value. */
+#define ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN_SET_MSK    0x000000ff
+/* The mask used to clear the ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN register field value. */
+#define ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN_CLR_MSK    0xffffff00
+/* The reset value of the ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN register field. */
+#define ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN_RESET      0x2
+/* Extracts the ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN field value from a register. */
+#define ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN_GET(value) (((value) & 0x000000ff) >> 0)
+/* Produces a ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN register field value suitable for setting the register. */
+#define ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN_SET(value) (((value) << 0) & 0x000000ff)
 
 #ifndef __ASSEMBLY__
 /*
@@ -5306,44 +7383,147 @@ typedef volatile struct ALT_I2C_EN_STAT_s  ALT_I2C_EN_STAT_t;
  */
 struct ALT_I2C_FS_SPKLEN_s
 {
-    uint32_t  spklen :  8;  /* Spike Suppression Limit Register */
-    uint32_t         : 24;  /* *UNDEFINED* */
+    uint32_t  ic_fs_spklen :  8;  /* ALT_I2C_FS_SPKLEN_IC_FS_SPKLEN */
+    uint32_t               : 24;  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register ALT_I2C_FS_SPKLEN. */
 typedef volatile struct ALT_I2C_FS_SPKLEN_s  ALT_I2C_FS_SPKLEN_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_FS_SPKLEN register. */
+#define ALT_I2C_FS_SPKLEN_RESET       0x00000002
 /* The byte offset of the ALT_I2C_FS_SPKLEN register from the beginning of the component. */
 #define ALT_I2C_FS_SPKLEN_OFST        0xa0
 /* The address of the ALT_I2C_FS_SPKLEN register. */
 #define ALT_I2C_FS_SPKLEN_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_FS_SPKLEN_OFST))
 
 /*
- * Register : Component Parameter Register 1 - ic_comp_param_1
+ * Register : ic_clr_restart_det
  * 
- * This is a constant read-only register that contains encoded information about
- * the component's parameter settings.
+ * Name: Clear RESTART_DET Interrupt Register
+ * 
+ * Size: 1 bit
+ * 
+ * Address Offset: 0xA8
+ * 
+ * Read/Write Access: Read
  * 
  * Register Layout
  * 
- *  Bits    | Access | Reset | Description            
- * :--------|:-------|:------|:------------------------
- *  [1:0]   | R      | 0x2   | APB Data Width Register
- *  [3:2]   | R      | 0x2   | Max Speed Mode         
- *  [4]     | R      | 0x0   | CNT Registers Access   
- *  [5]     | R      | 0x1   | Intr IO                
- *  [6]     | R      | 0x1   | Has DMA                
- *  [7]     | R      | 0x1   | Add Encoded Params     
- *  [15:8]  | R      | 0x3f  | Rx Buffer Depth        
- *  [23:16] | R      | 0x3f  | Tx Buffer Depth        
- *  [31:24] | ???    | 0x0   | *UNDEFINED*            
+ *  Bits   | Access | Reset | Description                            
+ * :-------|:-------|:------|:----------------------------------------
+ *  [0]    | R      | 0x0   | ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET
+ *  [31:1] | ???    | 0x0   | *UNDEFINED*                            
  * 
  */
 /*
- * Field : APB Data Width Register - apb_data_width
+ * Field : clr_restart_det
  * 
- * Sets the APB Data Width.
+ * Read this register to clear the RESTART_DET
+ * 
+ * interrupt (bit 12) of IC_RAW_INTR_STAT register.
+ * 
+ * Reset value: 0x0
+ * 
+ * Field Access Macros:
+ * 
+ */
+/* The Least Significant Bit (LSB) position of the ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET register field. */
+#define ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET_LSB        0
+/* The Most Significant Bit (MSB) position of the ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET register field. */
+#define ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET_MSB        0
+/* The width in bits of the ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET register field. */
+#define ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET_WIDTH      1
+/* The mask used to set the ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET register field value. */
+#define ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET_SET_MSK    0x00000001
+/* The mask used to clear the ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET register field value. */
+#define ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET_CLR_MSK    0xfffffffe
+/* The reset value of the ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET register field. */
+#define ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET_RESET      0x0
+/* Extracts the ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET field value from a register. */
+#define ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET_GET(value) (((value) & 0x00000001) >> 0)
+/* Produces a ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET register field value suitable for setting the register. */
+#define ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET_SET(value) (((value) << 0) & 0x00000001)
+
+#ifndef __ASSEMBLY__
+/*
+ * WARNING: The C register and register group struct declarations are provided for
+ * convenience and illustrative purposes. They should, however, be used with
+ * caution as the C language standard provides no guarantees about the alignment or
+ * atomicity of device memory accesses. The recommended practice for writing
+ * hardware drivers is to use the SoCAL access macros and alt_read_word() and
+ * alt_write_word() functions.
+ * 
+ * The struct declaration for register ALT_I2C_CLR_RESTART_DET.
+ */
+struct ALT_I2C_CLR_RESTART_DET_s
+{
+    const uint32_t  clr_restart_det :  1;  /* ALT_I2C_CLR_RESTART_DET_CLR_RESTART_DET */
+    uint32_t                        : 31;  /* *UNDEFINED* */
+};
+
+/* The typedef declaration for register ALT_I2C_CLR_RESTART_DET. */
+typedef volatile struct ALT_I2C_CLR_RESTART_DET_s  ALT_I2C_CLR_RESTART_DET_t;
+#endif  /* __ASSEMBLY__ */
+
+/* The reset value of the ALT_I2C_CLR_RESTART_DET register. */
+#define ALT_I2C_CLR_RESTART_DET_RESET       0x00000000
+/* The byte offset of the ALT_I2C_CLR_RESTART_DET register from the beginning of the component. */
+#define ALT_I2C_CLR_RESTART_DET_OFST        0xa8
+/* The address of the ALT_I2C_CLR_RESTART_DET register. */
+#define ALT_I2C_CLR_RESTART_DET_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_CLR_RESTART_DET_OFST))
+
+/*
+ * Register : ic_comp_param_1
+ * 
+ * Name: Component Parameter Register 1
+ * 
+ * Size: 32 bits
+ * 
+ * Address Offset: 0xf4
+ * 
+ * Read/Write Access: Read
+ * 
+ * Note
+ * 
+ * This is a constant read-only register that contains
+ * 
+ * encoded information about the component's parameter settings.
+ * 
+ * The reset value depends on coreConsultant parameter(s).
+ * 
+ * Register Layout
+ * 
+ *  Bits    | Access | Reset | Description                         
+ * :--------|:-------|:------|:-------------------------------------
+ *  [1:0]   | R      | 0x2   | ALT_I2C_COMP_PARAM_1_APB_DATA_WIDTH 
+ *  [3:2]   | R      | 0x2   | ALT_I2C_COMP_PARAM_1_MAX_SPEED_MOD  
+ *  [4]     | R      | 0x0   | ALT_I2C_COMP_PARAM_1_HC_COUNT_VALUES
+ *  [5]     | R      | 0x1   | ALT_I2C_COMP_PARAM_1_INTR_IO        
+ *  [6]     | R      | 0x1   | ALT_I2C_COMP_PARAM_1_HAS_DMA        
+ *  [7]     | R      | 0x1   | ALT_I2C_COMP_PARAM_1_ADD_ENC_PARAMS 
+ *  [15:8]  | R      | 0x3f  | ALT_I2C_COMP_PARAM_1_RX_BUF_DEPTH   
+ *  [23:16] | R      | 0x3f  | ALT_I2C_COMP_PARAM_1_TX_BUF_DEPTH   
+ *  [31:24] | ???    | 0x0   | *UNDEFINED*                         
+ * 
+ */
+/*
+ * Field : apb_data_width
+ * 
+ * The value of this register is
+ * 
+ * derived from the APB_DATA_WIDTH coreConsultant
+ * 
+ * parameter.
+ * 
+ * 0x0: 8 bits
+ * 
+ * 0x1: 16 bits
+ * 
+ * 0x2: 32 bits
+ * 
+ * 0x3: Reserved
  * 
  * Field Enumeration Values:
  * 
@@ -5379,9 +7559,21 @@ typedef volatile struct ALT_I2C_FS_SPKLEN_s  ALT_I2C_FS_SPKLEN_t;
 #define ALT_I2C_COMP_PARAM_1_APB_DATA_WIDTH_SET(value) (((value) << 0) & 0x00000003)
 
 /*
- * Field : Max Speed Mode - max_speed_mode
+ * Field : max_speed_mode
  * 
- * The value of this field determines the maximum i2c bus interface speed.
+ * The value of this register is
+ * 
+ * derived from the IC_MAX_SPEED_MODE coreConsultant
+ * 
+ * parameter.
+ * 
+ * 0x0: Reserved
+ * 
+ * 0x1: Standard
+ * 
+ * 0x2: Fast
+ * 
+ * 0x3: High
  * 
  * Field Enumeration Values:
  * 
@@ -5417,9 +7609,17 @@ typedef volatile struct ALT_I2C_FS_SPKLEN_s  ALT_I2C_FS_SPKLEN_t;
 #define ALT_I2C_COMP_PARAM_1_MAX_SPEED_MOD_SET(value) (((value) << 2) & 0x0000000c)
 
 /*
- * Field : CNT Registers Access - hc_count_values
+ * Field : hc_count_values
  * 
- * This makes the *CNT registers readable and writable.
+ * The value of this register is
+ * 
+ * derived from the IC_HC_COUNT VALUES coreConsultant
+ * 
+ * parameter
+ * 
+ * 0: False
+ * 
+ * 1: True
  * 
  * Field Enumeration Values:
  * 
@@ -5455,9 +7655,17 @@ typedef volatile struct ALT_I2C_FS_SPKLEN_s  ALT_I2C_FS_SPKLEN_t;
 #define ALT_I2C_COMP_PARAM_1_HC_COUNT_VALUES_SET(value) (((value) << 4) & 0x00000010)
 
 /*
- * Field : Intr IO - intr_io
+ * Field : intr_io
  * 
- * All interrupt sources are combined in to a single output.
+ * The value of this register is
+ * 
+ * derived from the IC_INTR_IO coreConsultant
+ * 
+ * parameter
+ * 
+ * 0: Individual
+ * 
+ * 1: Combined
  * 
  * Field Enumeration Values:
  * 
@@ -5493,9 +7701,17 @@ typedef volatile struct ALT_I2C_FS_SPKLEN_s  ALT_I2C_FS_SPKLEN_t;
 #define ALT_I2C_COMP_PARAM_1_INTR_IO_SET(value) (((value) << 5) & 0x00000020)
 
 /*
- * Field : Has DMA - has_dma
+ * Field : has_dma
  * 
- * This configures the inclusion of DMA handshaking interface signals.
+ * The value of this register is
+ * 
+ * derived from the IC_HAS_DMA coreConsultant
+ * 
+ * parameter
+ * 
+ * 0: False
+ * 
+ * 1: True
  * 
  * Field Enumeration Values:
  * 
@@ -5531,13 +7747,27 @@ typedef volatile struct ALT_I2C_FS_SPKLEN_s  ALT_I2C_FS_SPKLEN_t;
 #define ALT_I2C_COMP_PARAM_1_HAS_DMA_SET(value) (((value) << 6) & 0x00000040)
 
 /*
- * Field : Add Encoded Params - add_encoded_params
+ * Field : add_encoded_params
  * 
- * By adding in the encoded parameters, this gives firmware an easy and quick way
- * of identifying the DesignWare component within an I/O memory map. Some critical
- * design-time options determine how a driver should interact with the peripheral.
- * There is a minimal area overhead by including these parameters. Allows a single
- * driver to be developed for each component which will be self-configurable.
+ * The value of this register is derived
+ * 
+ * from the IC_ADD_ENCODED_PARAMS coreConsultant
+ * 
+ * parameter.
+ * 
+ * Reading 1 in this bit means that the capability
+ * 
+ * of reading these encoded parameters via software has been
+ * 
+ * included. Otherwise, the entire register is 0 regardless of
+ * 
+ * the setting of any other parameters that are encoded in the
+ * 
+ * bits.
+ * 
+ * 0: False
+ * 
+ * 1: True
  * 
  * Field Enumeration Values:
  * 
@@ -5573,9 +7803,23 @@ typedef volatile struct ALT_I2C_FS_SPKLEN_s  ALT_I2C_FS_SPKLEN_t;
 #define ALT_I2C_COMP_PARAM_1_ADD_ENC_PARAMS_SET(value) (((value) << 7) & 0x00000080)
 
 /*
- * Field : Rx Buffer Depth - rx_buffer_depth
+ * Field : rx_buffer_depth
  * 
- * Sets Rx FIFO Depth.
+ * The value of this register is
+ * 
+ * derived from the IC_RX_BUFFER_DEPTH coreConsultant
+ * 
+ * parameter.
+ * 
+ * 0x00: Reserved
+ * 
+ * 0x01: 2
+ * 
+ * 0x02: 3
+ * 
+ * to
+ * 
+ * 0xFF: 256
  * 
  * Field Enumeration Values:
  * 
@@ -5611,9 +7855,23 @@ typedef volatile struct ALT_I2C_FS_SPKLEN_s  ALT_I2C_FS_SPKLEN_t;
 #define ALT_I2C_COMP_PARAM_1_RX_BUF_DEPTH_SET(value) (((value) << 8) & 0x0000ff00)
 
 /*
- * Field : Tx Buffer Depth - tx_buffer_depth
+ * Field : tx_buffer_depth
  * 
- * Sets Tx FIFO Depth.
+ * The value of this register is derived
+ * 
+ * from the IC_TX_BUFFER_DEPTH coreConsultant
+ * 
+ * parameter.
+ * 
+ * 0x00 = Reserved
+ * 
+ * 0x01 = 2
+ * 
+ * 0x02 = 3
+ * 
+ * to
+ * 
+ * 0xFF = 256
  * 
  * Field Enumeration Values:
  * 
@@ -5661,14 +7919,14 @@ typedef volatile struct ALT_I2C_FS_SPKLEN_s  ALT_I2C_FS_SPKLEN_t;
  */
 struct ALT_I2C_COMP_PARAM_1_s
 {
-    const uint32_t  apb_data_width     :  2;  /* APB Data Width Register */
-    const uint32_t  max_speed_mode     :  2;  /* Max Speed Mode */
-    const uint32_t  hc_count_values    :  1;  /* CNT Registers Access */
-    const uint32_t  intr_io            :  1;  /* Intr IO */
-    const uint32_t  has_dma            :  1;  /* Has DMA */
-    const uint32_t  add_encoded_params :  1;  /* Add Encoded Params */
-    const uint32_t  rx_buffer_depth    :  8;  /* Rx Buffer Depth */
-    const uint32_t  tx_buffer_depth    :  8;  /* Tx Buffer Depth */
+    const uint32_t  apb_data_width     :  2;  /* ALT_I2C_COMP_PARAM_1_APB_DATA_WIDTH */
+    const uint32_t  max_speed_mode     :  2;  /* ALT_I2C_COMP_PARAM_1_MAX_SPEED_MOD */
+    const uint32_t  hc_count_values    :  1;  /* ALT_I2C_COMP_PARAM_1_HC_COUNT_VALUES */
+    const uint32_t  intr_io            :  1;  /* ALT_I2C_COMP_PARAM_1_INTR_IO */
+    const uint32_t  has_dma            :  1;  /* ALT_I2C_COMP_PARAM_1_HAS_DMA */
+    const uint32_t  add_encoded_params :  1;  /* ALT_I2C_COMP_PARAM_1_ADD_ENC_PARAMS */
+    const uint32_t  rx_buffer_depth    :  8;  /* ALT_I2C_COMP_PARAM_1_RX_BUF_DEPTH */
+    const uint32_t  tx_buffer_depth    :  8;  /* ALT_I2C_COMP_PARAM_1_TX_BUF_DEPTH */
     uint32_t                           :  8;  /* *UNDEFINED* */
 };
 
@@ -5676,33 +7934,45 @@ struct ALT_I2C_COMP_PARAM_1_s
 typedef volatile struct ALT_I2C_COMP_PARAM_1_s  ALT_I2C_COMP_PARAM_1_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_COMP_PARAM_1 register. */
+#define ALT_I2C_COMP_PARAM_1_RESET       0x003f3fea
 /* The byte offset of the ALT_I2C_COMP_PARAM_1 register from the beginning of the component. */
 #define ALT_I2C_COMP_PARAM_1_OFST        0xf4
 /* The address of the ALT_I2C_COMP_PARAM_1 register. */
 #define ALT_I2C_COMP_PARAM_1_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_COMP_PARAM_1_OFST))
 
 /*
- * Register : Component Version Register - ic_comp_version
+ * Register : ic_comp_version
  * 
- * Describes the version of the I2C
+ * Name: I2C Component Version Register
+ * 
+ * Size: 32 bits
+ * 
+ * Address Offset: 0xf8
+ * 
+ * Read/Write Access: Read
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset      | Description              
- * :-------|:-------|:-----------|:--------------------------
- *  [31:0] | R      | 0x3132302a | Component Parameter Value
+ *  Bits   | Access | Reset      | Description                 
+ * :-------|:-------|:-----------|:-----------------------------
+ *  [31:0] | R      | 0x3132312a | ALT_I2C_COMP_VER_IC_COMP_VER
  * 
  */
 /*
- * Field : Component Parameter Value - ic_comp_version
+ * Field : ic_comp_version
  * 
- * Specifies I2C release number (encoded as 4 ASCII characters)
+ * Specific values for this register are
+ * 
+ * described in the Releases Table in the
+ * 
+ * DW_apb_i2c Release Notes
  * 
  * Field Enumeration Values:
  * 
  *  Enum                                     | Value      | Description  
  * :-----------------------------------------|:-----------|:--------------
- *  ALT_I2C_COMP_VER_IC_COMP_VER_E_VER_1_20A | 0x3132302a | Version 1.20a
+ *  ALT_I2C_COMP_VER_IC_COMP_VER_E_VER_1_21A | 0x3132312a | Version 1.21a
  * 
  * Field Access Macros:
  * 
@@ -5710,9 +7980,9 @@ typedef volatile struct ALT_I2C_COMP_PARAM_1_s  ALT_I2C_COMP_PARAM_1_t;
 /*
  * Enumerated value for register field ALT_I2C_COMP_VER_IC_COMP_VER
  * 
- * Version 1.20a
+ * Version 1.21a
  */
-#define ALT_I2C_COMP_VER_IC_COMP_VER_E_VER_1_20A    0x3132302a
+#define ALT_I2C_COMP_VER_IC_COMP_VER_E_VER_1_21A    0x3132312a
 
 /* The Least Significant Bit (LSB) position of the ALT_I2C_COMP_VER_IC_COMP_VER register field. */
 #define ALT_I2C_COMP_VER_IC_COMP_VER_LSB        0
@@ -5725,7 +7995,7 @@ typedef volatile struct ALT_I2C_COMP_PARAM_1_s  ALT_I2C_COMP_PARAM_1_t;
 /* The mask used to clear the ALT_I2C_COMP_VER_IC_COMP_VER register field value. */
 #define ALT_I2C_COMP_VER_IC_COMP_VER_CLR_MSK    0x00000000
 /* The reset value of the ALT_I2C_COMP_VER_IC_COMP_VER register field. */
-#define ALT_I2C_COMP_VER_IC_COMP_VER_RESET      0x3132302a
+#define ALT_I2C_COMP_VER_IC_COMP_VER_RESET      0x3132312a
 /* Extracts the ALT_I2C_COMP_VER_IC_COMP_VER field value from a register. */
 #define ALT_I2C_COMP_VER_IC_COMP_VER_GET(value) (((value) & 0xffffffff) >> 0)
 /* Produces a ALT_I2C_COMP_VER_IC_COMP_VER register field value suitable for setting the register. */
@@ -5744,36 +8014,50 @@ typedef volatile struct ALT_I2C_COMP_PARAM_1_s  ALT_I2C_COMP_PARAM_1_t;
  */
 struct ALT_I2C_COMP_VER_s
 {
-    const uint32_t  ic_comp_version : 32;  /* Component Parameter Value */
+    const uint32_t  ic_comp_version : 32;  /* ALT_I2C_COMP_VER_IC_COMP_VER */
 };
 
 /* The typedef declaration for register ALT_I2C_COMP_VER. */
 typedef volatile struct ALT_I2C_COMP_VER_s  ALT_I2C_COMP_VER_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_COMP_VER register. */
+#define ALT_I2C_COMP_VER_RESET       0x3132312a
 /* The byte offset of the ALT_I2C_COMP_VER register from the beginning of the component. */
 #define ALT_I2C_COMP_VER_OFST        0xf8
 /* The address of the ALT_I2C_COMP_VER register. */
 #define ALT_I2C_COMP_VER_ADDR(base)  ALT_CAST(void *, (ALT_CAST(char *, (base)) + ALT_I2C_COMP_VER_OFST))
 
 /*
- * Register : Component Type Register - ic_comp_type
+ * Register : ic_comp_type
  * 
- * Describes a unique ASCII value
+ * Name: I2C Component Type Register
+ * 
+ * Size: 32 bits
+ * 
+ * Address Offset: 0xfc
+ * 
+ * Read/Write Access: Read
  * 
  * Register Layout
  * 
- *  Bits   | Access | Reset      | Description          
- * :-------|:-------|:-----------|:----------------------
- *  [31:0] | R      | 0x44570140 | Component Type Number
+ *  Bits   | Access | Reset      | Description                   
+ * :-------|:-------|:-----------|:-------------------------------
+ *  [31:0] | R      | 0x44570140 | ALT_I2C_COMP_TYPE_IC_COMP_TYPE
  * 
  */
 /*
- * Field : Component Type Number - ic_comp_type
+ * Field : ic_comp_type
  * 
- * Designware Component Type number = 0x44_57_01_40. This assigned unique hex value
- * is constant and is derived from the two ASCII letters 'DW' followed by a 16-bit
- * unsigned number.
+ * Designware Component Type number
+ * 
+ * = 0x44_57_01_40. This assigned unique
+ * 
+ * hex value is constant and is derived
+ * 
+ * from the two ASCII letters 'DW' followed
+ * 
+ * by a 16-bit unsigned number.
  * 
  * Field Access Macros:
  * 
@@ -5808,13 +8092,15 @@ typedef volatile struct ALT_I2C_COMP_VER_s  ALT_I2C_COMP_VER_t;
  */
 struct ALT_I2C_COMP_TYPE_s
 {
-    const uint32_t  ic_comp_type : 32;  /* Component Type Number */
+    const uint32_t  ic_comp_type : 32;  /* ALT_I2C_COMP_TYPE_IC_COMP_TYPE */
 };
 
 /* The typedef declaration for register ALT_I2C_COMP_TYPE. */
 typedef volatile struct ALT_I2C_COMP_TYPE_s  ALT_I2C_COMP_TYPE_t;
 #endif  /* __ASSEMBLY__ */
 
+/* The reset value of the ALT_I2C_COMP_TYPE register. */
+#define ALT_I2C_COMP_TYPE_RESET       0x44570140
 /* The byte offset of the ALT_I2C_COMP_TYPE register from the beginning of the component. */
 #define ALT_I2C_COMP_TYPE_OFST        0xfc
 /* The address of the ALT_I2C_COMP_TYPE register. */
@@ -5833,50 +8119,52 @@ typedef volatile struct ALT_I2C_COMP_TYPE_s  ALT_I2C_COMP_TYPE_t;
  */
 struct ALT_I2C_s
 {
-    volatile ALT_I2C_CON_t                 ic_con;                 /* ALT_I2C_CON */
-    volatile ALT_I2C_TAR_t                 ic_tar;                 /* ALT_I2C_TAR */
-    volatile ALT_I2C_SAR_t                 ic_sar;                 /* ALT_I2C_SAR */
-    volatile uint32_t                      _pad_0xc_0xf;           /* *UNDEFINED* */
-    volatile ALT_I2C_DATA_CMD_t            ic_data_cmd;            /* ALT_I2C_DATA_CMD */
-    volatile ALT_I2C_SS_SCL_HCNT_t         ic_ss_scl_hcnt;         /* ALT_I2C_SS_SCL_HCNT */
-    volatile ALT_I2C_SS_SCL_LCNT_t         ic_ss_scl_lcnt;         /* ALT_I2C_SS_SCL_LCNT */
-    volatile ALT_I2C_FS_SCL_HCNT_t         ic_fs_scl_hcnt;         /* ALT_I2C_FS_SCL_HCNT */
-    volatile ALT_I2C_FS_SCL_LCNT_t         ic_fs_scl_lcnt;         /* ALT_I2C_FS_SCL_LCNT */
-    volatile uint32_t                      _pad_0x24_0x2b[2];      /* *UNDEFINED* */
-    volatile ALT_I2C_INTR_STAT_t           ic_intr_stat;           /* ALT_I2C_INTR_STAT */
-    volatile ALT_I2C_INTR_MSK_t            ic_intr_mask;           /* ALT_I2C_INTR_MSK */
-    volatile ALT_I2C_RAW_INTR_STAT_t       ic_raw_intr_stat;       /* ALT_I2C_RAW_INTR_STAT */
-    volatile ALT_I2C_RX_TL_t               ic_rx_tl;               /* ALT_I2C_RX_TL */
-    volatile ALT_I2C_TX_TL_t               ic_tx_tl;               /* ALT_I2C_TX_TL */
-    volatile ALT_I2C_CLR_INTR_t            ic_clr_intr;            /* ALT_I2C_CLR_INTR */
-    volatile ALT_I2C_CLR_RX_UNDER_t        ic_clr_rx_under;        /* ALT_I2C_CLR_RX_UNDER */
-    volatile ALT_I2C_CLR_RX_OVER_t         ic_clr_rx_over;         /* ALT_I2C_CLR_RX_OVER */
-    volatile ALT_I2C_CLR_TX_OVER_t         ic_clr_tx_over;         /* ALT_I2C_CLR_TX_OVER */
-    volatile ALT_I2C_CLR_RD_REQ_t          ic_clr_rd_req;          /* ALT_I2C_CLR_RD_REQ */
-    volatile ALT_I2C_CLR_TX_ABRT_t         ic_clr_tx_abrt;         /* ALT_I2C_CLR_TX_ABRT */
-    volatile ALT_I2C_CLR_RX_DONE_t         ic_clr_rx_done;         /* ALT_I2C_CLR_RX_DONE */
-    volatile ALT_I2C_CLR_ACTIVITY_t        ic_clr_activity;        /* ALT_I2C_CLR_ACTIVITY */
-    volatile ALT_I2C_CLR_STOP_DET_t        ic_clr_stop_det;        /* ALT_I2C_CLR_STOP_DET */
-    volatile ALT_I2C_CLR_START_DET_t       ic_clr_start_det;       /* ALT_I2C_CLR_START_DET */
-    volatile ALT_I2C_CLR_GEN_CALL_t        ic_clr_gen_call;        /* ALT_I2C_CLR_GEN_CALL */
-    volatile ALT_I2C_EN_t                  ic_enable;              /* ALT_I2C_EN */
-    volatile ALT_I2C_STAT_t                ic_status;              /* ALT_I2C_STAT */
-    volatile ALT_I2C_TXFLR_t               ic_txflr;               /* ALT_I2C_TXFLR */
-    volatile ALT_I2C_RXFLR_t               ic_rxflr;               /* ALT_I2C_RXFLR */
-    volatile ALT_I2C_SDA_HOLD_t            ic_sda_hold;            /* ALT_I2C_SDA_HOLD */
-    volatile ALT_I2C_TX_ABRT_SRC_t         ic_tx_abrt_source;      /* ALT_I2C_TX_ABRT_SRC */
-    volatile ALT_I2C_SLV_DATA_NACK_ONLY_t  ic_slv_data_nack_only;  /* ALT_I2C_SLV_DATA_NACK_ONLY */
-    volatile ALT_I2C_DMA_CR_t              ic_dma_cr;              /* ALT_I2C_DMA_CR */
-    volatile ALT_I2C_DMA_TDLR_t            ic_dma_tdlr;            /* ALT_I2C_DMA_TDLR */
-    volatile ALT_I2C_DMA_RDLR_t            ic_dma_rdlr;            /* ALT_I2C_DMA_RDLR */
-    volatile ALT_I2C_SDA_SETUP_t           ic_sda_setup;           /* ALT_I2C_SDA_SETUP */
-    volatile ALT_I2C_ACK_GENERAL_CALL_t    ic_ack_general_call;    /* ALT_I2C_ACK_GENERAL_CALL */
-    volatile ALT_I2C_EN_STAT_t             ic_enable_status;       /* ALT_I2C_EN_STAT */
-    volatile ALT_I2C_FS_SPKLEN_t           ic_fs_spklen;           /* ALT_I2C_FS_SPKLEN */
-    volatile uint32_t                      _pad_0xa4_0xf3[20];     /* *UNDEFINED* */
-    volatile ALT_I2C_COMP_PARAM_1_t        ic_comp_param_1;        /* ALT_I2C_COMP_PARAM_1 */
-    volatile ALT_I2C_COMP_VER_t            ic_comp_version;        /* ALT_I2C_COMP_VER */
-    volatile ALT_I2C_COMP_TYPE_t           ic_comp_type;           /* ALT_I2C_COMP_TYPE */
+    ALT_I2C_CON_t                 ic_con;                 /* ALT_I2C_CON */
+    ALT_I2C_TAR_t                 ic_tar;                 /* ALT_I2C_TAR */
+    ALT_I2C_SAR_t                 ic_sar;                 /* ALT_I2C_SAR */
+    volatile uint32_t             _pad_0xc_0xf;           /* *UNDEFINED* */
+    ALT_I2C_DATA_CMD_t            ic_data_cmd;            /* ALT_I2C_DATA_CMD */
+    ALT_I2C_SS_SCL_HCNT_t         ic_ss_scl_hcnt;         /* ALT_I2C_SS_SCL_HCNT */
+    ALT_I2C_SS_SCL_LCNT_t         ic_ss_scl_lcnt;         /* ALT_I2C_SS_SCL_LCNT */
+    ALT_I2C_FS_SCL_HCNT_t         ic_fs_scl_hcnt;         /* ALT_I2C_FS_SCL_HCNT */
+    ALT_I2C_FS_SCL_LCNT_t         ic_fs_scl_lcnt;         /* ALT_I2C_FS_SCL_LCNT */
+    volatile uint32_t             _pad_0x24_0x2b[2];      /* *UNDEFINED* */
+    ALT_I2C_INTR_STAT_t           ic_intr_stat;           /* ALT_I2C_INTR_STAT */
+    ALT_I2C_INTR_MSK_t            ic_intr_mask;           /* ALT_I2C_INTR_MSK */
+    ALT_I2C_RAW_INTR_STAT_t       ic_raw_intr_stat;       /* ALT_I2C_RAW_INTR_STAT */
+    ALT_I2C_RX_TL_t               ic_rx_tl;               /* ALT_I2C_RX_TL */
+    ALT_I2C_TX_TL_t               ic_tx_tl;               /* ALT_I2C_TX_TL */
+    ALT_I2C_CLR_INTR_t            ic_clr_intr;            /* ALT_I2C_CLR_INTR */
+    ALT_I2C_CLR_RX_UNDER_t        ic_clr_rx_under;        /* ALT_I2C_CLR_RX_UNDER */
+    ALT_I2C_CLR_RX_OVER_t         ic_clr_rx_over;         /* ALT_I2C_CLR_RX_OVER */
+    ALT_I2C_CLR_TX_OVER_t         ic_clr_tx_over;         /* ALT_I2C_CLR_TX_OVER */
+    ALT_I2C_CLR_RD_REQ_t          ic_clr_rd_req;          /* ALT_I2C_CLR_RD_REQ */
+    ALT_I2C_CLR_TX_ABRT_t         ic_clr_tx_abrt;         /* ALT_I2C_CLR_TX_ABRT */
+    ALT_I2C_CLR_RX_DONE_t         ic_clr_rx_done;         /* ALT_I2C_CLR_RX_DONE */
+    ALT_I2C_CLR_ACTIVITY_t        ic_clr_activity;        /* ALT_I2C_CLR_ACTIVITY */
+    ALT_I2C_CLR_STOP_DET_t        ic_clr_stop_det;        /* ALT_I2C_CLR_STOP_DET */
+    ALT_I2C_CLR_START_DET_t       ic_clr_start_det;       /* ALT_I2C_CLR_START_DET */
+    ALT_I2C_CLR_GEN_CALL_t        ic_clr_gen_call;        /* ALT_I2C_CLR_GEN_CALL */
+    ALT_I2C_EN_t                  ic_enable;              /* ALT_I2C_EN */
+    ALT_I2C_STAT_t                ic_status;              /* ALT_I2C_STAT */
+    ALT_I2C_TXFLR_t               ic_txflr;               /* ALT_I2C_TXFLR */
+    ALT_I2C_RXFLR_t               ic_rxflr;               /* ALT_I2C_RXFLR */
+    ALT_I2C_SDA_HOLD_t            ic_sda_hold;            /* ALT_I2C_SDA_HOLD */
+    ALT_I2C_TX_ABRT_SRC_t         ic_tx_abrt_source;      /* ALT_I2C_TX_ABRT_SRC */
+    ALT_I2C_SLV_DATA_NACK_ONLY_t  ic_slv_data_nack_only;  /* ALT_I2C_SLV_DATA_NACK_ONLY */
+    ALT_I2C_DMA_CR_t              ic_dma_cr;              /* ALT_I2C_DMA_CR */
+    ALT_I2C_DMA_TDLR_t            ic_dma_tdlr;            /* ALT_I2C_DMA_TDLR */
+    ALT_I2C_DMA_RDLR_t            ic_dma_rdlr;            /* ALT_I2C_DMA_RDLR */
+    ALT_I2C_SDA_SETUP_t           ic_sda_setup;           /* ALT_I2C_SDA_SETUP */
+    ALT_I2C_ACK_GENERAL_CALL_t    ic_ack_general_call;    /* ALT_I2C_ACK_GENERAL_CALL */
+    ALT_I2C_EN_STAT_t             ic_enable_status;       /* ALT_I2C_EN_STAT */
+    ALT_I2C_FS_SPKLEN_t           ic_fs_spklen;           /* ALT_I2C_FS_SPKLEN */
+    volatile uint32_t             _pad_0xa4_0xa7;         /* *UNDEFINED* */
+    ALT_I2C_CLR_RESTART_DET_t     ic_clr_restart_det;     /* ALT_I2C_CLR_RESTART_DET */
+    volatile uint32_t             _pad_0xac_0xf3[18];     /* *UNDEFINED* */
+    ALT_I2C_COMP_PARAM_1_t        ic_comp_param_1;        /* ALT_I2C_COMP_PARAM_1 */
+    ALT_I2C_COMP_VER_t            ic_comp_version;        /* ALT_I2C_COMP_VER */
+    ALT_I2C_COMP_TYPE_t           ic_comp_type;           /* ALT_I2C_COMP_TYPE */
 };
 
 /* The typedef declaration for register group ALT_I2C. */
@@ -5887,13 +8175,13 @@ struct ALT_I2C_raw_s
     volatile uint32_t  ic_con;                 /* ALT_I2C_CON */
     volatile uint32_t  ic_tar;                 /* ALT_I2C_TAR */
     volatile uint32_t  ic_sar;                 /* ALT_I2C_SAR */
-    volatile uint32_t  _pad_0xc_0xf;           /* *UNDEFINED* */
+    uint32_t           _pad_0xc_0xf;           /* *UNDEFINED* */
     volatile uint32_t  ic_data_cmd;            /* ALT_I2C_DATA_CMD */
     volatile uint32_t  ic_ss_scl_hcnt;         /* ALT_I2C_SS_SCL_HCNT */
     volatile uint32_t  ic_ss_scl_lcnt;         /* ALT_I2C_SS_SCL_LCNT */
     volatile uint32_t  ic_fs_scl_hcnt;         /* ALT_I2C_FS_SCL_HCNT */
     volatile uint32_t  ic_fs_scl_lcnt;         /* ALT_I2C_FS_SCL_LCNT */
-    volatile uint32_t  _pad_0x24_0x2b[2];      /* *UNDEFINED* */
+    uint32_t           _pad_0x24_0x2b[2];      /* *UNDEFINED* */
     volatile uint32_t  ic_intr_stat;           /* ALT_I2C_INTR_STAT */
     volatile uint32_t  ic_intr_mask;           /* ALT_I2C_INTR_MSK */
     volatile uint32_t  ic_raw_intr_stat;       /* ALT_I2C_RAW_INTR_STAT */
@@ -5924,7 +8212,9 @@ struct ALT_I2C_raw_s
     volatile uint32_t  ic_ack_general_call;    /* ALT_I2C_ACK_GENERAL_CALL */
     volatile uint32_t  ic_enable_status;       /* ALT_I2C_EN_STAT */
     volatile uint32_t  ic_fs_spklen;           /* ALT_I2C_FS_SPKLEN */
-    volatile uint32_t  _pad_0xa4_0xf3[20];     /* *UNDEFINED* */
+    uint32_t           _pad_0xa4_0xa7;         /* *UNDEFINED* */
+    volatile uint32_t  ic_clr_restart_det;     /* ALT_I2C_CLR_RESTART_DET */
+    uint32_t           _pad_0xac_0xf3[18];     /* *UNDEFINED* */
     volatile uint32_t  ic_comp_param_1;        /* ALT_I2C_COMP_PARAM_1 */
     volatile uint32_t  ic_comp_version;        /* ALT_I2C_COMP_VER */
     volatile uint32_t  ic_comp_type;           /* ALT_I2C_COMP_TYPE */
@@ -5938,5 +8228,5 @@ typedef volatile struct ALT_I2C_raw_s  ALT_I2C_raw_t;
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
-#endif  /* __ALTERA_ALT_I2C_H__ */
+#endif  /* __ALT_SOCAL_I2C_H__ */
 

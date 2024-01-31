@@ -1,4 +1,3 @@
-
 /******************************************************************************
 *
 * Copyright 2013 Altera Corporation. All Rights Reserved.
@@ -32,7 +31,7 @@
 ******************************************************************************/
 
 /*
- * $Id: //acds/rel/15.0/embedded/ip/hps/altera_hps/hwlib/include/alt_mpu_registers.h#1 $
+ * $Id: //acds/rel/20.1std/embedded/ip/hps/altera_hps/hwlib/include/alt_mpu_registers.h#1 $
  */
 
 #ifndef __ALT_MPUSCU_H__
@@ -60,98 +59,97 @@ extern "C"
 
 /*     ALT_MPUSCU_OFST is defined as a offset from ALT_HPS_ADDR in the SoCAL file hps.h            */
 /*    and is the address of the base of the Snoop Control Unit (SCU)                                */
-#define GLOBALTMR_BASE                      (ALT_MPUSCU_OFST + GLOBALTMR_MODULE_BASE_OFFSET)
-#define CPU_WDTGPT_TMR_BASE                 (ALT_MPUSCU_OFST + WDOG_TIMER_MODULE_BASE_OFFSET)
-#define CPU_PRIVATE_TMR_BASE                (ALT_MPUSCU_OFST + CPU_PRIV_TIMER_MODULE_BASE_OFFSET)
-#define CPU_INT_CTRL_BASE                   (ALT_MPUSCU_OFST + INT_CONTROLLER_MODULE_BASE_OFFSET)
-#define CPU_INT_DIST_BASE                   (ALT_MPUSCU_OFST + INT_DISTRIBUTOR_MODULE_BASE_OFFSET)
+#define ALT_GLOBALTMR_BASE                  (ALT_MPUSCU_OFST + ALT_GLOBALTMR_MODULE_BASE_OFFSET)
+#define ALT_CPU_WDTGPT_TMR_BASE             (ALT_MPUSCU_OFST + ALT_WDOG_TIMER_MODULE_BASE_OFFSET)
+#define ALT_CPU_PRIVATE_TMR_BASE            (ALT_MPUSCU_OFST + ALT_CPU_PRIV_TIMER_MODULE_BASE_OFFSET)
+#define ALT_CPU_INT_CTRL_BASE               (ALT_MPUSCU_OFST + ALT_INT_CONTROLLER_MODULE_BASE_OFFSET)
+#define ALT_CPU_INT_DIST_BASE               (ALT_MPUSCU_OFST + ALT_INT_DISTRIBUTOR_MODULE_BASE_OFFSET)
 
 
             /* offsets */
         /* Global Timer offsets */
-#define GLOBALTMR_MODULE_BASE_OFFSET        0x00000200
-#define GLOBALTMR_CNTR_LO_REG_OFFSET        0x00000000
-#define GLOBALTMR_CNTR_HI_REG_OFFSET        0x00000004
-#define GLOBALTMR_CTRL_REG_OFFSET           0x00000008
-#define GLOBALTMR_INT_STAT_REG_OFFSET       0x0000000C
-#define GLOBALTMR_COMP_LO_REG_OFFSET        0x00000010
-#define GLOBALTMR_COMP_HI_REG_OFFSET        0x00000014
-#define GLOBALTMR_AUTOINC_REG_OFFSET        0x00000018
+#define ALT_GLOBALTMR_MODULE_BASE_OFFSET        0x00000200
+#define ALT_GLOBALTMR_CNTR_LO_REG_OFFSET        0x00000000
+#define ALT_GLOBALTMR_CNTR_HI_REG_OFFSET        0x00000004
+#define ALT_GLOBALTMR_CTRL_REG_OFFSET           0x00000008
+#define ALT_GLOBALTMR_INT_STAT_REG_OFFSET       0x0000000C
+#define ALT_GLOBALTMR_COMP_LO_REG_OFFSET        0x00000010
+#define ALT_GLOBALTMR_COMP_HI_REG_OFFSET        0x00000014
+#define ALT_GLOBALTMR_AUTOINC_REG_OFFSET        0x00000018
 
-/* Global Timer bitmasks */
-#define GLOBALTMR_ENABLE_BIT                0x00000001
-#define GLOBALTMR_COMP_ENABLE_BIT           0x00000002
-#define GLOBALTMR_INT_ENABLE_BIT            0x00000004
-#define GLOBALTMR_AUTOINC_ENABLE_BIT        0x00000008
-#define GLOBALTMR_PS_MASK                   0x0000FF00
-#define GLOBALTMR_PS_SHIFT                  8
-#define GLOBALTMR_INT_STATUS_BIT            0x00000001
+    /* Global Timer bitmasks */
+#define ALT_GLOBALTMR_ENABLE_BIT                0x00000001
+#define ALT_GLOBALTMR_COMP_ENABLE_BIT           0x00000002
+#define ALT_GLOBALTMR_INT_ENABLE_BIT            0x00000004
+#define ALT_GLOBALTMR_AUTOINC_ENABLE_BIT        0x00000008
+#define ALT_GLOBALTMR_PS_MASK                   0x0000FF00
+#define ALT_GLOBALTMR_PS_SHIFT                  8
+#define ALT_GLOBALTMR_INT_STATUS_BIT            0x00000001
 
-/* Global timer constants */
-#define GLOBALTMR_MAX                       0xFFFFFFFF
-#define GLOBALTMR_PS_MAX                    0x000000FF
+    /* Global timer constants */
+#define ALT_GLOBALTMR_MAX                       0xFFFFFFFF
+#define ALT_GLOBALTMR_PS_MAX                    0x000000FF
 
 
-/* Private timer offsets */
-#define CPU_PRIV_TIMER_MODULE_BASE_OFFSET   0x00000600
-#define CPU_PRIV_TMR_LOAD_REG_OFFSET        0x00000000
-#define CPU_PRIV_TMR_CNTR_REG_OFFSET        0x00000004
-#define CPU_PRIV_TMR_CTRL_REG_OFFSET        0x00000008
-#define CPU_PRIV_TMR_INT_STATUS_REG_OFFSET  0x0000000C
+    /* Private timer offsets */
+#define ALT_CPU_PRIV_TIMER_MODULE_BASE_OFFSET   0x00000600
+#define ALT_CPU_PRIV_TMR_LOAD_REG_OFFSET        0x00000000
+#define ALT_CPU_PRIV_TMR_CNTR_REG_OFFSET        0x00000004
+#define ALT_CPU_PRIV_TMR_CTRL_REG_OFFSET        0x00000008
+#define ALT_CPU_PRIV_TMR_INT_STATUS_REG_OFFSET  0x0000000C
 
-/* Private timer bitmasks */
-#define CPU_PRIV_TMR_ENABLE                 0x00000001
-#define CPU_PRIV_TMR_AUTO_RELOAD            0x00000002
-#define CPU_PRIV_TMR_INT_EN                 0x00000004
-#define CPU_PRIV_TMR_PS_MASK                0x0000FF00
-#define CPU_PRIV_TMR_PS_SHIFT               8
-#define CPU_PRIV_TMR_INT_STATUS             0x00000001
+    /* Private timer bitmasks */
+#define ALT_CPU_PRIV_TMR_ENABLE                 0x00000001
+#define ALT_CPU_PRIV_TMR_AUTO_RELOAD            0x00000002
+#define ALT_CPU_PRIV_TMR_INT_EN                 0x00000004
+#define ALT_CPU_PRIV_TMR_PS_MASK                0x0000FF00
+#define ALT_CPU_PRIV_TMR_PS_SHIFT               8
+#define ALT_CPU_PRIV_TMR_INT_STATUS             0x00000001
 
-/* Private timer constants */
-#define CPU_PRIV_TMR_MAX                    0xFFFFFFFF
-#define CPU_PRIV_TMR_PS_MAX                 0x000000FF
-
+    /* Private timer constants */
+#define ALT_CPU_PRIV_TMR_MAX                    0xFFFFFFFF
+#define ALT_CPU_PRIV_TMR_PS_MAX                 0x000000FF
 
 
     /* Watchdog timer offsets */
-#define WDOG_TIMER_MODULE_BASE_OFFSET       0x00000620
-#define WDOG_LOAD_REG_OFFSET                0x00000000
-#define WDOG_CNTR_REG_OFFSET                0x00000004
-#define WDOG_CTRL_REG_OFFSET                0x00000008
-#define WDOG_INTSTAT_REG_OFFSET             0x0000000C
-#define WDOG_RSTSTAT_REG_OFFSET             0x00000010
-#define WDOG_DISABLE_REG_OFFSET             0x00000014
+#define ALT_WDOG_TIMER_MODULE_BASE_OFFSET       0x00000620
+#define ALT_WDOG_LOAD_REG_OFFSET                0x00000000
+#define ALT_WDOG_CNTR_REG_OFFSET                0x00000004
+#define ALT_WDOG_CTRL_REG_OFFSET                0x00000008
+#define ALT_WDOG_INTSTAT_REG_OFFSET             0x0000000C
+#define ALT_WDOG_RSTSTAT_REG_OFFSET             0x00000010
+#define ALT_WDOG_DISABLE_REG_OFFSET             0x00000014
 
     /* Watchdog timer bitmasks : */
     /* Control Register bitmasks */
-#define WDOG_TMR_ENABLE                     0x00000001
-#define WDOG_AUTO_RELOAD                    0x00000002
-#define WDOG_INT_EN                         0x00000004
-#define WDOG_WDT_MODE                       0x00000008
-#define WDOG_PS_MASK                        0x0000FF00
-#define WDOG_PS_SHIFT                       8
+#define ALT_WDOG_TMR_ENABLE                     0x00000001
+#define ALT_WDOG_AUTO_RELOAD                    0x00000002
+#define ALT_WDOG_INT_EN                         0x00000004
+#define ALT_WDOG_WDT_MODE                       0x00000008
+#define ALT_WDOG_PS_MASK                        0x0000FF00
+#define ALT_WDOG_PS_SHIFT                       8
     /* Interrupt Status Register bitmasks */
-#define WDOG_INT_STAT_BIT                   0x00000001
+#define ALT_WDOG_INT_STAT_BIT                   0x00000001
     /* Reset Status Register bitmasks */
-#define WDOG_RST_STAT_BIT                   0x00000001
+#define ALT_WDOG_RST_STAT_BIT                   0x00000001
 
     /* Watchdog timer constants */
-#define WDOG_TMR_MAX                        UINT32_MAX
-#define WDOG_PS_MAX                         UINT8_MAX
-#define WDOG_DISABLE_VAL0                   0x12345678
-#define WDOG_DISABLE_VAL1                   0x87654321
+#define ALT_WDOG_TMR_MAX                        UINT32_MAX
+#define ALT_WDOG_PS_MAX                         UINT8_MAX
+#define ALT_WDOG_DISABLE_VAL0                   0x12345678
+#define ALT_WDOG_DISABLE_VAL1                   0x87654321
 
 
 
-    /* Interrupt Manager offsets */
-/*   <Add definitions here> */
-#define INT_CONTROLLER_MODULE_BASE_OFFSET   0x00000100
-#define INT_DISTRIBUTOR_MODULE_BASE_OFFSET  0x00001000
-#define INT_DIST_TYPE_REG                   0x00000004
+        /* Interrupt Manager offsets */
+    /*   <Add definitions here> */
+#define ALT_INT_CONTROLLER_MODULE_BASE_OFFSET   0x00000100
+#define ALT_INT_DISTRIBUTOR_MODULE_BASE_OFFSET  0x00001000
+#define ALT_INT_DIST_TYPE_REG                   0x00000004
 
 
-/*  Upper bound of the MPUSCU address space  */
-#define MPUSCU_MAX                          0x00001FFF
+    /*  Upper bound of the MPUSCU address space  */
+#define ALT_MPUSCU_MAX                          0x00001FFF
 
 
 

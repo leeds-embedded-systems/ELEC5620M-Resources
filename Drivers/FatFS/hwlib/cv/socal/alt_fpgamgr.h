@@ -6990,23 +6990,23 @@ typedef volatile struct ALT_MON_GPIO_CFG_REG1_s  ALT_MON_GPIO_CFG_REG1_t;
  */
 struct ALT_MON_s
 {
-    volatile uint32_t                      _pad_0x0_0x2f[12];   /* *UNDEFINED* */
-    volatile ALT_MON_GPIO_INTEN_t          gpio_inten;          /* ALT_MON_GPIO_INTEN */
-    volatile ALT_MON_GPIO_INTMSK_t         gpio_intmask;        /* ALT_MON_GPIO_INTMSK */
-    volatile ALT_MON_GPIO_INTTYPE_LEVEL_t  gpio_inttype_level;  /* ALT_MON_GPIO_INTTYPE_LEVEL */
-    volatile ALT_MON_GPIO_INT_POL_t        gpio_int_polarity;   /* ALT_MON_GPIO_INT_POL */
-    volatile ALT_MON_GPIO_INTSTAT_t        gpio_intstatus;      /* ALT_MON_GPIO_INTSTAT */
-    volatile ALT_MON_GPIO_RAW_INTSTAT_t    gpio_raw_intstatus;  /* ALT_MON_GPIO_RAW_INTSTAT */
-    volatile uint32_t                      _pad_0x48_0x4b;      /* *UNDEFINED* */
-    volatile ALT_MON_GPIO_PORTA_EOI_t      gpio_porta_eoi;      /* ALT_MON_GPIO_PORTA_EOI */
-    volatile ALT_MON_GPIO_EXT_PORTA_t      gpio_ext_porta;      /* ALT_MON_GPIO_EXT_PORTA */
-    volatile uint32_t                      _pad_0x54_0x5f[3];   /* *UNDEFINED* */
-    volatile ALT_MON_GPIO_LS_SYNC_t        gpio_ls_sync;        /* ALT_MON_GPIO_LS_SYNC */
-    volatile uint32_t                      _pad_0x64_0x6b[2];   /* *UNDEFINED* */
-    volatile ALT_MON_GPIO_VER_ID_CODE_t    gpio_ver_id_code;    /* ALT_MON_GPIO_VER_ID_CODE */
-    volatile ALT_MON_GPIO_CFG_REG2_t       gpio_config_reg2;    /* ALT_MON_GPIO_CFG_REG2 */
-    volatile ALT_MON_GPIO_CFG_REG1_t       gpio_config_reg1;    /* ALT_MON_GPIO_CFG_REG1 */
-    volatile uint32_t                      _pad_0x78_0x80[2];   /* *UNDEFINED* */
+    volatile uint32_t             _pad_0x0_0x2f[12];   /* *UNDEFINED* */
+    ALT_MON_GPIO_INTEN_t          gpio_inten;          /* ALT_MON_GPIO_INTEN */
+    ALT_MON_GPIO_INTMSK_t         gpio_intmask;        /* ALT_MON_GPIO_INTMSK */
+    ALT_MON_GPIO_INTTYPE_LEVEL_t  gpio_inttype_level;  /* ALT_MON_GPIO_INTTYPE_LEVEL */
+    ALT_MON_GPIO_INT_POL_t        gpio_int_polarity;   /* ALT_MON_GPIO_INT_POL */
+    ALT_MON_GPIO_INTSTAT_t        gpio_intstatus;      /* ALT_MON_GPIO_INTSTAT */
+    ALT_MON_GPIO_RAW_INTSTAT_t    gpio_raw_intstatus;  /* ALT_MON_GPIO_RAW_INTSTAT */
+    volatile uint32_t             _pad_0x48_0x4b;      /* *UNDEFINED* */
+    ALT_MON_GPIO_PORTA_EOI_t      gpio_porta_eoi;      /* ALT_MON_GPIO_PORTA_EOI */
+    ALT_MON_GPIO_EXT_PORTA_t      gpio_ext_porta;      /* ALT_MON_GPIO_EXT_PORTA */
+    volatile uint32_t             _pad_0x54_0x5f[3];   /* *UNDEFINED* */
+    ALT_MON_GPIO_LS_SYNC_t        gpio_ls_sync;        /* ALT_MON_GPIO_LS_SYNC */
+    volatile uint32_t             _pad_0x64_0x6b[2];   /* *UNDEFINED* */
+    ALT_MON_GPIO_VER_ID_CODE_t    gpio_ver_id_code;    /* ALT_MON_GPIO_VER_ID_CODE */
+    ALT_MON_GPIO_CFG_REG2_t       gpio_config_reg2;    /* ALT_MON_GPIO_CFG_REG2 */
+    ALT_MON_GPIO_CFG_REG1_t       gpio_config_reg1;    /* ALT_MON_GPIO_CFG_REG1 */
+    volatile uint32_t             _pad_0x78_0x80[2];   /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_MON. */
@@ -7014,23 +7014,23 @@ typedef volatile struct ALT_MON_s  ALT_MON_t;
 /* The struct declaration for the raw register contents of register group ALT_MON. */
 struct ALT_MON_raw_s
 {
-    volatile uint32_t  _pad_0x0_0x2f[12];   /* *UNDEFINED* */
+    uint32_t           _pad_0x0_0x2f[12];   /* *UNDEFINED* */
     volatile uint32_t  gpio_inten;          /* ALT_MON_GPIO_INTEN */
     volatile uint32_t  gpio_intmask;        /* ALT_MON_GPIO_INTMSK */
     volatile uint32_t  gpio_inttype_level;  /* ALT_MON_GPIO_INTTYPE_LEVEL */
     volatile uint32_t  gpio_int_polarity;   /* ALT_MON_GPIO_INT_POL */
     volatile uint32_t  gpio_intstatus;      /* ALT_MON_GPIO_INTSTAT */
     volatile uint32_t  gpio_raw_intstatus;  /* ALT_MON_GPIO_RAW_INTSTAT */
-    volatile uint32_t  _pad_0x48_0x4b;      /* *UNDEFINED* */
+    uint32_t           _pad_0x48_0x4b;      /* *UNDEFINED* */
     volatile uint32_t  gpio_porta_eoi;      /* ALT_MON_GPIO_PORTA_EOI */
     volatile uint32_t  gpio_ext_porta;      /* ALT_MON_GPIO_EXT_PORTA */
-    volatile uint32_t  _pad_0x54_0x5f[3];   /* *UNDEFINED* */
+    uint32_t           _pad_0x54_0x5f[3];   /* *UNDEFINED* */
     volatile uint32_t  gpio_ls_sync;        /* ALT_MON_GPIO_LS_SYNC */
-    volatile uint32_t  _pad_0x64_0x6b[2];   /* *UNDEFINED* */
+    uint32_t           _pad_0x64_0x6b[2];   /* *UNDEFINED* */
     volatile uint32_t  gpio_ver_id_code;    /* ALT_MON_GPIO_VER_ID_CODE */
     volatile uint32_t  gpio_config_reg2;    /* ALT_MON_GPIO_CFG_REG2 */
     volatile uint32_t  gpio_config_reg1;    /* ALT_MON_GPIO_CFG_REG1 */
-    volatile uint32_t  _pad_0x78_0x80[2];   /* *UNDEFINED* */
+    uint32_t           _pad_0x78_0x80[2];   /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_MON. */
@@ -7051,16 +7051,16 @@ typedef volatile struct ALT_MON_raw_s  ALT_MON_raw_t;
  */
 struct ALT_FPGAMGR_s
 {
-    volatile ALT_FPGAMGR_STAT_t      stat;                    /* ALT_FPGAMGR_STAT */
-    volatile ALT_FPGAMGR_CTL_t       ctrl;                    /* ALT_FPGAMGR_CTL */
-    volatile ALT_FPGAMGR_DCLKCNT_t   dclkcnt;                 /* ALT_FPGAMGR_DCLKCNT */
-    volatile ALT_FPGAMGR_DCLKSTAT_t  dclkstat;                /* ALT_FPGAMGR_DCLKSTAT */
-    volatile ALT_FPGAMGR_GPO_t       gpo;                     /* ALT_FPGAMGR_GPO */
-    volatile ALT_FPGAMGR_GPI_t       gpi;                     /* ALT_FPGAMGR_GPI */
-    volatile ALT_FPGAMGR_MISCI_t     misci;                   /* ALT_FPGAMGR_MISCI */
-    volatile uint32_t                _pad_0x1c_0x7ff[505];    /* *UNDEFINED* */
-    volatile ALT_MON_t               mon;                     /* ALT_MON */
-    volatile uint32_t                _pad_0x880_0x1000[480];  /* *UNDEFINED* */
+    ALT_FPGAMGR_STAT_t      stat;                    /* ALT_FPGAMGR_STAT */
+    ALT_FPGAMGR_CTL_t       ctrl;                    /* ALT_FPGAMGR_CTL */
+    ALT_FPGAMGR_DCLKCNT_t   dclkcnt;                 /* ALT_FPGAMGR_DCLKCNT */
+    ALT_FPGAMGR_DCLKSTAT_t  dclkstat;                /* ALT_FPGAMGR_DCLKSTAT */
+    ALT_FPGAMGR_GPO_t       gpo;                     /* ALT_FPGAMGR_GPO */
+    ALT_FPGAMGR_GPI_t       gpi;                     /* ALT_FPGAMGR_GPI */
+    ALT_FPGAMGR_MISCI_t     misci;                   /* ALT_FPGAMGR_MISCI */
+    volatile uint32_t       _pad_0x1c_0x7ff[505];    /* *UNDEFINED* */
+    ALT_MON_t               mon;                     /* ALT_MON */
+    volatile uint32_t       _pad_0x880_0x1000[480];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_FPGAMGR. */
@@ -7068,16 +7068,16 @@ typedef volatile struct ALT_FPGAMGR_s  ALT_FPGAMGR_t;
 /* The struct declaration for the raw register contents of register group ALT_FPGAMGR. */
 struct ALT_FPGAMGR_raw_s
 {
-    volatile uint32_t       stat;                    /* ALT_FPGAMGR_STAT */
-    volatile uint32_t       ctrl;                    /* ALT_FPGAMGR_CTL */
-    volatile uint32_t       dclkcnt;                 /* ALT_FPGAMGR_DCLKCNT */
-    volatile uint32_t       dclkstat;                /* ALT_FPGAMGR_DCLKSTAT */
-    volatile uint32_t       gpo;                     /* ALT_FPGAMGR_GPO */
-    volatile uint32_t       gpi;                     /* ALT_FPGAMGR_GPI */
-    volatile uint32_t       misci;                   /* ALT_FPGAMGR_MISCI */
-    volatile uint32_t       _pad_0x1c_0x7ff[505];    /* *UNDEFINED* */
-    volatile ALT_MON_raw_t  mon;                     /* ALT_MON */
-    volatile uint32_t       _pad_0x880_0x1000[480];  /* *UNDEFINED* */
+    volatile uint32_t  stat;                    /* ALT_FPGAMGR_STAT */
+    volatile uint32_t  ctrl;                    /* ALT_FPGAMGR_CTL */
+    volatile uint32_t  dclkcnt;                 /* ALT_FPGAMGR_DCLKCNT */
+    volatile uint32_t  dclkstat;                /* ALT_FPGAMGR_DCLKSTAT */
+    volatile uint32_t  gpo;                     /* ALT_FPGAMGR_GPO */
+    volatile uint32_t  gpi;                     /* ALT_FPGAMGR_GPI */
+    volatile uint32_t  misci;                   /* ALT_FPGAMGR_MISCI */
+    uint32_t           _pad_0x1c_0x7ff[505];    /* *UNDEFINED* */
+    ALT_MON_raw_t      mon;                     /* ALT_MON */
+    uint32_t           _pad_0x880_0x1000[480];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_FPGAMGR. */

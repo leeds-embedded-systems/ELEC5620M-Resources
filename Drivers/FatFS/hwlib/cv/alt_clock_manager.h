@@ -1,8 +1,3 @@
-/*! \file
- *  Contains definitions for the Altera Hardware Libraries Clock Manager
- *  Application Programming Interface
- */
-
 /******************************************************************************
 *
 * Copyright 2013 Altera Corporation. All Rights Reserved.
@@ -36,13 +31,19 @@
 ******************************************************************************/
 
 /*
- * $Id: //acds/rel/15.0/embedded/ip/hps/altera_hps/hwlib/include/soc_cv_av/alt_clock_manager.h#1 $
+ * $Id: //acds/rel/20.1std/embedded/ip/hps/altera_hps/hwlib/include/soc_cv_av/alt_clock_manager.h#1 $
  */
 
+/*! \file
+ *  Contains definitions for the Altera Hardware Libraries Clock Manager
+ *  Application Programming Interface
+ */
+
+#ifdef soc_cv_av
 #ifndef __ALT_CLK_MGR_H__
 #define __ALT_CLK_MGR_H__
 
-#include "hwlib.h"
+#include "../hwlib.h"
 #include "alt_clock_group.h"
 
 #ifdef __cplusplus
@@ -50,7 +51,7 @@ extern "C"
 {
 #endif  /* __cplusplus */
 
-/*! \addtogroup CLK_MGR The Clock Manager API
+/*! \addtogroup CLK_MGR Clock Manager API
  *
  * This module defines the Clock Manager API for accessing, configuring, and
  * controlling the HPS clock resources.
@@ -824,6 +825,8 @@ ALT_STATUS_CODE alt_clk_pll_is_bypassed(ALT_CLK_t pll);
 /*!
  * Disable the specified clock. Once the clock is disabled, its clock signal does
  * not propogate to its clocked elements.
+ * NOTE: You cannot disable the USB or NAND clock because either would cause
+ *       memory to fail
  *
  * \param       clk
  *              The clock to disable.
@@ -1431,7 +1434,7 @@ ALT_STATUS_CODE alt_clk_group_cfg_raw_set(const ALT_CLK_GROUP_RAW_CFG_t* clk_gro
 /******************************************************************************/
 /*!
  *  alt_clk_clkmgr_init() attempt to fix the pll counter max frequencies, since
- *  thses frequencies are not known in advance until preloader programmed clock manager.
+ *  these frequencies are not known in advance until preloader programmed clock manager.
  *
  * \param       None 
  *
@@ -1449,7 +1452,6 @@ ALT_STATUS_CODE alt_clk_clkmgr_init(void);
  * \retval      ALT_E_SUCCESS       Successful status.
  */
 ALT_STATUS_CODE alt_clk_clkmgr_uninit(void);
-
 /*! @} */
 
 /*! @} */
@@ -1458,3 +1460,4 @@ ALT_STATUS_CODE alt_clk_clkmgr_uninit(void);
 
 #endif  /* __cplusplus */
 #endif  /* __ALT_CLK_MGR_H__ */
+#endif

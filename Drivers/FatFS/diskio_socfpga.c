@@ -4,28 +4,40 @@
 /*                                                                       */
 /*-----------------------------------------------------------------------*/
 
-#ifdef __GNUC__
-
 // FatFs lower layer API Declarations
+#ifdef __ARRIA10__
+#include "hwlib/a10/socal/hps.h"
+#else
+#include "hwlib/cv/socal/hps.h"
+#endif
 #include "diskio.h"
+#include "ff.h"         /* Declarations of sector size */
 // Minimal Altera HWLib for SD-Card (hwlib/)
 #include "hwlib/alt_sdmmc.h"
-#include "hwlib/socal/hps.h"
-// C Standard Libs
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
+#include "HPS_Watchdog/HPS_Watchdog.h"
 
-#undef DEBUG
 
-#ifdef DEBUG
+#ifdef FF_DEBUG
     //Include printf headers if debugging
     #include <stdio.h>
-    #include <string.h>
 #else
     //Disable printf if not debugging
     #define printf(...) (0)
-    #pragma push
-    #pragma diag_suppress 174
+#endif
+
+#ifdef FF_MULTI_PARTITION
+PARTITION VolToPart[] __attribute__((weak)) = {};
+#endif
+
+#ifndef FF_SDMMC_BUS_WIDTH
+    #ifdef __ARRIA10__
+    #define FF_SDMMC_BUS_WIDTH ALT_SDMMC_BUS_WIDTH_1
+    #else
+    #define FF_SDMMC_BUS_WIDTH ALT_SDMMC_BUS_WIDTH_4
+    #endif
 #endif
 
 /*-----------------------------------------------------------------------*/
@@ -33,19 +45,19 @@
 /*-----------------------------------------------------------------------*/
 
 // Card information
-ALT_SDMMC_CARD_INFO_t Card_Info;
+static ALT_SDMMC_CARD_INFO_t Card_Info;
 
 // SD/MMC Device size - hardcode max supported size for now
-uint64_t Sdmmc_Device_Size;
+static uint64_t Sdmmc_Device_Size;
 
 // SD/MMC Block size
-uint32_t Sdmmc_Block_Size;
+static uint32_t Sdmmc_Block_Size;
 
 // SD/MMC Block size
-uint32_t Sdmmc_Sector_Size;
+static uint32_t Sdmmc_Sector_Size;
 
 // Card Initialised
-bool Sdmmc_Initialised = false;
+static bool Sdmmc_Initialised = false;
 
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
@@ -107,10 +119,12 @@ DSTATUS disk_initialize (
         goto error;
     }
 
+    HPS_ResetWatchdog();
     if(alt_sdmmc_card_identify(&Card_Info) != ALT_E_SUCCESS) {
         stat = stat + STA_NODISK; //Set the no-disk flag if we failed to identify.
         goto error;
     }
+    HPS_ResetWatchdog();
 
     switch(Card_Info.card_type)
     {
@@ -135,7 +149,7 @@ DSTATUS disk_initialize (
             goto error;
     }
     
-    if(alt_sdmmc_card_bus_width_set(&Card_Info, ALT_SDMMC_BUS_WIDTH_4) != ALT_E_SUCCESS) {
+    if(alt_sdmmc_card_bus_width_set(&Card_Info, FF_SDMMC_BUS_WIDTH) != ALT_E_SUCCESS) {
         goto error;
     }
 
@@ -155,7 +169,7 @@ DSTATUS disk_initialize (
     Sdmmc_Block_Size = card_misc_cfg.block_size;
     Sdmmc_Device_Size = ((uint64_t)Card_Info.blk_number_high << 32) + Card_Info.blk_number_low;
     Sdmmc_Device_Size *= Card_Info.max_r_blkln;
-    Sdmmc_Sector_Size = 512;
+    Sdmmc_Sector_Size = (Card_Info.max_r_blkln > 512) ? 512 : Card_Info.max_r_blkln;
     printf("INFO: Card size = %lld.\n", Sdmmc_Device_Size);
 
     if(alt_sdmmc_dma_enable() != ALT_E_SUCCESS) {
@@ -192,41 +206,58 @@ DRESULT disk_read (
 	UINT count		/* Number of sectors to read */
 )
 {
-    unsigned int address = sector * Sdmmc_Sector_Size; //Convert sector to byte address
-    unsigned int size = count * Sdmmc_Sector_Size; //Convert sector count to byte size
-
-    //Ensure aligned data buffer.
-    uint32_t alignedBuff[size/sizeof(uint32_t)];
-    BYTE* alignedBuffBytePtr;
-    if (((uint32_t)buff) & 3) {
-        //If the memory buffer is non-aligned to the 32bit boundary
-        //Our aligned buffer is the temporary buffer
-        alignedBuffBytePtr = (BYTE*)alignedBuff;
-    } else {
-        //Otherwise we can save some time by using the already aligned buffer.
-        alignedBuffBytePtr = buff;
-    }
-    
+    // Validate disk condition
     if (pdrv != 0) {
         return RES_PARERR; //Don't try if out of range.
     }
     if (!Sdmmc_Initialised) {
         return RES_NOTRDY; //Not ready.
     }
-    printf("INFO: Reading from address 0x%08x, size = %d bytes using block I/O.\n", (int)address, (int)size);
-    if (alt_sdmmc_read(&Card_Info, (void*)alignedBuffBytePtr, (void*)address, size) != ALT_E_SUCCESS) {
-        return RES_ERROR;
-    } else {
-        if (((uint32_t)buff) & 3) {
-            uint32_t i;
-            //If the memory buffer is non-aligned to the 32bit boundary
-            //We need to copy the data back from our temporary buffer to the real buffer.
-            for(i = 0; i < size; i++) {
-                buff[i] = alignedBuffBytePtr[i];
-            }
-        }
-        return RES_OK;
+    // Must have a read buffer
+    if (!buff) {
+        return RES_PARERR;
     }
+
+    // 32-bit aligned data buffer for sector reads used if incoming buffer is not aligned.
+    uint32_t alignedBuff[Sdmmc_Sector_Size/sizeof(uint32_t)];
+
+    // Work through each sector to be read
+    UINT remain = count;
+    UINT start = sector;
+    ALT_STATUS_CODE sdmmcStat;
+    printf("FatFS: Block Read %u Sectors. Start at %u (@ 0x%08x).\n", (UINT)count, (UINT)sector, (UINT)(sector * Sdmmc_Sector_Size));
+    while (remain--) {
+        //Convert current sector to byte address
+        unsigned int address = sector * Sdmmc_Sector_Size;
+
+        //Ensure aligned data buffer.
+        const BYTE* readBuff;
+        if (((uint32_t)buff) & 3) {
+            //If the memory buffer is non-aligned to the 32bit boundary, so use our
+            //internal aligned buffer for the read.
+            readBuff = (BYTE*)alignedBuff;
+        } else {
+            //Otherwise we can save some time by using the already aligned buffer.
+            readBuff = buff;
+        }
+
+        sdmmcStat = alt_sdmmc_read(&Card_Info, (void*)readBuff, (void*)address, Sdmmc_Sector_Size);
+        if (sdmmcStat != ALT_E_SUCCESS) {
+            printf("FatFS: Sec %u/%u (@ 0x%08x) Read Err %d.\n", (UINT)(sector - start + 1), (UINT)count, (UINT)address, sdmmcStat);
+            return RES_ERROR;
+        }
+
+        if (((uint32_t)buff) & 3) {
+            //If it was a non-aligned read, copy from our internal buffer to the user
+            memcpy(buff, alignedBuff, Sdmmc_Sector_Size);
+        }
+
+        // Move on to the next sector
+        sector++;
+        buff += Sdmmc_Sector_Size;
+        HPS_ResetWatchdog();
+    }
+    return RES_OK;
 }
 
 
@@ -234,6 +265,7 @@ DRESULT disk_read (
 /*-----------------------------------------------------------------------*/
 /* Write Sector(s)                                                       */
 /*-----------------------------------------------------------------------*/
+// Special write case: if `buff == NULL`, will zero out each sector.
 
 DRESULT disk_write (
 	BYTE pdrv,			/* Physical drive number to identify the drive */
@@ -241,28 +273,8 @@ DRESULT disk_write (
 	DWORD sector,		/* Start sector in LBA */
 	UINT count			/* Number of sectors to write */
 )
-{    
-    //Convert sector sizes to bytes
-    unsigned int address = sector * Sdmmc_Sector_Size; //Convert sector to byte address
-    unsigned int size = count * Sdmmc_Sector_Size; //Convert sector count to byte size
-    
-    //Ensure aligned data buffer.
-    uint32_t alignedBuff[size/sizeof(uint32_t)];
-    const BYTE* alignedBuffBytePtr;
-    if (((uint32_t)buff) & 3) {
-        uint32_t i;
-        //If the memory buffer is non-aligned to the 32bit boundary
-        //Our aligned buffer is the temporary buffer
-        alignedBuffBytePtr = (BYTE*)alignedBuff;
-        //Into which our data must be copied
-        for(i = 0; i < size; i++) {
-            ((BYTE*)alignedBuff)[i] = buff[i];
-        }
-    } else {
-        //Otherwise we can save some time by using the already aligned buffer.
-        alignedBuffBytePtr = buff;
-    }
-    
+{
+    // Validate disk condition
     if (pdrv != 0) {
         return RES_PARERR; //Don't try if out of range.
     }
@@ -272,14 +284,122 @@ DRESULT disk_write (
     if (alt_sdmmc_card_is_write_protected()) {
         return RES_WRPRT; //Write protected. Error.
     }
-    printf("INFO: Writing to address 0x%08x, size = %d bytes using block I/O.\n", (int)address, (int)size);
-    if (alt_sdmmc_write(&Card_Info, (void*)address, (void*)alignedBuffBytePtr, size) != ALT_E_SUCCESS) {
-        return RES_ERROR;
-    } else {
-        return RES_OK;
+
+    // 32-bit aligned data buffer for sector writes used if incoming buffer is not aligned.
+    uint32_t alignedBuff[Sdmmc_Sector_Size/sizeof(uint32_t)];
+    if (!buff) {
+        // If no write buffer, we are going to write 0's, so zero out the aligned buffer
+        memset(alignedBuff, 0, Sdmmc_Sector_Size);
     }
+    
+    // Work through each sector to be written
+    UINT remain = count;
+    UINT start = sector;
+    ALT_STATUS_CODE sdmmcStat;
+    printf("FatFS: Block Write %u Sectors. Start at %u (@ 0x%08x).\n", (UINT)count, (UINT)sector, (UINT)(sector * Sdmmc_Sector_Size));
+    while (remain--) {
+        //Convert current sector to byte address
+        unsigned int address = sector * Sdmmc_Sector_Size;
+
+        //Ensure aligned data buffer.
+        const BYTE* writeBuff;
+        if (!buff) {
+            //If no write buffer, use aligned buffer (zero filled)
+            writeBuff = (BYTE*)alignedBuff;
+        } else if (((uint32_t)buff) & 3) {
+            //If the memory buffer is non-aligned to the 32bit boundary, copy it
+            //into our internal correctly aligned buffer
+            memcpy(alignedBuff, buff, Sdmmc_Sector_Size);
+            //Our aligned buffer is the one we want to write
+            writeBuff = (BYTE*)alignedBuff;
+        } else {
+            //Otherwise we can save some time by using the already aligned buffer.
+            writeBuff = buff;
+        }
+
+        // Write the sector
+        sdmmcStat = alt_sdmmc_write(&Card_Info, (void*)address, (void*)writeBuff, Sdmmc_Sector_Size);
+        if (sdmmcStat != ALT_E_SUCCESS) {
+            printf("FatFS: Sec %u/%u (@ 0x%08x) Write Err %d.\n", (UINT)(sector - start + 1), (UINT)count, (UINT)address, sdmmcStat);
+            return RES_ERROR;
+        }
+
+        // Move on to the next sector
+        sector++;
+        if (buff) {
+            buff += Sdmmc_Sector_Size;
+        }
+        HPS_ResetWatchdog();
+    }
+    return RES_OK;
 }
 
+
+
+/*-----------------------------------------------------------------------*/
+/* Verify Sector(s)                                                      */
+/*-----------------------------------------------------------------------*/
+// Special verify case: if `buff == NULL`, will check that each sector is zeros.
+
+DRESULT disk_verify (
+    BYTE pdrv,          /* Physical drive number to identify the drive */
+    const BYTE *buff,   /* Data buffer that was written */
+    DWORD sector,       /* Start sector in LBA */
+    UINT count          /* Number of sectors to verify */
+)
+{
+    // Validate disk condition
+    if (pdrv != 0) {
+        return RES_PARERR; //Don't try if out of range.
+    }
+    if (!Sdmmc_Initialised) {
+        return RES_NOTRDY; //Not ready.
+    }
+
+    // 32-bit aligned data buffer for sector reads used if incoming buffer is not aligned.
+    uint32_t alignedBuff[Sdmmc_Sector_Size/sizeof(uint32_t)];
+
+    // Work through each sector to be read
+    UINT remain = count;
+    UINT start = sector;
+    ALT_STATUS_CODE sdmmcStat;
+    printf("FatFS: Block Verify %u Sectors. Start at %u (@ 0x%08x).\n", (UINT)count, (UINT)sector, (UINT)(sector * Sdmmc_Sector_Size));
+    while (remain--) {
+        //Convert current sector to byte address
+        unsigned int address = sector * Sdmmc_Sector_Size;
+
+        //Read the sector into the alignedBuff which we will compare against the input buff
+        const BYTE* verifyBuff = (BYTE*)alignedBuff;
+
+        sdmmcStat = alt_sdmmc_read(&Card_Info, (void*)verifyBuff, (void*)address, Sdmmc_Sector_Size);
+        if (sdmmcStat != ALT_E_SUCCESS) {
+            printf("FatFS: Sec %u/%u (@ 0x%08x) Read Err %d.\n", (UINT)(sector - start + 1), (UINT)count, (UINT)address, sdmmcStat);
+            return RES_ERROR;
+        }
+        if (!buff) {
+            // No buffer, verify against being all zeros.
+            for (unsigned int idx = 0; idx < (Sdmmc_Sector_Size/sizeof(uint32_t)); idx++) {
+                if (alignedBuff[idx]) {
+                    goto verifyError;
+                }
+            }
+        } else {
+            if (memcmp(buff, verifyBuff, Sdmmc_Sector_Size)) {
+verifyError:
+                printf("FatFS: Sec %u/%u (@ 0x%08x) Verify Err %d.\n", (UINT)(sector - start + 1), (UINT)count, (UINT)address, sdmmcStat);
+                return RES_ERROR;
+            }
+        }
+
+        // Move on to the next sector
+        sector++;
+        if (buff) {
+            buff += Sdmmc_Sector_Size;
+        }
+        HPS_ResetWatchdog();
+    }
+    return RES_OK;
+}
 
 
 /*-----------------------------------------------------------------------*/
@@ -317,8 +437,4 @@ DRESULT disk_ioctl (
     };
     return RES_PARERR; //Invalid parameter
 }
-#ifndef DEBUG
-#pragma pop
-#endif
 
-#endif //__GNUC__

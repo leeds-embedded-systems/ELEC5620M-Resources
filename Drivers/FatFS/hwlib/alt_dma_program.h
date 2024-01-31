@@ -31,7 +31,7 @@
 ******************************************************************************/
 
 /*
- * $Id: //acds/rel/15.0/embedded/ip/hps/altera_hps/hwlib/include/alt_dma_program.h#1 $
+ * $Id: //acds/rel/20.1std/embedded/ip/hps/altera_hps/hwlib/include/alt_dma_program.h#1 $
  */
 
 #ifndef __ALT_DMA_PROGRAM_H__
@@ -331,7 +331,7 @@ ALT_STATUS_CODE alt_dma_program_update_reg(ALT_DMA_PROGRAM_t * pgm,
  * \retval      ALT_E_DMA_BUF_OVF   DMA program buffer overflow.
  * \retval      ALT_E_BAD_ARG       Invalid channel register specified.
  */
-// Assembler Syntax: DMAADDH <address_register>, <16-bit immediate>
+/* Assembler Syntax: DMAADDH <address_register>, <16-bit immediate> */
 ALT_STATUS_CODE alt_dma_program_DMAADDH(ALT_DMA_PROGRAM_t * pgm,
                                         ALT_DMA_PROGRAM_REG_t addr_reg, uint16_t val);
 
@@ -354,7 +354,7 @@ ALT_STATUS_CODE alt_dma_program_DMAADDH(ALT_DMA_PROGRAM_t * pgm,
  * \retval      ALT_E_DMA_BUF_OVF   DMA program buffer overflow.
  * \retval      ALT_E_BAD_ARG       Invalid channel register specified.
  */
-// Assembler Syntax: DMAADNH <address_register>, <16-bit immediate>
+/* Assembler Syntax: DMAADNH <address_register>, <16-bit immediate> */
 ALT_STATUS_CODE alt_dma_program_DMAADNH(ALT_DMA_PROGRAM_t * pgm,
                                         ALT_DMA_PROGRAM_REG_t addr_reg, uint16_t val);
 
@@ -368,7 +368,7 @@ ALT_STATUS_CODE alt_dma_program_DMAADNH(ALT_DMA_PROGRAM_t * pgm,
  * \retval      ALT_E_SUCCESS       Successful instruction assembly status.
  * \retval      ALT_E_DMA_BUF_OVF   DMA program buffer overflow.
  */
-// Assembler Syntax: DMAEND
+/* Assembler Syntax: DMAEND */
 ALT_STATUS_CODE alt_dma_program_DMAEND(ALT_DMA_PROGRAM_t * pgm);
 
 /*!
@@ -385,7 +385,7 @@ ALT_STATUS_CODE alt_dma_program_DMAEND(ALT_DMA_PROGRAM_t * pgm);
  * \retval      ALT_E_DMA_BUF_OVF   DMA program buffer overflow.
  * \retval      ALT_E_BAD_ARG       Invalid peripheral specified.
  */
-// Assembler Syntax: DMAFLUSHP <peripheral>
+/* Assembler Syntax: DMAFLUSHP <peripheral> */
 ALT_STATUS_CODE alt_dma_program_DMAFLUSHP(ALT_DMA_PROGRAM_t * pgm,
                                           ALT_DMA_PERIPH_t periph);
 
@@ -409,7 +409,7 @@ ALT_STATUS_CODE alt_dma_program_DMAFLUSHP(ALT_DMA_PROGRAM_t * pgm,
  * \retval      ALT_E_DMA_BUF_OVF   DMA program buffer overflow.
  * \retval      ALT_E_BAD_ARG       Invalid channel or security specified.
  */
-// Assembler Syntax: DMAGO <channel_number>, <32-bit_immediate> [, ns]
+/* Assembler Syntax: DMAGO <channel_number>, <32-bit_immediate> [, ns] */
 ALT_STATUS_CODE alt_dma_program_DMAGO(ALT_DMA_PROGRAM_t * pgm,
                                       ALT_DMA_CHANNEL_t channel, uint32_t val,
                                       ALT_DMA_SECURITY_t sec);
@@ -424,7 +424,7 @@ ALT_STATUS_CODE alt_dma_program_DMAGO(ALT_DMA_PROGRAM_t * pgm,
  * \retval      ALT_E_SUCCESS       Successful instruction assembly status.
  * \retval      ALT_E_DMA_BUF_OVF   DMA program buffer overflow.
  */
-// Assembler Syntax: DMAKILL
+/* Assembler Syntax: DMAKILL */
 ALT_STATUS_CODE alt_dma_program_DMAKILL(ALT_DMA_PROGRAM_t * pgm);
 
 /*!
@@ -443,7 +443,7 @@ ALT_STATUS_CODE alt_dma_program_DMAKILL(ALT_DMA_PROGRAM_t * pgm);
  * \retval      ALT_E_DMA_BUF_OVF   DMA program buffer overflow.
  * \retval      ALT_E_BAD_ARG       Invalid instruction modifier specified.
  */
-// Assembler Syntax: DMALD[S|B]
+/* Assembler Syntax: DMALD[S|B] */
 ALT_STATUS_CODE alt_dma_program_DMALD(ALT_DMA_PROGRAM_t * pgm,
                                       ALT_DMA_PROGRAM_INST_MOD_t mod);
 
@@ -467,7 +467,7 @@ ALT_STATUS_CODE alt_dma_program_DMALD(ALT_DMA_PROGRAM_t * pgm,
  * \retval      ALT_E_BAD_ARG       Invalid instruction modifier or peripheral
  *                                  specified.
  */
-// Assembler Syntax: DMALDP<S|B> <peripheral>
+/* Assembler Syntax: DMALDP<S|B> <peripheral> */
 ALT_STATUS_CODE alt_dma_program_DMALDP(ALT_DMA_PROGRAM_t * pgm,
                                        ALT_DMA_PROGRAM_INST_MOD_t mod, ALT_DMA_PERIPH_t periph);
 
@@ -486,7 +486,7 @@ ALT_STATUS_CODE alt_dma_program_DMALDP(ALT_DMA_PROGRAM_t * pgm,
  * \retval      ALT_E_BAD_ARG       Invalid iterations specified.
  * \retval      ALT_E_BAD_OPERATION All loop registers are in use.
  */
-// Assembler Syntax: DMALP [<LC0>|<LC1>] <loop_iterations>
+/* Assembler Syntax: DMALP [<LC0>|<LC1>] <loop_iterations> */
 ALT_STATUS_CODE alt_dma_program_DMALP(ALT_DMA_PROGRAM_t * pgm,
                                       uint32_t iterations);
 
@@ -510,7 +510,7 @@ ALT_STATUS_CODE alt_dma_program_DMALP(ALT_DMA_PROGRAM_t * pgm,
  *                                  the program buffer before adding this
  *                                  DMALPEND instruction.
  */
-// Assembler Syntax: DMALPEND[S|B]
+/* Assembler Syntax: DMALPEND[S|B] */
 ALT_STATUS_CODE alt_dma_program_DMALPEND(ALT_DMA_PROGRAM_t * pgm,
                                          ALT_DMA_PROGRAM_INST_MOD_t mod);
 
@@ -525,7 +525,7 @@ ALT_STATUS_CODE alt_dma_program_DMALPEND(ALT_DMA_PROGRAM_t * pgm,
  * \retval      ALT_E_SUCCESS       Successful instruction assembly status.
  * \retval      ALT_E_DMA_BUF_OVF   DMA program buffer overflow.
  */
-// Assembler Syntax: DMALPFE
+/* Assembler Syntax: DMALPFE */
 ALT_STATUS_CODE alt_dma_program_DMALPFE(ALT_DMA_PROGRAM_t * pgm);
 
 /*!
@@ -547,7 +547,7 @@ ALT_STATUS_CODE alt_dma_program_DMALPFE(ALT_DMA_PROGRAM_t * pgm);
  * \retval      ALT_E_DMA_BUF_OVF   DMA program buffer overflow.
  * \retval      ALT_E_BAD_ARG       Invalid channel register specified.
  */
-// Assembler Syntax: DMAMOV <destination_register>, <32-bit_immediate>
+/* Assembler Syntax: DMAMOV <destination_register>, <32-bit_immediate> */
 ALT_STATUS_CODE alt_dma_program_DMAMOV(ALT_DMA_PROGRAM_t * pgm,
                                        ALT_DMA_PROGRAM_REG_t chan_reg, uint32_t val);
 
@@ -561,7 +561,7 @@ ALT_STATUS_CODE alt_dma_program_DMAMOV(ALT_DMA_PROGRAM_t * pgm,
  * \retval      ALT_E_SUCCESS       Successful instruction assembly status.
  * \retval      ALT_E_DMA_BUF_OVF   DMA program buffer overflow.
  */
-// Assembler Syntax: DMANOP
+/* Assembler Syntax: DMANOP */
 ALT_STATUS_CODE alt_dma_program_DMANOP(ALT_DMA_PROGRAM_t * pgm);
 
 /*!
@@ -574,7 +574,7 @@ ALT_STATUS_CODE alt_dma_program_DMANOP(ALT_DMA_PROGRAM_t * pgm);
  * \retval      ALT_E_SUCCESS       Successful instruction assembly status.
  * \retval      ALT_E_DMA_BUF_OVF   DMA program buffer overflow.
  */
-// Assembler Syntax: DMARMB
+/* Assembler Syntax: DMARMB */
 ALT_STATUS_CODE alt_dma_program_DMARMB(ALT_DMA_PROGRAM_t * pgm);
 
 /*!
@@ -591,7 +591,7 @@ ALT_STATUS_CODE alt_dma_program_DMARMB(ALT_DMA_PROGRAM_t * pgm);
  * \retval      ALT_E_DMA_BUF_OVF   DMA program buffer overflow.
  * \retval      ALT_E_BAD_ARG       Invalid event specified.
  */
-// Assembler Syntax: DMASEV <event_num>
+/* Assembler Syntax: DMASEV <event_num> */
 ALT_STATUS_CODE alt_dma_program_DMASEV(ALT_DMA_PROGRAM_t * pgm,
                                        ALT_DMA_EVENT_t evt);
 
@@ -610,7 +610,7 @@ ALT_STATUS_CODE alt_dma_program_DMASEV(ALT_DMA_PROGRAM_t * pgm,
  * \retval      ALT_E_SUCCESS       Successful instruction assembly status.
  * \retval      ALT_E_DMA_BUF_OVF   DMA program buffer overflow.
  */
-// Assembler Syntax: DMAST[S|B]
+/* Assembler Syntax: DMAST[S|B] */
 ALT_STATUS_CODE alt_dma_program_DMAST(ALT_DMA_PROGRAM_t * pgm,
                                       ALT_DMA_PROGRAM_INST_MOD_t mod);
 
@@ -634,7 +634,7 @@ ALT_STATUS_CODE alt_dma_program_DMAST(ALT_DMA_PROGRAM_t * pgm,
  * \retval      ALT_E_BAD_ARG       Invalid instruction modifier or peripheral
  *                                  specified.
  */
-// Assembler Syntax: DMASTP<S|B> <peripheral>
+/* Assembler Syntax: DMASTP<S|B> <peripheral> */
 ALT_STATUS_CODE alt_dma_program_DMASTP(ALT_DMA_PROGRAM_t * pgm,
                                        ALT_DMA_PROGRAM_INST_MOD_t mod, ALT_DMA_PERIPH_t periph);
 
@@ -648,7 +648,7 @@ ALT_STATUS_CODE alt_dma_program_DMASTP(ALT_DMA_PROGRAM_t * pgm,
  * \retval      ALT_E_SUCCESS       Successful instruction assembly status.
  * \retval      ALT_E_DMA_BUF_OVF   DMA program buffer overflow.
  */
-// Assembler Syntax: DMASTZ
+/* Assembler Syntax: DMASTZ */
 ALT_STATUS_CODE alt_dma_program_DMASTZ(ALT_DMA_PROGRAM_t * pgm);
 
 /*!
@@ -670,7 +670,7 @@ ALT_STATUS_CODE alt_dma_program_DMASTZ(ALT_DMA_PROGRAM_t * pgm);
  * \retval      ALT_E_DMA_BUF_OVF   DMA program buffer overflow.
  * \retval      ALT_E_BAD_ARG       Invalid event specified.
  */
-// Assembler Syntax: DMAWFE <event_num>[, invalid]
+/* Assembler Syntax: DMAWFE <event_num>[, invalid] */
 ALT_STATUS_CODE alt_dma_program_DMAWFE(ALT_DMA_PROGRAM_t * pgm,
                                        ALT_DMA_EVENT_t evt, bool invalid);
 
@@ -695,7 +695,7 @@ ALT_STATUS_CODE alt_dma_program_DMAWFE(ALT_DMA_PROGRAM_t * pgm,
  * \retval      ALT_E_BAD_ARG       Invalid peripheral or instruction modifier
  *                                  specified.
  */
-// Assembler Syntax: DMAWFP <peripheral>, <single|burst|periph>
+/* Assembler Syntax: DMAWFP <peripheral>, <single|burst|periph> */
 ALT_STATUS_CODE alt_dma_program_DMAWFP(ALT_DMA_PROGRAM_t * pgm,
                                        ALT_DMA_PERIPH_t periph, ALT_DMA_PROGRAM_INST_MOD_t mod);
 
@@ -709,7 +709,7 @@ ALT_STATUS_CODE alt_dma_program_DMAWFP(ALT_DMA_PROGRAM_t * pgm,
  * \retval      ALT_E_SUCCESS       Successful instruction assembly status.
  * \retval      ALT_E_DMA_BUF_OVF   DMA program buffer overflow.
  */
-// Assembler Syntax: DMAWMB
+/* Assembler Syntax: DMAWMB */
 ALT_STATUS_CODE alt_dma_program_DMAWMB(ALT_DMA_PROGRAM_t * pgm);
 
 /*!

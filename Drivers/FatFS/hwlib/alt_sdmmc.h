@@ -31,7 +31,7 @@
 ******************************************************************************/
 
 /*
- * $Id: //acds/rel/15.0/embedded/ip/hps/altera_hps/hwlib/include/alt_sdmmc.h#1 $
+ * $Id: //acds/rel/20.1std/embedded/ip/hps/altera_hps/hwlib/include/alt_sdmmc.h#1 $
  */
 
 #ifndef __ALT_SDMMC_H__
@@ -124,8 +124,8 @@ extern "C"
  *    use the steps outlined in section 7.4 Phase Switching of the databook when
  *    changing the card clock frequency.
  *    
- *  * In order to utilize ECC, follow the embedded RAM initialization procedure in
- *    section 8 Enabling ECC of the data book.
+ *  * In order to utilize ECC, read the TRM of the device you're using and look for
+ *    how to enable and use ECC.
  *
  *  * The SD/MMC controller does not directly support voltage switching, card
  *    interrupts, or back-end power control of eSDIO card devices. However, you can
@@ -165,7 +165,7 @@ typedef enum ALT_SDMMC_CARD_TYPE_e
     ALT_SDMMC_CARD_TYPE_SDIOIO     = 3, /*!< Secure Digital Input Output */
     ALT_SDMMC_CARD_TYPE_SDIOCOMBO  = 4, /*!< Secure Digital Input Output Combo */
     ALT_SDMMC_CARD_TYPE_SDHC       = 5, /*!< Secure Digital High Capacity */
-    ALT_SDMMC_CARD_TYPE_CEATA      = 6, /*!< Serial ATA interface based on the 
+    ALT_SDMMC_CARD_TYPE_CEATA      = 6  /*!< Serial ATA interface based on the 
                                          *   MultiMediaCard standard
                                          */
 } ALT_SDMMC_CARD_TYPE_t;
@@ -201,6 +201,9 @@ typedef struct ALT_SDMMC_CARD_INFO_s
                                                  * memory capacity = (block_number_high << 32 | block_number_low) * 512 byte
                                                  */
     uint32_t                scr_bus_widths;     /*!< SD_BUS_WIDTHS field in SCR register */
+    uint32_t                ocr_reg;            /*!< Response to the op-info command (OCR) */
+    uint32_t                mmc_spec;           /*!< MMC version field from CSD register */
+    bool                    high_capacity;      /*!< Indicates whether the card uses sector addressing (SDHC, or large MMC) */
 } ALT_SDMMC_CARD_INFO_t;
 
 /*!
@@ -240,7 +243,7 @@ ALT_STATUS_CODE alt_sdmmc_reset(void);
 typedef enum ALT_SDMMC_CMD_TYPE_e
 {
     ALT_SDMMC_CMD_TYPE_BASIC, /*!< Standard SD/MMC commands denoted as CMD in the standard.*/
-    ALT_SDMMC_CMD_TYPE_ACMD,  /*!< Application specific commands or ACMDs that are preceded with APP_CMD (CMD55) */
+    ALT_SDMMC_CMD_TYPE_ACMD   /*!< Application specific commands or ACMDs that are preceded with APP_CMD (CMD55) */
 } ALT_SDMMC_CMD_TYPE_t;
 
 /*!
@@ -250,11 +253,53 @@ typedef enum ALT_SDMMC_CMD_TYPE_e
 typedef enum ALT_SDMMC_TRANSFER_SPEED_e
 {
     ALT_SDMMC_TRANSFER_SPEED_DEFAULT  = 25000000, /*!< 25MHz */
-    ALT_SDMMC_TRANSFER_SPEED_HIGH     = 50000000, /*!< 50MHz */
+    ALT_SDMMC_TRANSFER_SPEED_HIGH     = 50000000  /*!< 50MHz */
 } ALT_SDMMC_TRANSFER_SPEED_t;
 
 /*!
- * This type enumerates the SDMMC evailable commands. Read specification 
+ * This type enumerates OCR flag masks.
+ *
+ *    OCR Bit VDD Voltage Window
+ *         0-3          Reserved
+ *          4            1.6-1.7
+ *          5            1.7-1.8
+ *          6            1.8-1.9
+ *          7            1.9-2.0
+ *          8            2.0-2.1
+ *          9            2.1-2.2
+ *          10           2.2-2.3
+ *          11           2.3-2.4
+ *          12           2.4-2.5
+ *          13           2.5-2.6
+ *          14           2.6-2.7
+ *          15           2.7-2.8
+ *          16           2.8-2.9
+ *          17           2.9-3.0
+ *          18           3.0-3.1
+ *          19           3.1-3.2
+ *          20           3.2-3.3
+ *          21           3.3-3.4
+ *          22           3.4-3.5
+ *          23           3.5-3.6
+ *        24-29       Reserved
+ *          30          High capacity card
+ *          31          Card power up status bit (!busy)
+ *
+ *
+ */
+typedef enum ALT_SDMMC_OCR_MASK_e
+{
+    ALT_SDMMC_OCR_MASK_SDPWR  = 0x007FFFF0,
+    ALT_SDMMC_OCR_MASK_MMCPWR = 0x007FFF80,
+    ALT_SDMMC_OCR_MASK_3V3    = 0x00FF8000,
+    ALT_SDMMC_OCR_MASK_HC     = (1UL << 30),
+    ALT_SDMMC_OCR_MASK_nBUSY  = (1UL << 31),
+    ALT_SDMMC_OCR_MASK_CTRL   = ALT_SDMMC_OCR_MASK_nBUSY | ALT_SDMMC_OCR_MASK_HC
+} ALT_SDMMC_OCR_MASK_t;
+
+
+/*!
+ * This type enumerates the SDMMC available commands. Read specification
  * to the appropriate card type
  */
 typedef enum ALT_SDMMC_CMD_INDEX_e
@@ -303,6 +348,7 @@ typedef enum ALT_SDMMC_CMD_INDEX_e
     ALT_SDMMC_STANDART_CMD_ALL       = 60,
     
     /* TBD - Commands specific for card type. */
+    ALT_MMC_SEND_OP_COND             = 1,
     ALT_SD_SET_BUS_WIDTH             = 6,
     ALT_SD_SD_STATUS                 = 13,
     ALT_SD_SEND_OP_COND              = 41,
@@ -565,6 +611,36 @@ typedef enum ALT_SDMMC_INT_STATUS_e
 
     ALT_SDMMC_INT_STATUS_ALL    = 0x1FFFF    /*!< All previous status types*/
 } ALT_SDMMC_INT_STATUS_t;
+
+#if defined (soc_a10)
+/*!
+ * Enable/Start ECC for the A10 SDMMC Controller on Port A.
+ *
+ * NOTE: Port B is currently not supported.
+ *
+ * \retval      ALT_E_SUCCESS   Indicates successful completion.
+ * \retval      ALT_E_ERROR     Indicates an error occurred.
+ * \retval      ALT_E_TMO       Indicates a timeout waiting for ECC memory init.           
+ */
+ALT_STATUS_CODE alt_sdmmc_ecc_start(void);
+
+/*!
+ * Allows correcting the SDMMC RAM by reading the correct data from a specific
+ * address. The SDMMC RAM is not corrected automatically and the user must
+ * write the data to the location that needs to be corrected.
+ *
+ * \param       address
+ *              Specifies which address to grab the correct data.
+ *
+ * \param       data
+ *              Pointer to the correct data which is read from the ECC controller
+ *
+ * \retval      ALT_E_SUCCESS   Indicates successful completion.
+ * \retval      ALT_E_ERROR     Indicates an error occurred.
+ *
+ */
+ALT_STATUS_CODE alt_sdmmc_ecc_get_correct_data(uint32_t address, uint32_t * data);
+#endif
 
 /*! @} */
 
@@ -904,7 +980,7 @@ typedef enum ALT_SDMMC_DMA_INT_STATUS_e
     ALT_SDMMC_DMA_INT_STATUS_NI   = (1UL << 8), /*!< Normal Interrupt Summary Enable */
     ALT_SDMMC_DMA_INT_STATUS_AI   = (1UL << 9), /*!< Abnormal Interrupt Summary Enable. */
 
-    ALT_SDMMC_DMA_INT_STATUS_ALL  = 0x337,
+    ALT_SDMMC_DMA_INT_STATUS_ALL  = 0x337
 } ALT_SDMMC_DMA_INT_STATUS_t;
 
 /*!
@@ -1200,7 +1276,7 @@ typedef enum ALT_SDMMC_DMA_PBL_e
     ALT_SDMMC_DMA_PBL_32    = 0x4,      /*!< 32 transfer units  */
     ALT_SDMMC_DMA_PBL_64    = 0x5,      /*!< 64 transfer units  */
     ALT_SDMMC_DMA_PBL_128   = 0x6,      /*!< 128 transfer units */
-    ALT_SDMMC_DMA_PBL_256   = 0x7,      /*!< 256 transfer units */
+    ALT_SDMMC_DMA_PBL_256   = 0x7       /*!< 256 transfer units */
     
 } ALT_SDMMC_DMA_PBL_t;
 
@@ -1379,7 +1455,7 @@ typedef enum ALT_SDMMC_MULT_TRANS_e
     ALT_SDMMC_MULT_TRANS_TXMSIZEK16   = 0x3,      /*!< Msize 16 and TX_WMARK 64    */
     ALT_SDMMC_MULT_TRANS_RXMSIZEK1    = 0x5,      /*!< Msize 1 and RX_WMARK 512    */
     ALT_SDMMC_MULT_TRANS_RXMSIZEK4    = 0x6,      /*!< Msize 1 and RX_WMARK 512    */
-    ALT_SDMMC_MULT_TRANS_RXMSIZE8     = 0x7,      /*!< Msize 8 and RX_WMARK 64     */
+    ALT_SDMMC_MULT_TRANS_RXMSIZE8     = 0x7       /*!< Msize 8 and RX_WMARK 64     */
 } ALT_SDMMC_MULT_TRANS_t;
 
 /*!

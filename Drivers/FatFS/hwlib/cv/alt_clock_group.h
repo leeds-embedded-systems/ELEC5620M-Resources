@@ -31,7 +31,7 @@
 ******************************************************************************/
 
 /*
- * $Id: //acds/rel/15.0/embedded/ip/hps/altera_hps/hwlib/include/soc_cv_av/alt_clock_group.h#1 $
+ * $Id: //acds/rel/20.1std/embedded/ip/hps/altera_hps/hwlib/include/soc_cv_av/alt_clock_group.h#1 $
  */
 
 /*!
@@ -44,8 +44,8 @@
 #ifndef __ALT_CLK_GRP_H__
 #define __ALT_CLK_GRP_H__
 
-#include "hwlib.h"
 #include "socal/alt_clkmgr.h"
+#include "../hwlib.h"
 
 #ifdef __cplusplus
 extern "C"

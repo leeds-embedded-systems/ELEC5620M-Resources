@@ -31,11 +31,21 @@
 ******************************************************************************/
 
 /*
- * $Id: //acds/rel/15.0/embedded/ip/hps/altera_hps/hwlib/include/hwlib.h#1 $
+ * $Id: //acds/rel/20.1std/embedded/ip/hps/altera_hps/hwlib/include/hwlib.h#1 $
  */
 
 #ifndef __HWLIB_H__
 #define __HWLIB_H__
+
+#ifdef __ARRIA10__
+#define soc_a10
+//#define LOGGER
+//#define DEBUG_ALT_SDMMC
+//#define PRINTF_HOST
+#else
+#define soc_cv_av
+#endif
+
 
 #ifdef __cplusplus
 #include <cstddef>
@@ -47,12 +57,17 @@
 #include <stdint.h>
 #endif  /* __cplusplus */
 
-#include "alt_hwlibs_ver.h"
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif  /* __cplusplus */
+
+#if !defined(soc_cv_av) && !defined(soc_a10)
+#error You must define soc_cv_av or soc_a10 before compiling with HwLibs
+#endif
+
+#define ALT_MIN(a, b) ((a) > (b) ? (b) : (a))
+#define ALT_MAX(a, b) ((a) > (b) ? (a) : (b))
 
 /*!
  * The type definition for status codes returned by the HWLIB.
@@ -111,28 +126,6 @@ typedef int32_t             ALT_STATUS_CODE;
 
 
 /* Some other useful definitions */
-
-/*!
- * Specifies the current major and minor revision of the HWLibs. The
- * MS four decimal digits specify the Altera ACDS release number, the
- * LS two decimal digits specify minor revisions of the HWLibs, if any.
- *
- * A typical use is:
- * \code
- * #if  ALTERA_HWLIBS_VERSION_CODE >= ALT_HWLIBS_VERSION(13, 1, 0)
- * \endcode
- *     for a dependency on the major or minor ACDS revision
- *   or
- * \code
- * #if  ALTERA_HWLIBS_VERSION_CODE == ALT_HWLIBS_VERSION(13, 0, 12)
- * \endcode
- *     for a dependency on the hwlibs revision
- *
- */
-#define ALT_HWLIBS_VERSION(a,b,c)   (((a)*10000)+((b)*100)+(c))
-
-#define ALTERA_HWLIBS_VERSION_CODE   ALT_HWLIBS_VERSION(ALTERA_ACDS_MAJOR_REV, \
-                                    ALTERA_ACDS_MINOR_REV, ALTERA_HWLIBS_REV)
 
 /*!
  * Allow some parts of the documentation to be hidden by setting to zero

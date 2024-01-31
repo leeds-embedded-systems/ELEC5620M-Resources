@@ -3984,10 +3984,10 @@ typedef volatile struct ALT_SDR_CTL_MPWT_MPWEIGHT_3_4_s  ALT_SDR_CTL_MPWT_MPWEIG
  */
 struct ALT_SDR_CTL_MPWT_s
 {
-    volatile ALT_SDR_CTL_MPWT_MPWEIGHT_0_4_t  mpweight_0_4;  /* ALT_SDR_CTL_MPWT_MPWEIGHT_0_4 */
-    volatile ALT_SDR_CTL_MPWT_MPWEIGHT_1_4_t  mpweight_1_4;  /* ALT_SDR_CTL_MPWT_MPWEIGHT_1_4 */
-    volatile ALT_SDR_CTL_MPWT_MPWEIGHT_2_4_t  mpweight_2_4;  /* ALT_SDR_CTL_MPWT_MPWEIGHT_2_4 */
-    volatile ALT_SDR_CTL_MPWT_MPWEIGHT_3_4_t  mpweight_3_4;  /* ALT_SDR_CTL_MPWT_MPWEIGHT_3_4 */
+    ALT_SDR_CTL_MPWT_MPWEIGHT_0_4_t  mpweight_0_4;  /* ALT_SDR_CTL_MPWT_MPWEIGHT_0_4 */
+    ALT_SDR_CTL_MPWT_MPWEIGHT_1_4_t  mpweight_1_4;  /* ALT_SDR_CTL_MPWT_MPWEIGHT_1_4 */
+    ALT_SDR_CTL_MPWT_MPWEIGHT_2_4_t  mpweight_2_4;  /* ALT_SDR_CTL_MPWT_MPWEIGHT_2_4 */
+    ALT_SDR_CTL_MPWT_MPWEIGHT_3_4_t  mpweight_3_4;  /* ALT_SDR_CTL_MPWT_MPWEIGHT_3_4 */
 };
 
 /* The typedef declaration for register group ALT_SDR_CTL_MPWT. */
@@ -4019,45 +4019,45 @@ typedef volatile struct ALT_SDR_CTL_MPWT_raw_s  ALT_SDR_CTL_MPWT_raw_t;
  */
 struct ALT_SDR_CTL_s
 {
-    volatile ALT_SDR_CTL_CTLCFG_t           ctrlcfg;                /* ALT_SDR_CTL_CTLCFG */
-    volatile ALT_SDR_CTL_DRAMTIMING1_t      dramtiming1;            /* ALT_SDR_CTL_DRAMTIMING1 */
-    volatile ALT_SDR_CTL_DRAMTIMING2_t      dramtiming2;            /* ALT_SDR_CTL_DRAMTIMING2 */
-    volatile ALT_SDR_CTL_DRAMTIMING3_t      dramtiming3;            /* ALT_SDR_CTL_DRAMTIMING3 */
-    volatile ALT_SDR_CTL_DRAMTIMING4_t      dramtiming4;            /* ALT_SDR_CTL_DRAMTIMING4 */
-    volatile ALT_SDR_CTL_LOWPWRTIMING_t     lowpwrtiming;           /* ALT_SDR_CTL_LOWPWRTIMING */
-    volatile ALT_SDR_CTL_DRAMODT_t          dramodt;                /* ALT_SDR_CTL_DRAMODT */
-    volatile uint32_t                       _pad_0x1c_0x2b[4];      /* *UNDEFINED* */
-    volatile ALT_SDR_CTL_DRAMADDRW_t        dramaddrw;              /* ALT_SDR_CTL_DRAMADDRW */
-    volatile ALT_SDR_CTL_DRAMIFWIDTH_t      dramifwidth;            /* ALT_SDR_CTL_DRAMIFWIDTH */
-    volatile ALT_SDR_CTL_DRAMDEVWIDTH_t     dramdevwidth;           /* ALT_SDR_CTL_DRAMDEVWIDTH */
-    volatile ALT_SDR_CTL_DRAMSTS_t          dramsts;                /* ALT_SDR_CTL_DRAMSTS */
-    volatile ALT_SDR_CTL_DRAMINTR_t         dramintr;               /* ALT_SDR_CTL_DRAMINTR */
-    volatile ALT_SDR_CTL_SBECOUNT_t         sbecount;               /* ALT_SDR_CTL_SBECOUNT */
-    volatile ALT_SDR_CTL_DBECOUNT_t         dbecount;               /* ALT_SDR_CTL_DBECOUNT */
-    volatile ALT_SDR_CTL_ERRADDR_t          erraddr;                /* ALT_SDR_CTL_ERRADDR */
-    volatile ALT_SDR_CTL_DROPCOUNT_t        dropcount;              /* ALT_SDR_CTL_DROPCOUNT */
-    volatile ALT_SDR_CTL_DROPADDR_t         dropaddr;               /* ALT_SDR_CTL_DROPADDR */
-    volatile ALT_SDR_CTL_LOWPWREQ_t         lowpwreq;               /* ALT_SDR_CTL_LOWPWREQ */
-    volatile ALT_SDR_CTL_LOWPWRACK_t        lowpwrack;              /* ALT_SDR_CTL_LOWPWRACK */
-    volatile ALT_SDR_CTL_STATICCFG_t        staticcfg;              /* ALT_SDR_CTL_STATICCFG */
-    volatile ALT_SDR_CTL_CTLWIDTH_t         ctrlwidth;              /* ALT_SDR_CTL_CTLWIDTH */
-    volatile uint32_t                       _pad_0x64_0x7b[6];      /* *UNDEFINED* */
-    volatile ALT_SDR_CTL_PORTCFG_t          portcfg;                /* ALT_SDR_CTL_PORTCFG */
-    volatile ALT_SDR_CTL_FPGAPORTRST_t      fpgaportrst;            /* ALT_SDR_CTL_FPGAPORTRST */
-    volatile uint32_t                       _pad_0x84_0x8b[2];      /* *UNDEFINED* */
-    volatile ALT_SDR_CTL_PROTPORTDEFAULT_t  protportdefault;        /* ALT_SDR_CTL_PROTPORTDEFAULT */
-    volatile ALT_SDR_CTL_PROTRULEADDR_t     protruleaddr;           /* ALT_SDR_CTL_PROTRULEADDR */
-    volatile ALT_SDR_CTL_PROTRULEID_t       protruleid;             /* ALT_SDR_CTL_PROTRULEID */
-    volatile ALT_SDR_CTL_PROTRULEDATA_t     protruledata;           /* ALT_SDR_CTL_PROTRULEDATA */
-    volatile ALT_SDR_CTL_PROTRULERDWR_t     protrulerdwr;           /* ALT_SDR_CTL_PROTRULERDWR */
-    volatile ALT_SDR_CTL_QOSLOWPRI_t        qoslowpri;              /* ALT_SDR_CTL_QOSLOWPRI */
-    volatile ALT_SDR_CTL_QOSHIGHPRI_t       qoshighpri;             /* ALT_SDR_CTL_QOSHIGHPRI */
-    volatile ALT_SDR_CTL_QOSPRIORITYEN_t    qospriorityen;          /* ALT_SDR_CTL_QOSPRIORITYEN */
-    volatile ALT_SDR_CTL_MPPRIORITY_t       mppriority;             /* ALT_SDR_CTL_MPPRIORITY */
-    volatile ALT_SDR_CTL_MPWT_t             ctrlgrp_mpweight;       /* ALT_SDR_CTL_MPWT */
-    volatile uint32_t                       _pad_0xc0_0xdf[8];      /* *UNDEFINED* */
-    volatile ALT_SDR_CTL_REMAPPRIORITY_t    remappriority;          /* ALT_SDR_CTL_REMAPPRIORITY */
-    volatile uint32_t                       _pad_0xe4_0x1000[967];  /* *UNDEFINED* */
+    ALT_SDR_CTL_CTLCFG_t           ctrlcfg;                /* ALT_SDR_CTL_CTLCFG */
+    ALT_SDR_CTL_DRAMTIMING1_t      dramtiming1;            /* ALT_SDR_CTL_DRAMTIMING1 */
+    ALT_SDR_CTL_DRAMTIMING2_t      dramtiming2;            /* ALT_SDR_CTL_DRAMTIMING2 */
+    ALT_SDR_CTL_DRAMTIMING3_t      dramtiming3;            /* ALT_SDR_CTL_DRAMTIMING3 */
+    ALT_SDR_CTL_DRAMTIMING4_t      dramtiming4;            /* ALT_SDR_CTL_DRAMTIMING4 */
+    ALT_SDR_CTL_LOWPWRTIMING_t     lowpwrtiming;           /* ALT_SDR_CTL_LOWPWRTIMING */
+    ALT_SDR_CTL_DRAMODT_t          dramodt;                /* ALT_SDR_CTL_DRAMODT */
+    volatile uint32_t              _pad_0x1c_0x2b[4];      /* *UNDEFINED* */
+    ALT_SDR_CTL_DRAMADDRW_t        dramaddrw;              /* ALT_SDR_CTL_DRAMADDRW */
+    ALT_SDR_CTL_DRAMIFWIDTH_t      dramifwidth;            /* ALT_SDR_CTL_DRAMIFWIDTH */
+    ALT_SDR_CTL_DRAMDEVWIDTH_t     dramdevwidth;           /* ALT_SDR_CTL_DRAMDEVWIDTH */
+    ALT_SDR_CTL_DRAMSTS_t          dramsts;                /* ALT_SDR_CTL_DRAMSTS */
+    ALT_SDR_CTL_DRAMINTR_t         dramintr;               /* ALT_SDR_CTL_DRAMINTR */
+    ALT_SDR_CTL_SBECOUNT_t         sbecount;               /* ALT_SDR_CTL_SBECOUNT */
+    ALT_SDR_CTL_DBECOUNT_t         dbecount;               /* ALT_SDR_CTL_DBECOUNT */
+    ALT_SDR_CTL_ERRADDR_t          erraddr;                /* ALT_SDR_CTL_ERRADDR */
+    ALT_SDR_CTL_DROPCOUNT_t        dropcount;              /* ALT_SDR_CTL_DROPCOUNT */
+    ALT_SDR_CTL_DROPADDR_t         dropaddr;               /* ALT_SDR_CTL_DROPADDR */
+    ALT_SDR_CTL_LOWPWREQ_t         lowpwreq;               /* ALT_SDR_CTL_LOWPWREQ */
+    ALT_SDR_CTL_LOWPWRACK_t        lowpwrack;              /* ALT_SDR_CTL_LOWPWRACK */
+    ALT_SDR_CTL_STATICCFG_t        staticcfg;              /* ALT_SDR_CTL_STATICCFG */
+    ALT_SDR_CTL_CTLWIDTH_t         ctrlwidth;              /* ALT_SDR_CTL_CTLWIDTH */
+    volatile uint32_t              _pad_0x64_0x7b[6];      /* *UNDEFINED* */
+    ALT_SDR_CTL_PORTCFG_t          portcfg;                /* ALT_SDR_CTL_PORTCFG */
+    ALT_SDR_CTL_FPGAPORTRST_t      fpgaportrst;            /* ALT_SDR_CTL_FPGAPORTRST */
+    volatile uint32_t              _pad_0x84_0x8b[2];      /* *UNDEFINED* */
+    ALT_SDR_CTL_PROTPORTDEFAULT_t  protportdefault;        /* ALT_SDR_CTL_PROTPORTDEFAULT */
+    ALT_SDR_CTL_PROTRULEADDR_t     protruleaddr;           /* ALT_SDR_CTL_PROTRULEADDR */
+    ALT_SDR_CTL_PROTRULEID_t       protruleid;             /* ALT_SDR_CTL_PROTRULEID */
+    ALT_SDR_CTL_PROTRULEDATA_t     protruledata;           /* ALT_SDR_CTL_PROTRULEDATA */
+    ALT_SDR_CTL_PROTRULERDWR_t     protrulerdwr;           /* ALT_SDR_CTL_PROTRULERDWR */
+    ALT_SDR_CTL_QOSLOWPRI_t        qoslowpri;              /* ALT_SDR_CTL_QOSLOWPRI */
+    ALT_SDR_CTL_QOSHIGHPRI_t       qoshighpri;             /* ALT_SDR_CTL_QOSHIGHPRI */
+    ALT_SDR_CTL_QOSPRIORITYEN_t    qospriorityen;          /* ALT_SDR_CTL_QOSPRIORITYEN */
+    ALT_SDR_CTL_MPPRIORITY_t       mppriority;             /* ALT_SDR_CTL_MPPRIORITY */
+    ALT_SDR_CTL_MPWT_t             ctrlgrp_mpweight;       /* ALT_SDR_CTL_MPWT */
+    volatile uint32_t              _pad_0xc0_0xdf[8];      /* *UNDEFINED* */
+    ALT_SDR_CTL_REMAPPRIORITY_t    remappriority;          /* ALT_SDR_CTL_REMAPPRIORITY */
+    volatile uint32_t              _pad_0xe4_0x1000[967];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_SDR_CTL. */
@@ -4065,45 +4065,45 @@ typedef volatile struct ALT_SDR_CTL_s  ALT_SDR_CTL_t;
 /* The struct declaration for the raw register contents of register group ALT_SDR_CTL. */
 struct ALT_SDR_CTL_raw_s
 {
-    volatile uint32_t                ctrlcfg;                /* ALT_SDR_CTL_CTLCFG */
-    volatile uint32_t                dramtiming1;            /* ALT_SDR_CTL_DRAMTIMING1 */
-    volatile uint32_t                dramtiming2;            /* ALT_SDR_CTL_DRAMTIMING2 */
-    volatile uint32_t                dramtiming3;            /* ALT_SDR_CTL_DRAMTIMING3 */
-    volatile uint32_t                dramtiming4;            /* ALT_SDR_CTL_DRAMTIMING4 */
-    volatile uint32_t                lowpwrtiming;           /* ALT_SDR_CTL_LOWPWRTIMING */
-    volatile uint32_t                dramodt;                /* ALT_SDR_CTL_DRAMODT */
-    volatile uint32_t                _pad_0x1c_0x2b[4];      /* *UNDEFINED* */
-    volatile uint32_t                dramaddrw;              /* ALT_SDR_CTL_DRAMADDRW */
-    volatile uint32_t                dramifwidth;            /* ALT_SDR_CTL_DRAMIFWIDTH */
-    volatile uint32_t                dramdevwidth;           /* ALT_SDR_CTL_DRAMDEVWIDTH */
-    volatile uint32_t                dramsts;                /* ALT_SDR_CTL_DRAMSTS */
-    volatile uint32_t                dramintr;               /* ALT_SDR_CTL_DRAMINTR */
-    volatile uint32_t                sbecount;               /* ALT_SDR_CTL_SBECOUNT */
-    volatile uint32_t                dbecount;               /* ALT_SDR_CTL_DBECOUNT */
-    volatile uint32_t                erraddr;                /* ALT_SDR_CTL_ERRADDR */
-    volatile uint32_t                dropcount;              /* ALT_SDR_CTL_DROPCOUNT */
-    volatile uint32_t                dropaddr;               /* ALT_SDR_CTL_DROPADDR */
-    volatile uint32_t                lowpwreq;               /* ALT_SDR_CTL_LOWPWREQ */
-    volatile uint32_t                lowpwrack;              /* ALT_SDR_CTL_LOWPWRACK */
-    volatile uint32_t                staticcfg;              /* ALT_SDR_CTL_STATICCFG */
-    volatile uint32_t                ctrlwidth;              /* ALT_SDR_CTL_CTLWIDTH */
-    volatile uint32_t                _pad_0x64_0x7b[6];      /* *UNDEFINED* */
-    volatile uint32_t                portcfg;                /* ALT_SDR_CTL_PORTCFG */
-    volatile uint32_t                fpgaportrst;            /* ALT_SDR_CTL_FPGAPORTRST */
-    volatile uint32_t                _pad_0x84_0x8b[2];      /* *UNDEFINED* */
-    volatile uint32_t                protportdefault;        /* ALT_SDR_CTL_PROTPORTDEFAULT */
-    volatile uint32_t                protruleaddr;           /* ALT_SDR_CTL_PROTRULEADDR */
-    volatile uint32_t                protruleid;             /* ALT_SDR_CTL_PROTRULEID */
-    volatile uint32_t                protruledata;           /* ALT_SDR_CTL_PROTRULEDATA */
-    volatile uint32_t                protrulerdwr;           /* ALT_SDR_CTL_PROTRULERDWR */
-    volatile uint32_t                qoslowpri;              /* ALT_SDR_CTL_QOSLOWPRI */
-    volatile uint32_t                qoshighpri;             /* ALT_SDR_CTL_QOSHIGHPRI */
-    volatile uint32_t                qospriorityen;          /* ALT_SDR_CTL_QOSPRIORITYEN */
-    volatile uint32_t                mppriority;             /* ALT_SDR_CTL_MPPRIORITY */
-    volatile ALT_SDR_CTL_MPWT_raw_t  ctrlgrp_mpweight;       /* ALT_SDR_CTL_MPWT */
-    volatile uint32_t                _pad_0xc0_0xdf[8];      /* *UNDEFINED* */
-    volatile uint32_t                remappriority;          /* ALT_SDR_CTL_REMAPPRIORITY */
-    volatile uint32_t                _pad_0xe4_0x1000[967];  /* *UNDEFINED* */
+    volatile uint32_t       ctrlcfg;                /* ALT_SDR_CTL_CTLCFG */
+    volatile uint32_t       dramtiming1;            /* ALT_SDR_CTL_DRAMTIMING1 */
+    volatile uint32_t       dramtiming2;            /* ALT_SDR_CTL_DRAMTIMING2 */
+    volatile uint32_t       dramtiming3;            /* ALT_SDR_CTL_DRAMTIMING3 */
+    volatile uint32_t       dramtiming4;            /* ALT_SDR_CTL_DRAMTIMING4 */
+    volatile uint32_t       lowpwrtiming;           /* ALT_SDR_CTL_LOWPWRTIMING */
+    volatile uint32_t       dramodt;                /* ALT_SDR_CTL_DRAMODT */
+    uint32_t                _pad_0x1c_0x2b[4];      /* *UNDEFINED* */
+    volatile uint32_t       dramaddrw;              /* ALT_SDR_CTL_DRAMADDRW */
+    volatile uint32_t       dramifwidth;            /* ALT_SDR_CTL_DRAMIFWIDTH */
+    volatile uint32_t       dramdevwidth;           /* ALT_SDR_CTL_DRAMDEVWIDTH */
+    volatile uint32_t       dramsts;                /* ALT_SDR_CTL_DRAMSTS */
+    volatile uint32_t       dramintr;               /* ALT_SDR_CTL_DRAMINTR */
+    volatile uint32_t       sbecount;               /* ALT_SDR_CTL_SBECOUNT */
+    volatile uint32_t       dbecount;               /* ALT_SDR_CTL_DBECOUNT */
+    volatile uint32_t       erraddr;                /* ALT_SDR_CTL_ERRADDR */
+    volatile uint32_t       dropcount;              /* ALT_SDR_CTL_DROPCOUNT */
+    volatile uint32_t       dropaddr;               /* ALT_SDR_CTL_DROPADDR */
+    volatile uint32_t       lowpwreq;               /* ALT_SDR_CTL_LOWPWREQ */
+    volatile uint32_t       lowpwrack;              /* ALT_SDR_CTL_LOWPWRACK */
+    volatile uint32_t       staticcfg;              /* ALT_SDR_CTL_STATICCFG */
+    volatile uint32_t       ctrlwidth;              /* ALT_SDR_CTL_CTLWIDTH */
+    uint32_t                _pad_0x64_0x7b[6];      /* *UNDEFINED* */
+    volatile uint32_t       portcfg;                /* ALT_SDR_CTL_PORTCFG */
+    volatile uint32_t       fpgaportrst;            /* ALT_SDR_CTL_FPGAPORTRST */
+    uint32_t                _pad_0x84_0x8b[2];      /* *UNDEFINED* */
+    volatile uint32_t       protportdefault;        /* ALT_SDR_CTL_PROTPORTDEFAULT */
+    volatile uint32_t       protruleaddr;           /* ALT_SDR_CTL_PROTRULEADDR */
+    volatile uint32_t       protruleid;             /* ALT_SDR_CTL_PROTRULEID */
+    volatile uint32_t       protruledata;           /* ALT_SDR_CTL_PROTRULEDATA */
+    volatile uint32_t       protrulerdwr;           /* ALT_SDR_CTL_PROTRULERDWR */
+    volatile uint32_t       qoslowpri;              /* ALT_SDR_CTL_QOSLOWPRI */
+    volatile uint32_t       qoshighpri;             /* ALT_SDR_CTL_QOSHIGHPRI */
+    volatile uint32_t       qospriorityen;          /* ALT_SDR_CTL_QOSPRIORITYEN */
+    volatile uint32_t       mppriority;             /* ALT_SDR_CTL_MPPRIORITY */
+    ALT_SDR_CTL_MPWT_raw_t  ctrlgrp_mpweight;       /* ALT_SDR_CTL_MPWT */
+    uint32_t                _pad_0xc0_0xdf[8];      /* *UNDEFINED* */
+    volatile uint32_t       remappriority;          /* ALT_SDR_CTL_REMAPPRIORITY */
+    uint32_t                _pad_0xe4_0x1000[967];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_SDR_CTL. */
@@ -4124,9 +4124,9 @@ typedef volatile struct ALT_SDR_CTL_raw_s  ALT_SDR_CTL_raw_t;
  */
 struct ALT_SDR_s
 {
-    volatile uint32_t       _pad_0x0_0x4fff[5120];       /* *UNDEFINED* */
-    volatile ALT_SDR_CTL_t  ctrlgrp;                     /* ALT_SDR_CTL */
-    volatile uint32_t       _pad_0x6000_0x20000[26624];  /* *UNDEFINED* */
+    volatile uint32_t  _pad_0x0_0x4fff[5120];       /* *UNDEFINED* */
+    ALT_SDR_CTL_t      ctrlgrp;                     /* ALT_SDR_CTL */
+    volatile uint32_t  _pad_0x6000_0x20000[26624];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_SDR. */
@@ -4134,9 +4134,9 @@ typedef volatile struct ALT_SDR_s  ALT_SDR_t;
 /* The struct declaration for the raw register contents of register group ALT_SDR. */
 struct ALT_SDR_raw_s
 {
-    volatile uint32_t           _pad_0x0_0x4fff[5120];       /* *UNDEFINED* */
-    volatile ALT_SDR_CTL_raw_t  ctrlgrp;                     /* ALT_SDR_CTL */
-    volatile uint32_t           _pad_0x6000_0x20000[26624];  /* *UNDEFINED* */
+    uint32_t           _pad_0x0_0x4fff[5120];       /* *UNDEFINED* */
+    ALT_SDR_CTL_raw_t  ctrlgrp;                     /* ALT_SDR_CTL */
+    uint32_t           _pad_0x6000_0x20000[26624];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_SDR. */

@@ -1,7 +1,3 @@
-/*! \file
- *  Altera - SoC Reset Manager
- */
-
 /******************************************************************************
 *
 * Copyright 2013 Altera Corporation. All Rights Reserved.
@@ -35,13 +31,17 @@
 ******************************************************************************/
 
 /*
- * $Id: //acds/rel/15.0/embedded/ip/hps/altera_hps/hwlib/include/alt_reset_manager.h#1 $
+ * $Id: //acds/rel/20.1std/embedded/ip/hps/altera_hps/hwlib/include/soc_cv_av/alt_reset_manager.h#1 $
+ */
+
+/*! \file
+ *  Altera - SoC Reset Manager
  */
 
 #ifndef __ALT_RESET_MGR_H__
 #define __ALT_RESET_MGR_H__
 
-#include "hwlib.h"
+#include "../hwlib.h"
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -49,7 +49,7 @@ extern "C"
 {
 #endif  /* __cplusplus */
 
-/*! \addtogroup RST_MGR The Reset Manager
+/*! \addtogroup RST_MGR Reset Manager
  *
  * The Reset Manager API defines functions for accessing, configuring, and
  * controlling the HPS reset behavior.

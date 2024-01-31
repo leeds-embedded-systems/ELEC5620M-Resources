@@ -9006,51 +9006,51 @@ typedef volatile struct ALT_SDMMC_DATA_s  ALT_SDMMC_DATA_t;
  */
 struct ALT_SDMMC_s
 {
-    volatile ALT_SDMMC_CTL_t               ctrl;                   /* ALT_SDMMC_CTL */
-    volatile ALT_SDMMC_PWREN_t             pwren;                  /* ALT_SDMMC_PWREN */
-    volatile ALT_SDMMC_CLKDIV_t            clkdiv;                 /* ALT_SDMMC_CLKDIV */
-    volatile ALT_SDMMC_CLKSRC_t            clksrc;                 /* ALT_SDMMC_CLKSRC */
-    volatile ALT_SDMMC_CLKENA_t            clkena;                 /* ALT_SDMMC_CLKENA */
-    volatile ALT_SDMMC_TMOUT_t             tmout;                  /* ALT_SDMMC_TMOUT */
-    volatile ALT_SDMMC_CTYPE_t             ctype;                  /* ALT_SDMMC_CTYPE */
-    volatile ALT_SDMMC_BLKSIZ_t            blksiz;                 /* ALT_SDMMC_BLKSIZ */
-    volatile ALT_SDMMC_BYTCNT_t            bytcnt;                 /* ALT_SDMMC_BYTCNT */
-    volatile ALT_SDMMC_INTMSK_t            intmask;                /* ALT_SDMMC_INTMSK */
-    volatile ALT_SDMMC_CMDARG_t            cmdarg;                 /* ALT_SDMMC_CMDARG */
-    volatile ALT_SDMMC_CMD_t               cmd;                    /* ALT_SDMMC_CMD */
-    volatile ALT_SDMMC_RESP0_t             resp0;                  /* ALT_SDMMC_RESP0 */
-    volatile ALT_SDMMC_RESP1_t             resp1;                  /* ALT_SDMMC_RESP1 */
-    volatile ALT_SDMMC_RESP2_t             resp2;                  /* ALT_SDMMC_RESP2 */
-    volatile ALT_SDMMC_RESP3_t             resp3;                  /* ALT_SDMMC_RESP3 */
-    volatile ALT_SDMMC_MINTSTS_t           mintsts;                /* ALT_SDMMC_MINTSTS */
-    volatile ALT_SDMMC_RINTSTS_t           rintsts;                /* ALT_SDMMC_RINTSTS */
-    volatile ALT_SDMMC_STAT_t              status;                 /* ALT_SDMMC_STAT */
-    volatile ALT_SDMMC_FIFOTH_t            fifoth;                 /* ALT_SDMMC_FIFOTH */
-    volatile ALT_SDMMC_CDETECT_t           cdetect;                /* ALT_SDMMC_CDETECT */
-    volatile ALT_SDMMC_WRTPRT_t            wrtprt;                 /* ALT_SDMMC_WRTPRT */
-    volatile uint32_t                      _pad_0x58_0x5b;         /* *UNDEFINED* */
-    volatile ALT_SDMMC_TCBCNT_t            tcbcnt;                 /* ALT_SDMMC_TCBCNT */
-    volatile ALT_SDMMC_TBBCNT_t            tbbcnt;                 /* ALT_SDMMC_TBBCNT */
-    volatile ALT_SDMMC_DEBNCE_t            debnce;                 /* ALT_SDMMC_DEBNCE */
-    volatile ALT_SDMMC_USRID_t             usrid;                  /* ALT_SDMMC_USRID */
-    volatile ALT_SDMMC_VERID_t             verid;                  /* ALT_SDMMC_VERID */
-    volatile ALT_SDMMC_HCON_t              hcon;                   /* ALT_SDMMC_HCON */
-    volatile ALT_SDMMC_UHS_REG_t           uhs_reg;                /* ALT_SDMMC_UHS_REG */
-    volatile ALT_SDMMC_RST_N_t             rst_n;                  /* ALT_SDMMC_RST_N */
-    volatile uint32_t                      _pad_0x7c_0x7f;         /* *UNDEFINED* */
-    volatile ALT_SDMMC_BMOD_t              bmod;                   /* ALT_SDMMC_BMOD */
-    volatile ALT_SDMMC_PLDMND_t            pldmnd;                 /* ALT_SDMMC_PLDMND */
-    volatile ALT_SDMMC_DBADDR_t            dbaddr;                 /* ALT_SDMMC_DBADDR */
-    volatile ALT_SDMMC_IDSTS_t             idsts;                  /* ALT_SDMMC_IDSTS */
-    volatile ALT_SDMMC_IDINTEN_t           idinten;                /* ALT_SDMMC_IDINTEN */
-    volatile ALT_SDMMC_DSCADDR_t           dscaddr;                /* ALT_SDMMC_DSCADDR */
-    volatile ALT_SDMMC_BUFADDR_t           bufaddr;                /* ALT_SDMMC_BUFADDR */
-    volatile uint32_t                      _pad_0x9c_0xff[25];     /* *UNDEFINED* */
-    volatile ALT_SDMMC_CARDTHRCTL_t        cardthrctl;             /* ALT_SDMMC_CARDTHRCTL */
-    volatile ALT_SDMMC_BACK_END_POWER_R_t  back_end_power_r;       /* ALT_SDMMC_BACK_END_POWER_R */
-    volatile uint32_t                      _pad_0x108_0x1ff[62];   /* *UNDEFINED* */
-    volatile ALT_SDMMC_DATA_t              data;                   /* ALT_SDMMC_DATA */
-    volatile uint32_t                      _pad_0x204_0x400[127];  /* *UNDEFINED* */
+    ALT_SDMMC_CTL_t               ctrl;                   /* ALT_SDMMC_CTL */
+    ALT_SDMMC_PWREN_t             pwren;                  /* ALT_SDMMC_PWREN */
+    ALT_SDMMC_CLKDIV_t            clkdiv;                 /* ALT_SDMMC_CLKDIV */
+    ALT_SDMMC_CLKSRC_t            clksrc;                 /* ALT_SDMMC_CLKSRC */
+    ALT_SDMMC_CLKENA_t            clkena;                 /* ALT_SDMMC_CLKENA */
+    ALT_SDMMC_TMOUT_t             tmout;                  /* ALT_SDMMC_TMOUT */
+    ALT_SDMMC_CTYPE_t             ctype;                  /* ALT_SDMMC_CTYPE */
+    ALT_SDMMC_BLKSIZ_t            blksiz;                 /* ALT_SDMMC_BLKSIZ */
+    ALT_SDMMC_BYTCNT_t            bytcnt;                 /* ALT_SDMMC_BYTCNT */
+    ALT_SDMMC_INTMSK_t            intmask;                /* ALT_SDMMC_INTMSK */
+    ALT_SDMMC_CMDARG_t            cmdarg;                 /* ALT_SDMMC_CMDARG */
+    ALT_SDMMC_CMD_t               cmd;                    /* ALT_SDMMC_CMD */
+    ALT_SDMMC_RESP0_t             resp0;                  /* ALT_SDMMC_RESP0 */
+    ALT_SDMMC_RESP1_t             resp1;                  /* ALT_SDMMC_RESP1 */
+    ALT_SDMMC_RESP2_t             resp2;                  /* ALT_SDMMC_RESP2 */
+    ALT_SDMMC_RESP3_t             resp3;                  /* ALT_SDMMC_RESP3 */
+    ALT_SDMMC_MINTSTS_t           mintsts;                /* ALT_SDMMC_MINTSTS */
+    ALT_SDMMC_RINTSTS_t           rintsts;                /* ALT_SDMMC_RINTSTS */
+    ALT_SDMMC_STAT_t              status;                 /* ALT_SDMMC_STAT */
+    ALT_SDMMC_FIFOTH_t            fifoth;                 /* ALT_SDMMC_FIFOTH */
+    ALT_SDMMC_CDETECT_t           cdetect;                /* ALT_SDMMC_CDETECT */
+    ALT_SDMMC_WRTPRT_t            wrtprt;                 /* ALT_SDMMC_WRTPRT */
+    volatile uint32_t             _pad_0x58_0x5b;         /* *UNDEFINED* */
+    ALT_SDMMC_TCBCNT_t            tcbcnt;                 /* ALT_SDMMC_TCBCNT */
+    ALT_SDMMC_TBBCNT_t            tbbcnt;                 /* ALT_SDMMC_TBBCNT */
+    ALT_SDMMC_DEBNCE_t            debnce;                 /* ALT_SDMMC_DEBNCE */
+    ALT_SDMMC_USRID_t             usrid;                  /* ALT_SDMMC_USRID */
+    ALT_SDMMC_VERID_t             verid;                  /* ALT_SDMMC_VERID */
+    ALT_SDMMC_HCON_t              hcon;                   /* ALT_SDMMC_HCON */
+    ALT_SDMMC_UHS_REG_t           uhs_reg;                /* ALT_SDMMC_UHS_REG */
+    ALT_SDMMC_RST_N_t             rst_n;                  /* ALT_SDMMC_RST_N */
+    volatile uint32_t             _pad_0x7c_0x7f;         /* *UNDEFINED* */
+    ALT_SDMMC_BMOD_t              bmod;                   /* ALT_SDMMC_BMOD */
+    ALT_SDMMC_PLDMND_t            pldmnd;                 /* ALT_SDMMC_PLDMND */
+    ALT_SDMMC_DBADDR_t            dbaddr;                 /* ALT_SDMMC_DBADDR */
+    ALT_SDMMC_IDSTS_t             idsts;                  /* ALT_SDMMC_IDSTS */
+    ALT_SDMMC_IDINTEN_t           idinten;                /* ALT_SDMMC_IDINTEN */
+    ALT_SDMMC_DSCADDR_t           dscaddr;                /* ALT_SDMMC_DSCADDR */
+    ALT_SDMMC_BUFADDR_t           bufaddr;                /* ALT_SDMMC_BUFADDR */
+    volatile uint32_t             _pad_0x9c_0xff[25];     /* *UNDEFINED* */
+    ALT_SDMMC_CARDTHRCTL_t        cardthrctl;             /* ALT_SDMMC_CARDTHRCTL */
+    ALT_SDMMC_BACK_END_POWER_R_t  back_end_power_r;       /* ALT_SDMMC_BACK_END_POWER_R */
+    volatile uint32_t             _pad_0x108_0x1ff[62];   /* *UNDEFINED* */
+    ALT_SDMMC_DATA_t              data;                   /* ALT_SDMMC_DATA */
+    volatile uint32_t             _pad_0x204_0x400[127];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_SDMMC. */
@@ -9080,7 +9080,7 @@ struct ALT_SDMMC_raw_s
     volatile uint32_t  fifoth;                 /* ALT_SDMMC_FIFOTH */
     volatile uint32_t  cdetect;                /* ALT_SDMMC_CDETECT */
     volatile uint32_t  wrtprt;                 /* ALT_SDMMC_WRTPRT */
-    volatile uint32_t  _pad_0x58_0x5b;         /* *UNDEFINED* */
+    uint32_t           _pad_0x58_0x5b;         /* *UNDEFINED* */
     volatile uint32_t  tcbcnt;                 /* ALT_SDMMC_TCBCNT */
     volatile uint32_t  tbbcnt;                 /* ALT_SDMMC_TBBCNT */
     volatile uint32_t  debnce;                 /* ALT_SDMMC_DEBNCE */
@@ -9089,7 +9089,7 @@ struct ALT_SDMMC_raw_s
     volatile uint32_t  hcon;                   /* ALT_SDMMC_HCON */
     volatile uint32_t  uhs_reg;                /* ALT_SDMMC_UHS_REG */
     volatile uint32_t  rst_n;                  /* ALT_SDMMC_RST_N */
-    volatile uint32_t  _pad_0x7c_0x7f;         /* *UNDEFINED* */
+    uint32_t           _pad_0x7c_0x7f;         /* *UNDEFINED* */
     volatile uint32_t  bmod;                   /* ALT_SDMMC_BMOD */
     volatile uint32_t  pldmnd;                 /* ALT_SDMMC_PLDMND */
     volatile uint32_t  dbaddr;                 /* ALT_SDMMC_DBADDR */
@@ -9097,12 +9097,12 @@ struct ALT_SDMMC_raw_s
     volatile uint32_t  idinten;                /* ALT_SDMMC_IDINTEN */
     volatile uint32_t  dscaddr;                /* ALT_SDMMC_DSCADDR */
     volatile uint32_t  bufaddr;                /* ALT_SDMMC_BUFADDR */
-    volatile uint32_t  _pad_0x9c_0xff[25];     /* *UNDEFINED* */
+    uint32_t           _pad_0x9c_0xff[25];     /* *UNDEFINED* */
     volatile uint32_t  cardthrctl;             /* ALT_SDMMC_CARDTHRCTL */
     volatile uint32_t  back_end_power_r;       /* ALT_SDMMC_BACK_END_POWER_R */
-    volatile uint32_t  _pad_0x108_0x1ff[62];   /* *UNDEFINED* */
+    uint32_t           _pad_0x108_0x1ff[62];   /* *UNDEFINED* */
     volatile uint32_t  data;                   /* ALT_SDMMC_DATA */
-    volatile uint32_t  _pad_0x204_0x400[127];  /* *UNDEFINED* */
+    uint32_t           _pad_0x204_0x400[127];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_SDMMC. */

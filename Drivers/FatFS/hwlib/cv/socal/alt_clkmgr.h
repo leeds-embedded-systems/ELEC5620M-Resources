@@ -3070,21 +3070,21 @@ typedef volatile struct ALT_CLKMGR_MAINPLL_STAT_s  ALT_CLKMGR_MAINPLL_STAT_t;
  */
 struct ALT_CLKMGR_MAINPLL_s
 {
-    volatile ALT_CLKMGR_MAINPLL_VCO_t               vco;                /* ALT_CLKMGR_MAINPLL_VCO */
-    volatile ALT_CLKMGR_MAINPLL_MISC_t              misc;               /* ALT_CLKMGR_MAINPLL_MISC */
-    volatile ALT_CLKMGR_MAINPLL_MPUCLK_t            mpuclk;             /* ALT_CLKMGR_MAINPLL_MPUCLK */
-    volatile ALT_CLKMGR_MAINPLL_MAINCLK_t           mainclk;            /* ALT_CLKMGR_MAINPLL_MAINCLK */
-    volatile ALT_CLKMGR_MAINPLL_DBGATCLK_t          dbgatclk;           /* ALT_CLKMGR_MAINPLL_DBGATCLK */
-    volatile ALT_CLKMGR_MAINPLL_MAINQSPICLK_t       mainqspiclk;        /* ALT_CLKMGR_MAINPLL_MAINQSPICLK */
-    volatile ALT_CLKMGR_MAINPLL_MAINNANDSDMMCCLK_t  mainnandsdmmcclk;   /* ALT_CLKMGR_MAINPLL_MAINNANDSDMMCCLK */
-    volatile ALT_CLKMGR_MAINPLL_CFGS2FUSER0CLK_t    cfgs2fuser0clk;     /* ALT_CLKMGR_MAINPLL_CFGS2FUSER0CLK */
-    volatile ALT_CLKMGR_MAINPLL_EN_t                en;                 /* ALT_CLKMGR_MAINPLL_EN */
-    volatile ALT_CLKMGR_MAINPLL_MAINDIV_t           maindiv;            /* ALT_CLKMGR_MAINPLL_MAINDIV */
-    volatile ALT_CLKMGR_MAINPLL_DBGDIV_t            dbgdiv;             /* ALT_CLKMGR_MAINPLL_DBGDIV */
-    volatile ALT_CLKMGR_MAINPLL_TRACEDIV_t          tracediv;           /* ALT_CLKMGR_MAINPLL_TRACEDIV */
-    volatile ALT_CLKMGR_MAINPLL_L4SRC_t             l4src;              /* ALT_CLKMGR_MAINPLL_L4SRC */
-    volatile ALT_CLKMGR_MAINPLL_STAT_t              stat;               /* ALT_CLKMGR_MAINPLL_STAT */
-    volatile uint32_t                               _pad_0x38_0x40[2];  /* *UNDEFINED* */
+    ALT_CLKMGR_MAINPLL_VCO_t               vco;                /* ALT_CLKMGR_MAINPLL_VCO */
+    ALT_CLKMGR_MAINPLL_MISC_t              misc;               /* ALT_CLKMGR_MAINPLL_MISC */
+    ALT_CLKMGR_MAINPLL_MPUCLK_t            mpuclk;             /* ALT_CLKMGR_MAINPLL_MPUCLK */
+    ALT_CLKMGR_MAINPLL_MAINCLK_t           mainclk;            /* ALT_CLKMGR_MAINPLL_MAINCLK */
+    ALT_CLKMGR_MAINPLL_DBGATCLK_t          dbgatclk;           /* ALT_CLKMGR_MAINPLL_DBGATCLK */
+    ALT_CLKMGR_MAINPLL_MAINQSPICLK_t       mainqspiclk;        /* ALT_CLKMGR_MAINPLL_MAINQSPICLK */
+    ALT_CLKMGR_MAINPLL_MAINNANDSDMMCCLK_t  mainnandsdmmcclk;   /* ALT_CLKMGR_MAINPLL_MAINNANDSDMMCCLK */
+    ALT_CLKMGR_MAINPLL_CFGS2FUSER0CLK_t    cfgs2fuser0clk;     /* ALT_CLKMGR_MAINPLL_CFGS2FUSER0CLK */
+    ALT_CLKMGR_MAINPLL_EN_t                en;                 /* ALT_CLKMGR_MAINPLL_EN */
+    ALT_CLKMGR_MAINPLL_MAINDIV_t           maindiv;            /* ALT_CLKMGR_MAINPLL_MAINDIV */
+    ALT_CLKMGR_MAINPLL_DBGDIV_t            dbgdiv;             /* ALT_CLKMGR_MAINPLL_DBGDIV */
+    ALT_CLKMGR_MAINPLL_TRACEDIV_t          tracediv;           /* ALT_CLKMGR_MAINPLL_TRACEDIV */
+    ALT_CLKMGR_MAINPLL_L4SRC_t             l4src;              /* ALT_CLKMGR_MAINPLL_L4SRC */
+    ALT_CLKMGR_MAINPLL_STAT_t              stat;               /* ALT_CLKMGR_MAINPLL_STAT */
+    volatile uint32_t                      _pad_0x38_0x40[2];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_CLKMGR_MAINPLL. */
@@ -3106,7 +3106,7 @@ struct ALT_CLKMGR_MAINPLL_raw_s
     volatile uint32_t  tracediv;           /* ALT_CLKMGR_MAINPLL_TRACEDIV */
     volatile uint32_t  l4src;              /* ALT_CLKMGR_MAINPLL_L4SRC */
     volatile uint32_t  stat;               /* ALT_CLKMGR_MAINPLL_STAT */
-    volatile uint32_t  _pad_0x38_0x40[2];  /* *UNDEFINED* */
+    uint32_t           _pad_0x38_0x40[2];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_CLKMGR_MAINPLL. */
@@ -5168,20 +5168,20 @@ typedef volatile struct ALT_CLKMGR_PERPLL_STAT_s  ALT_CLKMGR_PERPLL_STAT_t;
  */
 struct ALT_CLKMGR_PERPLL_s
 {
-    volatile ALT_CLKMGR_PERPLL_VCO_t              vco;                /* ALT_CLKMGR_PERPLL_VCO */
-    volatile ALT_CLKMGR_PERPLL_MISC_t             misc;               /* ALT_CLKMGR_PERPLL_MISC */
-    volatile ALT_CLKMGR_PERPLL_EMAC0CLK_t         emac0clk;           /* ALT_CLKMGR_PERPLL_EMAC0CLK */
-    volatile ALT_CLKMGR_PERPLL_EMAC1CLK_t         emac1clk;           /* ALT_CLKMGR_PERPLL_EMAC1CLK */
-    volatile ALT_CLKMGR_PERPLL_PERQSPICLK_t       perqspiclk;         /* ALT_CLKMGR_PERPLL_PERQSPICLK */
-    volatile ALT_CLKMGR_PERPLL_PERNANDSDMMCCLK_t  pernandsdmmcclk;    /* ALT_CLKMGR_PERPLL_PERNANDSDMMCCLK */
-    volatile ALT_CLKMGR_PERPLL_PERBASECLK_t       perbaseclk;         /* ALT_CLKMGR_PERPLL_PERBASECLK */
-    volatile ALT_CLKMGR_PERPLL_S2FUSER1CLK_t      s2fuser1clk;        /* ALT_CLKMGR_PERPLL_S2FUSER1CLK */
-    volatile ALT_CLKMGR_PERPLL_EN_t               en;                 /* ALT_CLKMGR_PERPLL_EN */
-    volatile ALT_CLKMGR_PERPLL_DIV_t              div;                /* ALT_CLKMGR_PERPLL_DIV */
-    volatile ALT_CLKMGR_PERPLL_GPIODIV_t          gpiodiv;            /* ALT_CLKMGR_PERPLL_GPIODIV */
-    volatile ALT_CLKMGR_PERPLL_SRC_t              src;                /* ALT_CLKMGR_PERPLL_SRC */
-    volatile ALT_CLKMGR_PERPLL_STAT_t             stat;               /* ALT_CLKMGR_PERPLL_STAT */
-    volatile uint32_t                             _pad_0x34_0x40[3];  /* *UNDEFINED* */
+    ALT_CLKMGR_PERPLL_VCO_t              vco;                /* ALT_CLKMGR_PERPLL_VCO */
+    ALT_CLKMGR_PERPLL_MISC_t             misc;               /* ALT_CLKMGR_PERPLL_MISC */
+    ALT_CLKMGR_PERPLL_EMAC0CLK_t         emac0clk;           /* ALT_CLKMGR_PERPLL_EMAC0CLK */
+    ALT_CLKMGR_PERPLL_EMAC1CLK_t         emac1clk;           /* ALT_CLKMGR_PERPLL_EMAC1CLK */
+    ALT_CLKMGR_PERPLL_PERQSPICLK_t       perqspiclk;         /* ALT_CLKMGR_PERPLL_PERQSPICLK */
+    ALT_CLKMGR_PERPLL_PERNANDSDMMCCLK_t  pernandsdmmcclk;    /* ALT_CLKMGR_PERPLL_PERNANDSDMMCCLK */
+    ALT_CLKMGR_PERPLL_PERBASECLK_t       perbaseclk;         /* ALT_CLKMGR_PERPLL_PERBASECLK */
+    ALT_CLKMGR_PERPLL_S2FUSER1CLK_t      s2fuser1clk;        /* ALT_CLKMGR_PERPLL_S2FUSER1CLK */
+    ALT_CLKMGR_PERPLL_EN_t               en;                 /* ALT_CLKMGR_PERPLL_EN */
+    ALT_CLKMGR_PERPLL_DIV_t              div;                /* ALT_CLKMGR_PERPLL_DIV */
+    ALT_CLKMGR_PERPLL_GPIODIV_t          gpiodiv;            /* ALT_CLKMGR_PERPLL_GPIODIV */
+    ALT_CLKMGR_PERPLL_SRC_t              src;                /* ALT_CLKMGR_PERPLL_SRC */
+    ALT_CLKMGR_PERPLL_STAT_t             stat;               /* ALT_CLKMGR_PERPLL_STAT */
+    volatile uint32_t                    _pad_0x34_0x40[3];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_CLKMGR_PERPLL. */
@@ -5202,7 +5202,7 @@ struct ALT_CLKMGR_PERPLL_raw_s
     volatile uint32_t  gpiodiv;            /* ALT_CLKMGR_PERPLL_GPIODIV */
     volatile uint32_t  src;                /* ALT_CLKMGR_PERPLL_SRC */
     volatile uint32_t  stat;               /* ALT_CLKMGR_PERPLL_STAT */
-    volatile uint32_t  _pad_0x34_0x40[3];  /* *UNDEFINED* */
+    uint32_t           _pad_0x34_0x40[3];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_CLKMGR_PERPLL. */
@@ -6380,14 +6380,14 @@ typedef volatile struct ALT_CLKMGR_SDRPLL_STAT_s  ALT_CLKMGR_SDRPLL_STAT_t;
  */
 struct ALT_CLKMGR_SDRPLL_s
 {
-    volatile ALT_CLKMGR_SDRPLL_VCO_t          vco;          /* ALT_CLKMGR_SDRPLL_VCO */
-    volatile ALT_CLKMGR_SDRPLL_CTL_t          ctrl;         /* ALT_CLKMGR_SDRPLL_CTL */
-    volatile ALT_CLKMGR_SDRPLL_DDRDQSCLK_t    ddrdqsclk;    /* ALT_CLKMGR_SDRPLL_DDRDQSCLK */
-    volatile ALT_CLKMGR_SDRPLL_DDR2XDQSCLK_t  ddr2xdqsclk;  /* ALT_CLKMGR_SDRPLL_DDR2XDQSCLK */
-    volatile ALT_CLKMGR_SDRPLL_DDRDQCLK_t     ddrdqclk;     /* ALT_CLKMGR_SDRPLL_DDRDQCLK */
-    volatile ALT_CLKMGR_SDRPLL_S2FUSER2CLK_t  s2fuser2clk;  /* ALT_CLKMGR_SDRPLL_S2FUSER2CLK */
-    volatile ALT_CLKMGR_SDRPLL_EN_t           en;           /* ALT_CLKMGR_SDRPLL_EN */
-    volatile ALT_CLKMGR_SDRPLL_STAT_t         stat;         /* ALT_CLKMGR_SDRPLL_STAT */
+    ALT_CLKMGR_SDRPLL_VCO_t          vco;          /* ALT_CLKMGR_SDRPLL_VCO */
+    ALT_CLKMGR_SDRPLL_CTL_t          ctrl;         /* ALT_CLKMGR_SDRPLL_CTL */
+    ALT_CLKMGR_SDRPLL_DDRDQSCLK_t    ddrdqsclk;    /* ALT_CLKMGR_SDRPLL_DDRDQSCLK */
+    ALT_CLKMGR_SDRPLL_DDR2XDQSCLK_t  ddr2xdqsclk;  /* ALT_CLKMGR_SDRPLL_DDR2XDQSCLK */
+    ALT_CLKMGR_SDRPLL_DDRDQCLK_t     ddrdqclk;     /* ALT_CLKMGR_SDRPLL_DDRDQCLK */
+    ALT_CLKMGR_SDRPLL_S2FUSER2CLK_t  s2fuser2clk;  /* ALT_CLKMGR_SDRPLL_S2FUSER2CLK */
+    ALT_CLKMGR_SDRPLL_EN_t           en;           /* ALT_CLKMGR_SDRPLL_EN */
+    ALT_CLKMGR_SDRPLL_STAT_t         stat;         /* ALT_CLKMGR_SDRPLL_STAT */
 };
 
 /* The typedef declaration for register group ALT_CLKMGR_SDRPLL. */
@@ -6625,10 +6625,10 @@ typedef volatile struct ALT_CLKMGR_MISC_DBGATCLK_s  ALT_CLKMGR_MISC_DBGATCLK_t;
  */
 struct ALT_CLKMGR_MISCGRP_s
 {
-    volatile ALT_CLKMGR_MISC_MPUCLK_t    mpuclk;            /* ALT_CLKMGR_MISC_MPUCLK */
-    volatile ALT_CLKMGR_MISC_MAINCLK_t   mainclk;           /* ALT_CLKMGR_MISC_MAINCLK */
-    volatile ALT_CLKMGR_MISC_DBGATCLK_t  dbgatclk;          /* ALT_CLKMGR_MISC_DBGATCLK */
-    volatile uint32_t                    _pad_0xc_0x20[5];  /* *UNDEFINED* */
+    ALT_CLKMGR_MISC_MPUCLK_t    mpuclk;            /* ALT_CLKMGR_MISC_MPUCLK */
+    ALT_CLKMGR_MISC_MAINCLK_t   mainclk;           /* ALT_CLKMGR_MISC_MAINCLK */
+    ALT_CLKMGR_MISC_DBGATCLK_t  dbgatclk;          /* ALT_CLKMGR_MISC_DBGATCLK */
+    volatile uint32_t           _pad_0xc_0x20[5];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_CLKMGR_MISCGRP. */
@@ -6639,7 +6639,7 @@ struct ALT_CLKMGR_MISCGRP_raw_s
     volatile uint32_t  mpuclk;            /* ALT_CLKMGR_MISC_MPUCLK */
     volatile uint32_t  mainclk;           /* ALT_CLKMGR_MISC_MAINCLK */
     volatile uint32_t  dbgatclk;          /* ALT_CLKMGR_MISC_DBGATCLK */
-    volatile uint32_t  _pad_0xc_0x20[5];  /* *UNDEFINED* */
+    uint32_t           _pad_0xc_0x20[5];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_CLKMGR_MISCGRP. */
@@ -6660,18 +6660,18 @@ typedef volatile struct ALT_CLKMGR_MISCGRP_raw_s  ALT_CLKMGR_MISCGRP_raw_t;
  */
 struct ALT_CLKMGR_s
 {
-    volatile ALT_CLKMGR_CTL_t      ctrl;                  /* ALT_CLKMGR_CTL */
-    volatile ALT_CLKMGR_BYPASS_t   bypass;                /* ALT_CLKMGR_BYPASS */
-    volatile ALT_CLKMGR_INTER_t    inter;                 /* ALT_CLKMGR_INTER */
-    volatile ALT_CLKMGR_INTREN_t   intren;                /* ALT_CLKMGR_INTREN */
-    volatile ALT_CLKMGR_DBCTL_t    dbctrl;                /* ALT_CLKMGR_DBCTL */
-    volatile ALT_CLKMGR_STAT_t     stat;                  /* ALT_CLKMGR_STAT */
-    volatile uint32_t              _pad_0x18_0x3f[10];    /* *UNDEFINED* */
-    volatile ALT_CLKMGR_MAINPLL_t  mainpllgrp;            /* ALT_CLKMGR_MAINPLL */
-    volatile ALT_CLKMGR_PERPLL_t   perpllgrp;             /* ALT_CLKMGR_PERPLL */
-    volatile ALT_CLKMGR_SDRPLL_t   sdrpllgrp;             /* ALT_CLKMGR_SDRPLL */
-    volatile ALT_CLKMGR_MISCGRP_t  miscgrp;               /* ALT_CLKMGR_MISCGRP */
-    volatile uint32_t              _pad_0x100_0x200[64];  /* *UNDEFINED* */
+    ALT_CLKMGR_CTL_t      ctrl;                  /* ALT_CLKMGR_CTL */
+    ALT_CLKMGR_BYPASS_t   bypass;                /* ALT_CLKMGR_BYPASS */
+    ALT_CLKMGR_INTER_t    inter;                 /* ALT_CLKMGR_INTER */
+    ALT_CLKMGR_INTREN_t   intren;                /* ALT_CLKMGR_INTREN */
+    ALT_CLKMGR_DBCTL_t    dbctrl;                /* ALT_CLKMGR_DBCTL */
+    ALT_CLKMGR_STAT_t     stat;                  /* ALT_CLKMGR_STAT */
+    volatile uint32_t     _pad_0x18_0x3f[10];    /* *UNDEFINED* */
+    ALT_CLKMGR_MAINPLL_t  mainpllgrp;            /* ALT_CLKMGR_MAINPLL */
+    ALT_CLKMGR_PERPLL_t   perpllgrp;             /* ALT_CLKMGR_PERPLL */
+    ALT_CLKMGR_SDRPLL_t   sdrpllgrp;             /* ALT_CLKMGR_SDRPLL */
+    ALT_CLKMGR_MISCGRP_t  miscgrp;               /* ALT_CLKMGR_MISCGRP */
+    volatile uint32_t     _pad_0x100_0x200[64];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_CLKMGR. */
@@ -6679,18 +6679,18 @@ typedef volatile struct ALT_CLKMGR_s  ALT_CLKMGR_t;
 /* The struct declaration for the raw register contents of register group ALT_CLKMGR. */
 struct ALT_CLKMGR_raw_s
 {
-    volatile uint32_t                  ctrl;                  /* ALT_CLKMGR_CTL */
-    volatile uint32_t                  bypass;                /* ALT_CLKMGR_BYPASS */
-    volatile uint32_t                  inter;                 /* ALT_CLKMGR_INTER */
-    volatile uint32_t                  intren;                /* ALT_CLKMGR_INTREN */
-    volatile uint32_t                  dbctrl;                /* ALT_CLKMGR_DBCTL */
-    volatile uint32_t                  stat;                  /* ALT_CLKMGR_STAT */
-    volatile uint32_t                  _pad_0x18_0x3f[10];    /* *UNDEFINED* */
-    volatile ALT_CLKMGR_MAINPLL_raw_t  mainpllgrp;            /* ALT_CLKMGR_MAINPLL */
-    volatile ALT_CLKMGR_PERPLL_raw_t   perpllgrp;             /* ALT_CLKMGR_PERPLL */
-    volatile ALT_CLKMGR_SDRPLL_raw_t   sdrpllgrp;             /* ALT_CLKMGR_SDRPLL */
-    volatile ALT_CLKMGR_MISCGRP_raw_t  miscgrp;               /* ALT_CLKMGR_MISCGRP */
-    volatile uint32_t                  _pad_0x100_0x200[64];  /* *UNDEFINED* */
+    volatile uint32_t         ctrl;                  /* ALT_CLKMGR_CTL */
+    volatile uint32_t         bypass;                /* ALT_CLKMGR_BYPASS */
+    volatile uint32_t         inter;                 /* ALT_CLKMGR_INTER */
+    volatile uint32_t         intren;                /* ALT_CLKMGR_INTREN */
+    volatile uint32_t         dbctrl;                /* ALT_CLKMGR_DBCTL */
+    volatile uint32_t         stat;                  /* ALT_CLKMGR_STAT */
+    uint32_t                  _pad_0x18_0x3f[10];    /* *UNDEFINED* */
+    ALT_CLKMGR_MAINPLL_raw_t  mainpllgrp;            /* ALT_CLKMGR_MAINPLL */
+    ALT_CLKMGR_PERPLL_raw_t   perpllgrp;             /* ALT_CLKMGR_PERPLL */
+    ALT_CLKMGR_SDRPLL_raw_t   sdrpllgrp;             /* ALT_CLKMGR_SDRPLL */
+    ALT_CLKMGR_MISCGRP_raw_t  miscgrp;               /* ALT_CLKMGR_MISCGRP */
+    uint32_t                  _pad_0x100_0x200[64];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_CLKMGR. */

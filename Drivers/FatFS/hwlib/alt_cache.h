@@ -31,7 +31,7 @@
 ******************************************************************************/
 
 /*
- * $Id: //acds/rel/15.0/embedded/ip/hps/altera_hps/hwlib/include/alt_cache.h#1 $
+ * $Id: //acds/rel/20.1std/embedded/ip/hps/altera_hps/hwlib/include/alt_cache.h#1 $
  */
 
 #ifndef __ALT_CACHE_H__
@@ -941,6 +941,14 @@ ALT_STATUS_CODE alt_cache_l2_int_disable(uint32_t interrupt);
  */
 uint32_t alt_cache_l2_int_status_get(void);
 
+/*!
+ * Gets the raw interrupt status conditions irrespective of the interrupt
+ * status condition enablement state.
+ *
+ * \returns     A register mask of the currently asserted interrupt conditions.
+ */
+uint32_t alt_cache_l2_int_raw_status_get(void);
+    
 /*!
  * Clears the specified conditon(s) causing the L2 cache controller to
  * interrupt as a mask. Condition(s) specified which are not causing an

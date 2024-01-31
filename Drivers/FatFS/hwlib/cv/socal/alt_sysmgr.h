@@ -1947,10 +1947,10 @@ typedef volatile struct ALT_SYSMGR_FPGAINTF_MODULE_s  ALT_SYSMGR_FPGAINTF_MODULE
  */
 struct ALT_SYSMGR_FPGAINTF_s
 {
-    volatile ALT_SYSMGR_FPGAINTF_GBL_t     gbl;            /* ALT_SYSMGR_FPGAINTF_GBL */
-    volatile ALT_SYSMGR_FPGAINTF_INDIV_t   indiv;          /* ALT_SYSMGR_FPGAINTF_INDIV */
-    volatile ALT_SYSMGR_FPGAINTF_MODULE_t  module;         /* ALT_SYSMGR_FPGAINTF_MODULE */
-    volatile uint32_t                      _pad_0xc_0x10;  /* *UNDEFINED* */
+    ALT_SYSMGR_FPGAINTF_GBL_t     gbl;            /* ALT_SYSMGR_FPGAINTF_GBL */
+    ALT_SYSMGR_FPGAINTF_INDIV_t   indiv;          /* ALT_SYSMGR_FPGAINTF_INDIV */
+    ALT_SYSMGR_FPGAINTF_MODULE_t  module;         /* ALT_SYSMGR_FPGAINTF_MODULE */
+    volatile uint32_t             _pad_0xc_0x10;  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_SYSMGR_FPGAINTF. */
@@ -1961,7 +1961,7 @@ struct ALT_SYSMGR_FPGAINTF_raw_s
     volatile uint32_t  gbl;            /* ALT_SYSMGR_FPGAINTF_GBL */
     volatile uint32_t  indiv;          /* ALT_SYSMGR_FPGAINTF_INDIV */
     volatile uint32_t  module;         /* ALT_SYSMGR_FPGAINTF_MODULE */
-    volatile uint32_t  _pad_0xc_0x10;  /* *UNDEFINED* */
+    uint32_t           _pad_0xc_0x10;  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_SYSMGR_FPGAINTF. */
@@ -2075,7 +2075,7 @@ typedef volatile struct ALT_SYSMGR_SCANMGR_CTL_s  ALT_SYSMGR_SCANMGR_CTL_t;
  */
 struct ALT_SYSMGR_SCANMGR_s
 {
-    volatile ALT_SYSMGR_SCANMGR_CTL_t  ctrl;  /* ALT_SYSMGR_SCANMGR_CTL */
+    ALT_SYSMGR_SCANMGR_CTL_t  ctrl;  /* ALT_SYSMGR_SCANMGR_CTL */
 };
 
 /* The typedef declaration for register group ALT_SYSMGR_SCANMGR. */
@@ -3141,12 +3141,12 @@ typedef volatile struct ALT_SYSMGR_FRZCTL_HWCTL_s  ALT_SYSMGR_FRZCTL_HWCTL_t;
  */
 struct ALT_SYSMGR_FRZCTL_s
 {
-    volatile ALT_SYSMGR_FRZCTL_VIOCTL_t  vioctrl[3];      /* ALT_SYSMGR_FRZCTL_VIOCTL */
-    volatile uint32_t                    _pad_0xc_0xf;    /* *UNDEFINED* */
-    volatile ALT_SYSMGR_FRZCTL_HIOCTL_t  hioctrl;         /* ALT_SYSMGR_FRZCTL_HIOCTL */
-    volatile ALT_SYSMGR_FRZCTL_SRC_t     src;             /* ALT_SYSMGR_FRZCTL_SRC */
-    volatile ALT_SYSMGR_FRZCTL_HWCTL_t   hwctrl;          /* ALT_SYSMGR_FRZCTL_HWCTL */
-    volatile uint32_t                    _pad_0x1c_0x20;  /* *UNDEFINED* */
+    ALT_SYSMGR_FRZCTL_VIOCTL_t  vioctrl[3];      /* ALT_SYSMGR_FRZCTL_VIOCTL */
+    volatile uint32_t           _pad_0xc_0xf;    /* *UNDEFINED* */
+    ALT_SYSMGR_FRZCTL_HIOCTL_t  hioctrl;         /* ALT_SYSMGR_FRZCTL_HIOCTL */
+    ALT_SYSMGR_FRZCTL_SRC_t     src;             /* ALT_SYSMGR_FRZCTL_SRC */
+    ALT_SYSMGR_FRZCTL_HWCTL_t   hwctrl;          /* ALT_SYSMGR_FRZCTL_HWCTL */
+    volatile uint32_t           _pad_0x1c_0x20;  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_SYSMGR_FRZCTL. */
@@ -3155,11 +3155,11 @@ typedef volatile struct ALT_SYSMGR_FRZCTL_s  ALT_SYSMGR_FRZCTL_t;
 struct ALT_SYSMGR_FRZCTL_raw_s
 {
     volatile uint32_t  vioctrl[3];      /* ALT_SYSMGR_FRZCTL_VIOCTL */
-    volatile uint32_t  _pad_0xc_0xf;    /* *UNDEFINED* */
+    uint32_t           _pad_0xc_0xf;    /* *UNDEFINED* */
     volatile uint32_t  hioctrl;         /* ALT_SYSMGR_FRZCTL_HIOCTL */
     volatile uint32_t  src;             /* ALT_SYSMGR_FRZCTL_SRC */
     volatile uint32_t  hwctrl;          /* ALT_SYSMGR_FRZCTL_HWCTL */
-    volatile uint32_t  _pad_0x1c_0x20;  /* *UNDEFINED* */
+    uint32_t           _pad_0x1c_0x20;  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_SYSMGR_FRZCTL. */
@@ -4073,9 +4073,9 @@ typedef volatile struct ALT_SYSMGR_EMAC_L3MST_s  ALT_SYSMGR_EMAC_L3MST_t;
  */
 struct ALT_SYSMGR_EMAC_s
 {
-    volatile ALT_SYSMGR_EMAC_CTL_t    ctrl;              /* ALT_SYSMGR_EMAC_CTL */
-    volatile ALT_SYSMGR_EMAC_L3MST_t  l3master;          /* ALT_SYSMGR_EMAC_L3MST */
-    volatile uint32_t                 _pad_0x8_0x10[2];  /* *UNDEFINED* */
+    ALT_SYSMGR_EMAC_CTL_t    ctrl;              /* ALT_SYSMGR_EMAC_CTL */
+    ALT_SYSMGR_EMAC_L3MST_t  l3master;          /* ALT_SYSMGR_EMAC_L3MST */
+    volatile uint32_t        _pad_0x8_0x10[2];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_SYSMGR_EMAC. */
@@ -4085,7 +4085,7 @@ struct ALT_SYSMGR_EMAC_raw_s
 {
     volatile uint32_t  ctrl;              /* ALT_SYSMGR_EMAC_CTL */
     volatile uint32_t  l3master;          /* ALT_SYSMGR_EMAC_L3MST */
-    volatile uint32_t  _pad_0x8_0x10[2];  /* *UNDEFINED* */
+    uint32_t           _pad_0x8_0x10[2];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_SYSMGR_EMAC. */
@@ -4486,8 +4486,8 @@ typedef volatile struct ALT_SYSMGR_DMA_PERSECURITY_s  ALT_SYSMGR_DMA_PERSECURITY
  */
 struct ALT_SYSMGR_DMA_s
 {
-    volatile ALT_SYSMGR_DMA_CTL_t          ctrl;         /* ALT_SYSMGR_DMA_CTL */
-    volatile ALT_SYSMGR_DMA_PERSECURITY_t  persecurity;  /* ALT_SYSMGR_DMA_PERSECURITY */
+    ALT_SYSMGR_DMA_CTL_t          ctrl;         /* ALT_SYSMGR_DMA_CTL */
+    ALT_SYSMGR_DMA_PERSECURITY_t  persecurity;  /* ALT_SYSMGR_DMA_PERSECURITY */
 };
 
 /* The typedef declaration for register group ALT_SYSMGR_DMA. */
@@ -4588,7 +4588,7 @@ typedef volatile struct ALT_SYSMGR_ISW_HANDOFF_s  ALT_SYSMGR_ISW_HANDOFF_t;
  */
 struct ALT_SYSMGR_ISW_s
 {
-    volatile ALT_SYSMGR_ISW_HANDOFF_t  handoff[8];  /* ALT_SYSMGR_ISW_HANDOFF */
+    ALT_SYSMGR_ISW_HANDOFF_t  handoff[8];  /* ALT_SYSMGR_ISW_HANDOFF */
 };
 
 /* The typedef declaration for register group ALT_SYSMGR_ISW. */
@@ -5415,12 +5415,12 @@ typedef volatile struct ALT_SYSMGR_ROMCODE_WARMRAM_CRC_s  ALT_SYSMGR_ROMCODE_WAR
  */
 struct ALT_SYSMGR_ROMCODE_WARMRAM_s
 {
-    volatile ALT_SYSMGR_ROMCODE_WARMRAM_EN_t         enable;             /* ALT_SYSMGR_ROMCODE_WARMRAM_EN */
-    volatile ALT_SYSMGR_ROMCODE_WARMRAM_DATASTART_t  datastart;          /* ALT_SYSMGR_ROMCODE_WARMRAM_DATASTART */
-    volatile ALT_SYSMGR_ROMCODE_WARMRAM_LEN_t        length;             /* ALT_SYSMGR_ROMCODE_WARMRAM_LEN */
-    volatile ALT_SYSMGR_ROMCODE_WARMRAM_EXECUTION_t  execution;          /* ALT_SYSMGR_ROMCODE_WARMRAM_EXECUTION */
-    volatile ALT_SYSMGR_ROMCODE_WARMRAM_CRC_t        crc;                /* ALT_SYSMGR_ROMCODE_WARMRAM_CRC */
-    volatile uint32_t                                _pad_0x14_0x20[3];  /* *UNDEFINED* */
+    ALT_SYSMGR_ROMCODE_WARMRAM_EN_t         enable;             /* ALT_SYSMGR_ROMCODE_WARMRAM_EN */
+    ALT_SYSMGR_ROMCODE_WARMRAM_DATASTART_t  datastart;          /* ALT_SYSMGR_ROMCODE_WARMRAM_DATASTART */
+    ALT_SYSMGR_ROMCODE_WARMRAM_LEN_t        length;             /* ALT_SYSMGR_ROMCODE_WARMRAM_LEN */
+    ALT_SYSMGR_ROMCODE_WARMRAM_EXECUTION_t  execution;          /* ALT_SYSMGR_ROMCODE_WARMRAM_EXECUTION */
+    ALT_SYSMGR_ROMCODE_WARMRAM_CRC_t        crc;                /* ALT_SYSMGR_ROMCODE_WARMRAM_CRC */
+    volatile uint32_t                       _pad_0x14_0x20[3];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_SYSMGR_ROMCODE_WARMRAM. */
@@ -5433,7 +5433,7 @@ struct ALT_SYSMGR_ROMCODE_WARMRAM_raw_s
     volatile uint32_t  length;             /* ALT_SYSMGR_ROMCODE_WARMRAM_LEN */
     volatile uint32_t  execution;          /* ALT_SYSMGR_ROMCODE_WARMRAM_EXECUTION */
     volatile uint32_t  crc;                /* ALT_SYSMGR_ROMCODE_WARMRAM_CRC */
-    volatile uint32_t  _pad_0x14_0x20[3];  /* *UNDEFINED* */
+    uint32_t           _pad_0x14_0x20[3];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_SYSMGR_ROMCODE_WARMRAM. */
@@ -5454,13 +5454,13 @@ typedef volatile struct ALT_SYSMGR_ROMCODE_WARMRAM_raw_s  ALT_SYSMGR_ROMCODE_WAR
  */
 struct ALT_SYSMGR_ROMCODE_s
 {
-    volatile ALT_SYSMGR_ROMCODE_CTL_t             ctrl;                   /* ALT_SYSMGR_ROMCODE_CTL */
-    volatile ALT_SYSMGR_ROMCODE_CPU1STARTADDR_t   cpu1startaddr;          /* ALT_SYSMGR_ROMCODE_CPU1STARTADDR */
-    volatile ALT_SYSMGR_ROMCODE_INITSWSTATE_t     initswstate;            /* ALT_SYSMGR_ROMCODE_INITSWSTATE */
-    volatile ALT_SYSMGR_ROMCODE_INITSWLASTLD_t    initswlastld;           /* ALT_SYSMGR_ROMCODE_INITSWLASTLD */
-    volatile ALT_SYSMGR_ROMCODE_BOOTROMSWSTATE_t  bootromswstate;         /* ALT_SYSMGR_ROMCODE_BOOTROMSWSTATE */
-    volatile uint32_t                             _pad_0x14_0x1f[3];      /* *UNDEFINED* */
-    volatile ALT_SYSMGR_ROMCODE_WARMRAM_t         romcodegrp_warmramgrp;  /* ALT_SYSMGR_ROMCODE_WARMRAM */
+    ALT_SYSMGR_ROMCODE_CTL_t             ctrl;                   /* ALT_SYSMGR_ROMCODE_CTL */
+    ALT_SYSMGR_ROMCODE_CPU1STARTADDR_t   cpu1startaddr;          /* ALT_SYSMGR_ROMCODE_CPU1STARTADDR */
+    ALT_SYSMGR_ROMCODE_INITSWSTATE_t     initswstate;            /* ALT_SYSMGR_ROMCODE_INITSWSTATE */
+    ALT_SYSMGR_ROMCODE_INITSWLASTLD_t    initswlastld;           /* ALT_SYSMGR_ROMCODE_INITSWLASTLD */
+    ALT_SYSMGR_ROMCODE_BOOTROMSWSTATE_t  bootromswstate;         /* ALT_SYSMGR_ROMCODE_BOOTROMSWSTATE */
+    volatile uint32_t                    _pad_0x14_0x1f[3];      /* *UNDEFINED* */
+    ALT_SYSMGR_ROMCODE_WARMRAM_t         romcodegrp_warmramgrp;  /* ALT_SYSMGR_ROMCODE_WARMRAM */
 };
 
 /* The typedef declaration for register group ALT_SYSMGR_ROMCODE. */
@@ -5468,13 +5468,13 @@ typedef volatile struct ALT_SYSMGR_ROMCODE_s  ALT_SYSMGR_ROMCODE_t;
 /* The struct declaration for the raw register contents of register group ALT_SYSMGR_ROMCODE. */
 struct ALT_SYSMGR_ROMCODE_raw_s
 {
-    volatile uint32_t                          ctrl;                   /* ALT_SYSMGR_ROMCODE_CTL */
-    volatile uint32_t                          cpu1startaddr;          /* ALT_SYSMGR_ROMCODE_CPU1STARTADDR */
-    volatile uint32_t                          initswstate;            /* ALT_SYSMGR_ROMCODE_INITSWSTATE */
-    volatile uint32_t                          initswlastld;           /* ALT_SYSMGR_ROMCODE_INITSWLASTLD */
-    volatile uint32_t                          bootromswstate;         /* ALT_SYSMGR_ROMCODE_BOOTROMSWSTATE */
-    volatile uint32_t                          _pad_0x14_0x1f[3];      /* *UNDEFINED* */
-    volatile ALT_SYSMGR_ROMCODE_WARMRAM_raw_t  romcodegrp_warmramgrp;  /* ALT_SYSMGR_ROMCODE_WARMRAM */
+    volatile uint32_t                 ctrl;                   /* ALT_SYSMGR_ROMCODE_CTL */
+    volatile uint32_t                 cpu1startaddr;          /* ALT_SYSMGR_ROMCODE_CPU1STARTADDR */
+    volatile uint32_t                 initswstate;            /* ALT_SYSMGR_ROMCODE_INITSWSTATE */
+    volatile uint32_t                 initswlastld;           /* ALT_SYSMGR_ROMCODE_INITSWLASTLD */
+    volatile uint32_t                 bootromswstate;         /* ALT_SYSMGR_ROMCODE_BOOTROMSWSTATE */
+    uint32_t                          _pad_0x14_0x1f[3];      /* *UNDEFINED* */
+    ALT_SYSMGR_ROMCODE_WARMRAM_raw_t  romcodegrp_warmramgrp;  /* ALT_SYSMGR_ROMCODE_WARMRAM */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_SYSMGR_ROMCODE. */
@@ -5648,7 +5648,7 @@ typedef volatile struct ALT_SYSMGR_ROMHW_CTL_s  ALT_SYSMGR_ROMHW_CTL_t;
  */
 struct ALT_SYSMGR_ROMHW_s
 {
-    volatile ALT_SYSMGR_ROMHW_CTL_t  ctrl;  /* ALT_SYSMGR_ROMHW_CTL */
+    ALT_SYSMGR_ROMHW_CTL_t  ctrl;  /* ALT_SYSMGR_ROMHW_CTL */
 };
 
 /* The typedef declaration for register group ALT_SYSMGR_ROMHW. */
@@ -6103,8 +6103,8 @@ typedef volatile struct ALT_SYSMGR_SDMMC_L3MST_s  ALT_SYSMGR_SDMMC_L3MST_t;
  */
 struct ALT_SYSMGR_SDMMC_s
 {
-    volatile ALT_SYSMGR_SDMMC_CTL_t    ctrl;      /* ALT_SYSMGR_SDMMC_CTL */
-    volatile ALT_SYSMGR_SDMMC_L3MST_t  l3master;  /* ALT_SYSMGR_SDMMC_L3MST */
+    ALT_SYSMGR_SDMMC_CTL_t    ctrl;      /* ALT_SYSMGR_SDMMC_CTL */
+    ALT_SYSMGR_SDMMC_L3MST_t  l3master;  /* ALT_SYSMGR_SDMMC_L3MST */
 };
 
 /* The typedef declaration for register group ALT_SYSMGR_SDMMC. */
@@ -6628,8 +6628,8 @@ typedef volatile struct ALT_SYSMGR_NAND_L3MST_s  ALT_SYSMGR_NAND_L3MST_t;
  */
 struct ALT_SYSMGR_NAND_s
 {
-    volatile ALT_SYSMGR_NAND_BOOTSTRAP_t  bootstrap;  /* ALT_SYSMGR_NAND_BOOTSTRAP */
-    volatile ALT_SYSMGR_NAND_L3MST_t      l3master;   /* ALT_SYSMGR_NAND_L3MST */
+    ALT_SYSMGR_NAND_BOOTSTRAP_t  bootstrap;  /* ALT_SYSMGR_NAND_BOOTSTRAP */
+    ALT_SYSMGR_NAND_L3MST_t      l3master;   /* ALT_SYSMGR_NAND_L3MST */
 };
 
 /* The typedef declaration for register group ALT_SYSMGR_NAND. */
@@ -6980,7 +6980,7 @@ typedef volatile struct ALT_SYSMGR_USB_L3MST_s  ALT_SYSMGR_USB_L3MST_t;
  */
 struct ALT_SYSMGR_USB_s
 {
-    volatile ALT_SYSMGR_USB_L3MST_t  l3master;  /* ALT_SYSMGR_USB_L3MST */
+    ALT_SYSMGR_USB_L3MST_t  l3master;  /* ALT_SYSMGR_USB_L3MST */
 };
 
 /* The typedef declaration for register group ALT_SYSMGR_USB. */
@@ -9713,19 +9713,19 @@ typedef volatile struct ALT_SYSMGR_ECC_SDMMC_s  ALT_SYSMGR_ECC_SDMMC_t;
  */
 struct ALT_SYSMGR_ECC_s
 {
-    volatile ALT_SYSMGR_ECC_L2_t     l2;                 /* ALT_SYSMGR_ECC_L2 */
-    volatile ALT_SYSMGR_ECC_OCRAM_t  ocram;              /* ALT_SYSMGR_ECC_OCRAM */
-    volatile ALT_SYSMGR_ECC_USB0_t   usb0;               /* ALT_SYSMGR_ECC_USB0 */
-    volatile ALT_SYSMGR_ECC_USB1_t   usb1;               /* ALT_SYSMGR_ECC_USB1 */
-    volatile ALT_SYSMGR_ECC_EMAC0_t  emac0;              /* ALT_SYSMGR_ECC_EMAC0 */
-    volatile ALT_SYSMGR_ECC_EMAC1_t  emac1;              /* ALT_SYSMGR_ECC_EMAC1 */
-    volatile ALT_SYSMGR_ECC_DMA_t    dma;                /* ALT_SYSMGR_ECC_DMA */
-    volatile ALT_SYSMGR_ECC_CAN0_t   can0;               /* ALT_SYSMGR_ECC_CAN0 */
-    volatile ALT_SYSMGR_ECC_CAN1_t   can1;               /* ALT_SYSMGR_ECC_CAN1 */
-    volatile ALT_SYSMGR_ECC_NAND_t   nand;               /* ALT_SYSMGR_ECC_NAND */
-    volatile ALT_SYSMGR_ECC_QSPI_t   qspi;               /* ALT_SYSMGR_ECC_QSPI */
-    volatile ALT_SYSMGR_ECC_SDMMC_t  sdmmc;              /* ALT_SYSMGR_ECC_SDMMC */
-    volatile uint32_t                _pad_0x30_0x40[4];  /* *UNDEFINED* */
+    ALT_SYSMGR_ECC_L2_t     l2;                 /* ALT_SYSMGR_ECC_L2 */
+    ALT_SYSMGR_ECC_OCRAM_t  ocram;              /* ALT_SYSMGR_ECC_OCRAM */
+    ALT_SYSMGR_ECC_USB0_t   usb0;               /* ALT_SYSMGR_ECC_USB0 */
+    ALT_SYSMGR_ECC_USB1_t   usb1;               /* ALT_SYSMGR_ECC_USB1 */
+    ALT_SYSMGR_ECC_EMAC0_t  emac0;              /* ALT_SYSMGR_ECC_EMAC0 */
+    ALT_SYSMGR_ECC_EMAC1_t  emac1;              /* ALT_SYSMGR_ECC_EMAC1 */
+    ALT_SYSMGR_ECC_DMA_t    dma;                /* ALT_SYSMGR_ECC_DMA */
+    ALT_SYSMGR_ECC_CAN0_t   can0;               /* ALT_SYSMGR_ECC_CAN0 */
+    ALT_SYSMGR_ECC_CAN1_t   can1;               /* ALT_SYSMGR_ECC_CAN1 */
+    ALT_SYSMGR_ECC_NAND_t   nand;               /* ALT_SYSMGR_ECC_NAND */
+    ALT_SYSMGR_ECC_QSPI_t   qspi;               /* ALT_SYSMGR_ECC_QSPI */
+    ALT_SYSMGR_ECC_SDMMC_t  sdmmc;              /* ALT_SYSMGR_ECC_SDMMC */
+    volatile uint32_t       _pad_0x30_0x40[4];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_SYSMGR_ECC. */
@@ -9745,7 +9745,7 @@ struct ALT_SYSMGR_ECC_raw_s
     volatile uint32_t  nand;               /* ALT_SYSMGR_ECC_NAND */
     volatile uint32_t  qspi;               /* ALT_SYSMGR_ECC_QSPI */
     volatile uint32_t  sdmmc;              /* ALT_SYSMGR_ECC_SDMMC */
-    volatile uint32_t  _pad_0x30_0x40[4];  /* *UNDEFINED* */
+    uint32_t           _pad_0x30_0x40[4];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_SYSMGR_ECC. */
@@ -24304,209 +24304,209 @@ typedef volatile struct ALT_SYSMGR_PINMUX_SPIM0USEFPGA_s  ALT_SYSMGR_PINMUX_SPIM
  */
 struct ALT_SYSMGR_PINMUX_s
 {
-    volatile ALT_SYSMGR_PINMUX_EMACIO0_t        EMACIO0;               /* ALT_SYSMGR_PINMUX_EMACIO0 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO1_t        EMACIO1;               /* ALT_SYSMGR_PINMUX_EMACIO1 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO2_t        EMACIO2;               /* ALT_SYSMGR_PINMUX_EMACIO2 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO3_t        EMACIO3;               /* ALT_SYSMGR_PINMUX_EMACIO3 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO4_t        EMACIO4;               /* ALT_SYSMGR_PINMUX_EMACIO4 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO5_t        EMACIO5;               /* ALT_SYSMGR_PINMUX_EMACIO5 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO6_t        EMACIO6;               /* ALT_SYSMGR_PINMUX_EMACIO6 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO7_t        EMACIO7;               /* ALT_SYSMGR_PINMUX_EMACIO7 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO8_t        EMACIO8;               /* ALT_SYSMGR_PINMUX_EMACIO8 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO9_t        EMACIO9;               /* ALT_SYSMGR_PINMUX_EMACIO9 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO10_t       EMACIO10;              /* ALT_SYSMGR_PINMUX_EMACIO10 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO11_t       EMACIO11;              /* ALT_SYSMGR_PINMUX_EMACIO11 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO12_t       EMACIO12;              /* ALT_SYSMGR_PINMUX_EMACIO12 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO13_t       EMACIO13;              /* ALT_SYSMGR_PINMUX_EMACIO13 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO14_t       EMACIO14;              /* ALT_SYSMGR_PINMUX_EMACIO14 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO15_t       EMACIO15;              /* ALT_SYSMGR_PINMUX_EMACIO15 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO16_t       EMACIO16;              /* ALT_SYSMGR_PINMUX_EMACIO16 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO17_t       EMACIO17;              /* ALT_SYSMGR_PINMUX_EMACIO17 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO18_t       EMACIO18;              /* ALT_SYSMGR_PINMUX_EMACIO18 */
-    volatile ALT_SYSMGR_PINMUX_EMACIO19_t       EMACIO19;              /* ALT_SYSMGR_PINMUX_EMACIO19 */
-    volatile ALT_SYSMGR_PINMUX_FLSHIO0_t        FLASHIO0;              /* ALT_SYSMGR_PINMUX_FLSHIO0 */
-    volatile ALT_SYSMGR_PINMUX_FLSHIO1_t        FLASHIO1;              /* ALT_SYSMGR_PINMUX_FLSHIO1 */
-    volatile ALT_SYSMGR_PINMUX_FLSHIO2_t        FLASHIO2;              /* ALT_SYSMGR_PINMUX_FLSHIO2 */
-    volatile ALT_SYSMGR_PINMUX_FLSHIO3_t        FLASHIO3;              /* ALT_SYSMGR_PINMUX_FLSHIO3 */
-    volatile ALT_SYSMGR_PINMUX_FLSHIO4_t        FLASHIO4;              /* ALT_SYSMGR_PINMUX_FLSHIO4 */
-    volatile ALT_SYSMGR_PINMUX_FLSHIO5_t        FLASHIO5;              /* ALT_SYSMGR_PINMUX_FLSHIO5 */
-    volatile ALT_SYSMGR_PINMUX_FLSHIO6_t        FLASHIO6;              /* ALT_SYSMGR_PINMUX_FLSHIO6 */
-    volatile ALT_SYSMGR_PINMUX_FLSHIO7_t        FLASHIO7;              /* ALT_SYSMGR_PINMUX_FLSHIO7 */
-    volatile ALT_SYSMGR_PINMUX_FLSHIO8_t        FLASHIO8;              /* ALT_SYSMGR_PINMUX_FLSHIO8 */
-    volatile ALT_SYSMGR_PINMUX_FLSHIO9_t        FLASHIO9;              /* ALT_SYSMGR_PINMUX_FLSHIO9 */
-    volatile ALT_SYSMGR_PINMUX_FLSHIO10_t       FLASHIO10;             /* ALT_SYSMGR_PINMUX_FLSHIO10 */
-    volatile ALT_SYSMGR_PINMUX_FLSHIO11_t       FLASHIO11;             /* ALT_SYSMGR_PINMUX_FLSHIO11 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO0_t     GENERALIO0;            /* ALT_SYSMGR_PINMUX_GENERALIO0 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO1_t     GENERALIO1;            /* ALT_SYSMGR_PINMUX_GENERALIO1 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO2_t     GENERALIO2;            /* ALT_SYSMGR_PINMUX_GENERALIO2 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO3_t     GENERALIO3;            /* ALT_SYSMGR_PINMUX_GENERALIO3 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO4_t     GENERALIO4;            /* ALT_SYSMGR_PINMUX_GENERALIO4 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO5_t     GENERALIO5;            /* ALT_SYSMGR_PINMUX_GENERALIO5 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO6_t     GENERALIO6;            /* ALT_SYSMGR_PINMUX_GENERALIO6 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO7_t     GENERALIO7;            /* ALT_SYSMGR_PINMUX_GENERALIO7 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO8_t     GENERALIO8;            /* ALT_SYSMGR_PINMUX_GENERALIO8 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO9_t     GENERALIO9;            /* ALT_SYSMGR_PINMUX_GENERALIO9 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO10_t    GENERALIO10;           /* ALT_SYSMGR_PINMUX_GENERALIO10 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO11_t    GENERALIO11;           /* ALT_SYSMGR_PINMUX_GENERALIO11 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO12_t    GENERALIO12;           /* ALT_SYSMGR_PINMUX_GENERALIO12 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO13_t    GENERALIO13;           /* ALT_SYSMGR_PINMUX_GENERALIO13 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO14_t    GENERALIO14;           /* ALT_SYSMGR_PINMUX_GENERALIO14 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO15_t    GENERALIO15;           /* ALT_SYSMGR_PINMUX_GENERALIO15 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO16_t    GENERALIO16;           /* ALT_SYSMGR_PINMUX_GENERALIO16 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO17_t    GENERALIO17;           /* ALT_SYSMGR_PINMUX_GENERALIO17 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO18_t    GENERALIO18;           /* ALT_SYSMGR_PINMUX_GENERALIO18 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO19_t    GENERALIO19;           /* ALT_SYSMGR_PINMUX_GENERALIO19 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO20_t    GENERALIO20;           /* ALT_SYSMGR_PINMUX_GENERALIO20 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO21_t    GENERALIO21;           /* ALT_SYSMGR_PINMUX_GENERALIO21 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO22_t    GENERALIO22;           /* ALT_SYSMGR_PINMUX_GENERALIO22 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO23_t    GENERALIO23;           /* ALT_SYSMGR_PINMUX_GENERALIO23 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO24_t    GENERALIO24;           /* ALT_SYSMGR_PINMUX_GENERALIO24 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO25_t    GENERALIO25;           /* ALT_SYSMGR_PINMUX_GENERALIO25 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO26_t    GENERALIO26;           /* ALT_SYSMGR_PINMUX_GENERALIO26 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO27_t    GENERALIO27;           /* ALT_SYSMGR_PINMUX_GENERALIO27 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO28_t    GENERALIO28;           /* ALT_SYSMGR_PINMUX_GENERALIO28 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO29_t    GENERALIO29;           /* ALT_SYSMGR_PINMUX_GENERALIO29 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO30_t    GENERALIO30;           /* ALT_SYSMGR_PINMUX_GENERALIO30 */
-    volatile ALT_SYSMGR_PINMUX_GENERALIO31_t    GENERALIO31;           /* ALT_SYSMGR_PINMUX_GENERALIO31 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO0_t      MIXED1IO0;             /* ALT_SYSMGR_PINMUX_MIXED1IO0 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO1_t      MIXED1IO1;             /* ALT_SYSMGR_PINMUX_MIXED1IO1 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO2_t      MIXED1IO2;             /* ALT_SYSMGR_PINMUX_MIXED1IO2 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO3_t      MIXED1IO3;             /* ALT_SYSMGR_PINMUX_MIXED1IO3 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO4_t      MIXED1IO4;             /* ALT_SYSMGR_PINMUX_MIXED1IO4 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO5_t      MIXED1IO5;             /* ALT_SYSMGR_PINMUX_MIXED1IO5 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO6_t      MIXED1IO6;             /* ALT_SYSMGR_PINMUX_MIXED1IO6 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO7_t      MIXED1IO7;             /* ALT_SYSMGR_PINMUX_MIXED1IO7 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO8_t      MIXED1IO8;             /* ALT_SYSMGR_PINMUX_MIXED1IO8 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO9_t      MIXED1IO9;             /* ALT_SYSMGR_PINMUX_MIXED1IO9 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO10_t     MIXED1IO10;            /* ALT_SYSMGR_PINMUX_MIXED1IO10 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO11_t     MIXED1IO11;            /* ALT_SYSMGR_PINMUX_MIXED1IO11 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO12_t     MIXED1IO12;            /* ALT_SYSMGR_PINMUX_MIXED1IO12 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO13_t     MIXED1IO13;            /* ALT_SYSMGR_PINMUX_MIXED1IO13 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO14_t     MIXED1IO14;            /* ALT_SYSMGR_PINMUX_MIXED1IO14 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO15_t     MIXED1IO15;            /* ALT_SYSMGR_PINMUX_MIXED1IO15 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO16_t     MIXED1IO16;            /* ALT_SYSMGR_PINMUX_MIXED1IO16 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO17_t     MIXED1IO17;            /* ALT_SYSMGR_PINMUX_MIXED1IO17 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO18_t     MIXED1IO18;            /* ALT_SYSMGR_PINMUX_MIXED1IO18 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO19_t     MIXED1IO19;            /* ALT_SYSMGR_PINMUX_MIXED1IO19 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO20_t     MIXED1IO20;            /* ALT_SYSMGR_PINMUX_MIXED1IO20 */
-    volatile ALT_SYSMGR_PINMUX_MIXED1IO21_t     MIXED1IO21;            /* ALT_SYSMGR_PINMUX_MIXED1IO21 */
-    volatile ALT_SYSMGR_PINMUX_MIXED2IO0_t      MIXED2IO0;             /* ALT_SYSMGR_PINMUX_MIXED2IO0 */
-    volatile ALT_SYSMGR_PINMUX_MIXED2IO1_t      MIXED2IO1;             /* ALT_SYSMGR_PINMUX_MIXED2IO1 */
-    volatile ALT_SYSMGR_PINMUX_MIXED2IO2_t      MIXED2IO2;             /* ALT_SYSMGR_PINMUX_MIXED2IO2 */
-    volatile ALT_SYSMGR_PINMUX_MIXED2IO3_t      MIXED2IO3;             /* ALT_SYSMGR_PINMUX_MIXED2IO3 */
-    volatile ALT_SYSMGR_PINMUX_MIXED2IO4_t      MIXED2IO4;             /* ALT_SYSMGR_PINMUX_MIXED2IO4 */
-    volatile ALT_SYSMGR_PINMUX_MIXED2IO5_t      MIXED2IO5;             /* ALT_SYSMGR_PINMUX_MIXED2IO5 */
-    volatile ALT_SYSMGR_PINMUX_MIXED2IO6_t      MIXED2IO6;             /* ALT_SYSMGR_PINMUX_MIXED2IO6 */
-    volatile ALT_SYSMGR_PINMUX_MIXED2IO7_t      MIXED2IO7;             /* ALT_SYSMGR_PINMUX_MIXED2IO7 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX48_t     GPLINMUX48;            /* ALT_SYSMGR_PINMUX_GPLINMUX48 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX49_t     GPLINMUX49;            /* ALT_SYSMGR_PINMUX_GPLINMUX49 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX50_t     GPLINMUX50;            /* ALT_SYSMGR_PINMUX_GPLINMUX50 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX51_t     GPLINMUX51;            /* ALT_SYSMGR_PINMUX_GPLINMUX51 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX52_t     GPLINMUX52;            /* ALT_SYSMGR_PINMUX_GPLINMUX52 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX53_t     GPLINMUX53;            /* ALT_SYSMGR_PINMUX_GPLINMUX53 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX54_t     GPLINMUX54;            /* ALT_SYSMGR_PINMUX_GPLINMUX54 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX55_t     GPLINMUX55;            /* ALT_SYSMGR_PINMUX_GPLINMUX55 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX56_t     GPLINMUX56;            /* ALT_SYSMGR_PINMUX_GPLINMUX56 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX57_t     GPLINMUX57;            /* ALT_SYSMGR_PINMUX_GPLINMUX57 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX58_t     GPLINMUX58;            /* ALT_SYSMGR_PINMUX_GPLINMUX58 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX59_t     GPLINMUX59;            /* ALT_SYSMGR_PINMUX_GPLINMUX59 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX60_t     GPLINMUX60;            /* ALT_SYSMGR_PINMUX_GPLINMUX60 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX61_t     GPLINMUX61;            /* ALT_SYSMGR_PINMUX_GPLINMUX61 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX62_t     GPLINMUX62;            /* ALT_SYSMGR_PINMUX_GPLINMUX62 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX63_t     GPLINMUX63;            /* ALT_SYSMGR_PINMUX_GPLINMUX63 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX64_t     GPLINMUX64;            /* ALT_SYSMGR_PINMUX_GPLINMUX64 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX65_t     GPLINMUX65;            /* ALT_SYSMGR_PINMUX_GPLINMUX65 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX66_t     GPLINMUX66;            /* ALT_SYSMGR_PINMUX_GPLINMUX66 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX67_t     GPLINMUX67;            /* ALT_SYSMGR_PINMUX_GPLINMUX67 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX68_t     GPLINMUX68;            /* ALT_SYSMGR_PINMUX_GPLINMUX68 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX69_t     GPLINMUX69;            /* ALT_SYSMGR_PINMUX_GPLINMUX69 */
-    volatile ALT_SYSMGR_PINMUX_GPLINMUX70_t     GPLINMUX70;            /* ALT_SYSMGR_PINMUX_GPLINMUX70 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX0_t        GPLMUX0;               /* ALT_SYSMGR_PINMUX_GPLMUX0 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX1_t        GPLMUX1;               /* ALT_SYSMGR_PINMUX_GPLMUX1 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX2_t        GPLMUX2;               /* ALT_SYSMGR_PINMUX_GPLMUX2 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX3_t        GPLMUX3;               /* ALT_SYSMGR_PINMUX_GPLMUX3 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX4_t        GPLMUX4;               /* ALT_SYSMGR_PINMUX_GPLMUX4 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX5_t        GPLMUX5;               /* ALT_SYSMGR_PINMUX_GPLMUX5 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX6_t        GPLMUX6;               /* ALT_SYSMGR_PINMUX_GPLMUX6 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX7_t        GPLMUX7;               /* ALT_SYSMGR_PINMUX_GPLMUX7 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX8_t        GPLMUX8;               /* ALT_SYSMGR_PINMUX_GPLMUX8 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX9_t        GPLMUX9;               /* ALT_SYSMGR_PINMUX_GPLMUX9 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX10_t       GPLMUX10;              /* ALT_SYSMGR_PINMUX_GPLMUX10 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX11_t       GPLMUX11;              /* ALT_SYSMGR_PINMUX_GPLMUX11 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX12_t       GPLMUX12;              /* ALT_SYSMGR_PINMUX_GPLMUX12 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX13_t       GPLMUX13;              /* ALT_SYSMGR_PINMUX_GPLMUX13 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX14_t       GPLMUX14;              /* ALT_SYSMGR_PINMUX_GPLMUX14 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX15_t       GPLMUX15;              /* ALT_SYSMGR_PINMUX_GPLMUX15 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX16_t       GPLMUX16;              /* ALT_SYSMGR_PINMUX_GPLMUX16 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX17_t       GPLMUX17;              /* ALT_SYSMGR_PINMUX_GPLMUX17 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX18_t       GPLMUX18;              /* ALT_SYSMGR_PINMUX_GPLMUX18 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX19_t       GPLMUX19;              /* ALT_SYSMGR_PINMUX_GPLMUX19 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX20_t       GPLMUX20;              /* ALT_SYSMGR_PINMUX_GPLMUX20 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX21_t       GPLMUX21;              /* ALT_SYSMGR_PINMUX_GPLMUX21 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX22_t       GPLMUX22;              /* ALT_SYSMGR_PINMUX_GPLMUX22 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX23_t       GPLMUX23;              /* ALT_SYSMGR_PINMUX_GPLMUX23 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX24_t       GPLMUX24;              /* ALT_SYSMGR_PINMUX_GPLMUX24 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX25_t       GPLMUX25;              /* ALT_SYSMGR_PINMUX_GPLMUX25 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX26_t       GPLMUX26;              /* ALT_SYSMGR_PINMUX_GPLMUX26 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX27_t       GPLMUX27;              /* ALT_SYSMGR_PINMUX_GPLMUX27 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX28_t       GPLMUX28;              /* ALT_SYSMGR_PINMUX_GPLMUX28 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX29_t       GPLMUX29;              /* ALT_SYSMGR_PINMUX_GPLMUX29 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX30_t       GPLMUX30;              /* ALT_SYSMGR_PINMUX_GPLMUX30 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX31_t       GPLMUX31;              /* ALT_SYSMGR_PINMUX_GPLMUX31 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX32_t       GPLMUX32;              /* ALT_SYSMGR_PINMUX_GPLMUX32 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX33_t       GPLMUX33;              /* ALT_SYSMGR_PINMUX_GPLMUX33 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX34_t       GPLMUX34;              /* ALT_SYSMGR_PINMUX_GPLMUX34 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX35_t       GPLMUX35;              /* ALT_SYSMGR_PINMUX_GPLMUX35 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX36_t       GPLMUX36;              /* ALT_SYSMGR_PINMUX_GPLMUX36 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX37_t       GPLMUX37;              /* ALT_SYSMGR_PINMUX_GPLMUX37 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX38_t       GPLMUX38;              /* ALT_SYSMGR_PINMUX_GPLMUX38 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX39_t       GPLMUX39;              /* ALT_SYSMGR_PINMUX_GPLMUX39 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX40_t       GPLMUX40;              /* ALT_SYSMGR_PINMUX_GPLMUX40 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX41_t       GPLMUX41;              /* ALT_SYSMGR_PINMUX_GPLMUX41 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX42_t       GPLMUX42;              /* ALT_SYSMGR_PINMUX_GPLMUX42 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX43_t       GPLMUX43;              /* ALT_SYSMGR_PINMUX_GPLMUX43 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX44_t       GPLMUX44;              /* ALT_SYSMGR_PINMUX_GPLMUX44 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX45_t       GPLMUX45;              /* ALT_SYSMGR_PINMUX_GPLMUX45 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX46_t       GPLMUX46;              /* ALT_SYSMGR_PINMUX_GPLMUX46 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX47_t       GPLMUX47;              /* ALT_SYSMGR_PINMUX_GPLMUX47 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX48_t       GPLMUX48;              /* ALT_SYSMGR_PINMUX_GPLMUX48 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX49_t       GPLMUX49;              /* ALT_SYSMGR_PINMUX_GPLMUX49 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX50_t       GPLMUX50;              /* ALT_SYSMGR_PINMUX_GPLMUX50 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX51_t       GPLMUX51;              /* ALT_SYSMGR_PINMUX_GPLMUX51 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX52_t       GPLMUX52;              /* ALT_SYSMGR_PINMUX_GPLMUX52 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX53_t       GPLMUX53;              /* ALT_SYSMGR_PINMUX_GPLMUX53 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX54_t       GPLMUX54;              /* ALT_SYSMGR_PINMUX_GPLMUX54 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX55_t       GPLMUX55;              /* ALT_SYSMGR_PINMUX_GPLMUX55 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX56_t       GPLMUX56;              /* ALT_SYSMGR_PINMUX_GPLMUX56 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX57_t       GPLMUX57;              /* ALT_SYSMGR_PINMUX_GPLMUX57 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX58_t       GPLMUX58;              /* ALT_SYSMGR_PINMUX_GPLMUX58 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX59_t       GPLMUX59;              /* ALT_SYSMGR_PINMUX_GPLMUX59 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX60_t       GPLMUX60;              /* ALT_SYSMGR_PINMUX_GPLMUX60 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX61_t       GPLMUX61;              /* ALT_SYSMGR_PINMUX_GPLMUX61 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX62_t       GPLMUX62;              /* ALT_SYSMGR_PINMUX_GPLMUX62 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX63_t       GPLMUX63;              /* ALT_SYSMGR_PINMUX_GPLMUX63 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX64_t       GPLMUX64;              /* ALT_SYSMGR_PINMUX_GPLMUX64 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX65_t       GPLMUX65;              /* ALT_SYSMGR_PINMUX_GPLMUX65 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX66_t       GPLMUX66;              /* ALT_SYSMGR_PINMUX_GPLMUX66 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX67_t       GPLMUX67;              /* ALT_SYSMGR_PINMUX_GPLMUX67 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX68_t       GPLMUX68;              /* ALT_SYSMGR_PINMUX_GPLMUX68 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX69_t       GPLMUX69;              /* ALT_SYSMGR_PINMUX_GPLMUX69 */
-    volatile ALT_SYSMGR_PINMUX_GPLMUX70_t       GPLMUX70;              /* ALT_SYSMGR_PINMUX_GPLMUX70 */
-    volatile ALT_SYSMGR_PINMUX_NANDUSEFPGA_t    NANDUSEFPGA;           /* ALT_SYSMGR_PINMUX_NANDUSEFPGA */
-    volatile uint32_t                           _pad_0x2f4_0x2f7;      /* *UNDEFINED* */
-    volatile ALT_SYSMGR_PINMUX_RGMII1USEFPGA_t  RGMII1USEFPGA;         /* ALT_SYSMGR_PINMUX_RGMII1USEFPGA */
-    volatile uint32_t                           _pad_0x2fc_0x303[2];   /* *UNDEFINED* */
-    volatile ALT_SYSMGR_PINMUX_I2C0USEFPGA_t    I2C0USEFPGA;           /* ALT_SYSMGR_PINMUX_I2C0USEFPGA */
-    volatile uint32_t                           _pad_0x308_0x313[3];   /* *UNDEFINED* */
-    volatile ALT_SYSMGR_PINMUX_RGMII0USEFPGA_t  RGMII0USEFPGA;         /* ALT_SYSMGR_PINMUX_RGMII0USEFPGA */
-    volatile uint32_t                           _pad_0x318_0x323[3];   /* *UNDEFINED* */
-    volatile ALT_SYSMGR_PINMUX_I2C3USEFPGA_t    I2C3USEFPGA;           /* ALT_SYSMGR_PINMUX_I2C3USEFPGA */
-    volatile ALT_SYSMGR_PINMUX_I2C2USEFPGA_t    I2C2USEFPGA;           /* ALT_SYSMGR_PINMUX_I2C2USEFPGA */
-    volatile ALT_SYSMGR_PINMUX_I2C1USEFPGA_t    I2C1USEFPGA;           /* ALT_SYSMGR_PINMUX_I2C1USEFPGA */
-    volatile ALT_SYSMGR_PINMUX_SPIM1USEFPGA_t   SPIM1USEFPGA;          /* ALT_SYSMGR_PINMUX_SPIM1USEFPGA */
-    volatile uint32_t                           _pad_0x334_0x337;      /* *UNDEFINED* */
-    volatile ALT_SYSMGR_PINMUX_SPIM0USEFPGA_t   SPIM0USEFPGA;          /* ALT_SYSMGR_PINMUX_SPIM0USEFPGA */
-    volatile uint32_t                           _pad_0x33c_0x400[49];  /* *UNDEFINED* */
+    ALT_SYSMGR_PINMUX_EMACIO0_t        EMACIO0;               /* ALT_SYSMGR_PINMUX_EMACIO0 */
+    ALT_SYSMGR_PINMUX_EMACIO1_t        EMACIO1;               /* ALT_SYSMGR_PINMUX_EMACIO1 */
+    ALT_SYSMGR_PINMUX_EMACIO2_t        EMACIO2;               /* ALT_SYSMGR_PINMUX_EMACIO2 */
+    ALT_SYSMGR_PINMUX_EMACIO3_t        EMACIO3;               /* ALT_SYSMGR_PINMUX_EMACIO3 */
+    ALT_SYSMGR_PINMUX_EMACIO4_t        EMACIO4;               /* ALT_SYSMGR_PINMUX_EMACIO4 */
+    ALT_SYSMGR_PINMUX_EMACIO5_t        EMACIO5;               /* ALT_SYSMGR_PINMUX_EMACIO5 */
+    ALT_SYSMGR_PINMUX_EMACIO6_t        EMACIO6;               /* ALT_SYSMGR_PINMUX_EMACIO6 */
+    ALT_SYSMGR_PINMUX_EMACIO7_t        EMACIO7;               /* ALT_SYSMGR_PINMUX_EMACIO7 */
+    ALT_SYSMGR_PINMUX_EMACIO8_t        EMACIO8;               /* ALT_SYSMGR_PINMUX_EMACIO8 */
+    ALT_SYSMGR_PINMUX_EMACIO9_t        EMACIO9;               /* ALT_SYSMGR_PINMUX_EMACIO9 */
+    ALT_SYSMGR_PINMUX_EMACIO10_t       EMACIO10;              /* ALT_SYSMGR_PINMUX_EMACIO10 */
+    ALT_SYSMGR_PINMUX_EMACIO11_t       EMACIO11;              /* ALT_SYSMGR_PINMUX_EMACIO11 */
+    ALT_SYSMGR_PINMUX_EMACIO12_t       EMACIO12;              /* ALT_SYSMGR_PINMUX_EMACIO12 */
+    ALT_SYSMGR_PINMUX_EMACIO13_t       EMACIO13;              /* ALT_SYSMGR_PINMUX_EMACIO13 */
+    ALT_SYSMGR_PINMUX_EMACIO14_t       EMACIO14;              /* ALT_SYSMGR_PINMUX_EMACIO14 */
+    ALT_SYSMGR_PINMUX_EMACIO15_t       EMACIO15;              /* ALT_SYSMGR_PINMUX_EMACIO15 */
+    ALT_SYSMGR_PINMUX_EMACIO16_t       EMACIO16;              /* ALT_SYSMGR_PINMUX_EMACIO16 */
+    ALT_SYSMGR_PINMUX_EMACIO17_t       EMACIO17;              /* ALT_SYSMGR_PINMUX_EMACIO17 */
+    ALT_SYSMGR_PINMUX_EMACIO18_t       EMACIO18;              /* ALT_SYSMGR_PINMUX_EMACIO18 */
+    ALT_SYSMGR_PINMUX_EMACIO19_t       EMACIO19;              /* ALT_SYSMGR_PINMUX_EMACIO19 */
+    ALT_SYSMGR_PINMUX_FLSHIO0_t        FLASHIO0;              /* ALT_SYSMGR_PINMUX_FLSHIO0 */
+    ALT_SYSMGR_PINMUX_FLSHIO1_t        FLASHIO1;              /* ALT_SYSMGR_PINMUX_FLSHIO1 */
+    ALT_SYSMGR_PINMUX_FLSHIO2_t        FLASHIO2;              /* ALT_SYSMGR_PINMUX_FLSHIO2 */
+    ALT_SYSMGR_PINMUX_FLSHIO3_t        FLASHIO3;              /* ALT_SYSMGR_PINMUX_FLSHIO3 */
+    ALT_SYSMGR_PINMUX_FLSHIO4_t        FLASHIO4;              /* ALT_SYSMGR_PINMUX_FLSHIO4 */
+    ALT_SYSMGR_PINMUX_FLSHIO5_t        FLASHIO5;              /* ALT_SYSMGR_PINMUX_FLSHIO5 */
+    ALT_SYSMGR_PINMUX_FLSHIO6_t        FLASHIO6;              /* ALT_SYSMGR_PINMUX_FLSHIO6 */
+    ALT_SYSMGR_PINMUX_FLSHIO7_t        FLASHIO7;              /* ALT_SYSMGR_PINMUX_FLSHIO7 */
+    ALT_SYSMGR_PINMUX_FLSHIO8_t        FLASHIO8;              /* ALT_SYSMGR_PINMUX_FLSHIO8 */
+    ALT_SYSMGR_PINMUX_FLSHIO9_t        FLASHIO9;              /* ALT_SYSMGR_PINMUX_FLSHIO9 */
+    ALT_SYSMGR_PINMUX_FLSHIO10_t       FLASHIO10;             /* ALT_SYSMGR_PINMUX_FLSHIO10 */
+    ALT_SYSMGR_PINMUX_FLSHIO11_t       FLASHIO11;             /* ALT_SYSMGR_PINMUX_FLSHIO11 */
+    ALT_SYSMGR_PINMUX_GENERALIO0_t     GENERALIO0;            /* ALT_SYSMGR_PINMUX_GENERALIO0 */
+    ALT_SYSMGR_PINMUX_GENERALIO1_t     GENERALIO1;            /* ALT_SYSMGR_PINMUX_GENERALIO1 */
+    ALT_SYSMGR_PINMUX_GENERALIO2_t     GENERALIO2;            /* ALT_SYSMGR_PINMUX_GENERALIO2 */
+    ALT_SYSMGR_PINMUX_GENERALIO3_t     GENERALIO3;            /* ALT_SYSMGR_PINMUX_GENERALIO3 */
+    ALT_SYSMGR_PINMUX_GENERALIO4_t     GENERALIO4;            /* ALT_SYSMGR_PINMUX_GENERALIO4 */
+    ALT_SYSMGR_PINMUX_GENERALIO5_t     GENERALIO5;            /* ALT_SYSMGR_PINMUX_GENERALIO5 */
+    ALT_SYSMGR_PINMUX_GENERALIO6_t     GENERALIO6;            /* ALT_SYSMGR_PINMUX_GENERALIO6 */
+    ALT_SYSMGR_PINMUX_GENERALIO7_t     GENERALIO7;            /* ALT_SYSMGR_PINMUX_GENERALIO7 */
+    ALT_SYSMGR_PINMUX_GENERALIO8_t     GENERALIO8;            /* ALT_SYSMGR_PINMUX_GENERALIO8 */
+    ALT_SYSMGR_PINMUX_GENERALIO9_t     GENERALIO9;            /* ALT_SYSMGR_PINMUX_GENERALIO9 */
+    ALT_SYSMGR_PINMUX_GENERALIO10_t    GENERALIO10;           /* ALT_SYSMGR_PINMUX_GENERALIO10 */
+    ALT_SYSMGR_PINMUX_GENERALIO11_t    GENERALIO11;           /* ALT_SYSMGR_PINMUX_GENERALIO11 */
+    ALT_SYSMGR_PINMUX_GENERALIO12_t    GENERALIO12;           /* ALT_SYSMGR_PINMUX_GENERALIO12 */
+    ALT_SYSMGR_PINMUX_GENERALIO13_t    GENERALIO13;           /* ALT_SYSMGR_PINMUX_GENERALIO13 */
+    ALT_SYSMGR_PINMUX_GENERALIO14_t    GENERALIO14;           /* ALT_SYSMGR_PINMUX_GENERALIO14 */
+    ALT_SYSMGR_PINMUX_GENERALIO15_t    GENERALIO15;           /* ALT_SYSMGR_PINMUX_GENERALIO15 */
+    ALT_SYSMGR_PINMUX_GENERALIO16_t    GENERALIO16;           /* ALT_SYSMGR_PINMUX_GENERALIO16 */
+    ALT_SYSMGR_PINMUX_GENERALIO17_t    GENERALIO17;           /* ALT_SYSMGR_PINMUX_GENERALIO17 */
+    ALT_SYSMGR_PINMUX_GENERALIO18_t    GENERALIO18;           /* ALT_SYSMGR_PINMUX_GENERALIO18 */
+    ALT_SYSMGR_PINMUX_GENERALIO19_t    GENERALIO19;           /* ALT_SYSMGR_PINMUX_GENERALIO19 */
+    ALT_SYSMGR_PINMUX_GENERALIO20_t    GENERALIO20;           /* ALT_SYSMGR_PINMUX_GENERALIO20 */
+    ALT_SYSMGR_PINMUX_GENERALIO21_t    GENERALIO21;           /* ALT_SYSMGR_PINMUX_GENERALIO21 */
+    ALT_SYSMGR_PINMUX_GENERALIO22_t    GENERALIO22;           /* ALT_SYSMGR_PINMUX_GENERALIO22 */
+    ALT_SYSMGR_PINMUX_GENERALIO23_t    GENERALIO23;           /* ALT_SYSMGR_PINMUX_GENERALIO23 */
+    ALT_SYSMGR_PINMUX_GENERALIO24_t    GENERALIO24;           /* ALT_SYSMGR_PINMUX_GENERALIO24 */
+    ALT_SYSMGR_PINMUX_GENERALIO25_t    GENERALIO25;           /* ALT_SYSMGR_PINMUX_GENERALIO25 */
+    ALT_SYSMGR_PINMUX_GENERALIO26_t    GENERALIO26;           /* ALT_SYSMGR_PINMUX_GENERALIO26 */
+    ALT_SYSMGR_PINMUX_GENERALIO27_t    GENERALIO27;           /* ALT_SYSMGR_PINMUX_GENERALIO27 */
+    ALT_SYSMGR_PINMUX_GENERALIO28_t    GENERALIO28;           /* ALT_SYSMGR_PINMUX_GENERALIO28 */
+    ALT_SYSMGR_PINMUX_GENERALIO29_t    GENERALIO29;           /* ALT_SYSMGR_PINMUX_GENERALIO29 */
+    ALT_SYSMGR_PINMUX_GENERALIO30_t    GENERALIO30;           /* ALT_SYSMGR_PINMUX_GENERALIO30 */
+    ALT_SYSMGR_PINMUX_GENERALIO31_t    GENERALIO31;           /* ALT_SYSMGR_PINMUX_GENERALIO31 */
+    ALT_SYSMGR_PINMUX_MIXED1IO0_t      MIXED1IO0;             /* ALT_SYSMGR_PINMUX_MIXED1IO0 */
+    ALT_SYSMGR_PINMUX_MIXED1IO1_t      MIXED1IO1;             /* ALT_SYSMGR_PINMUX_MIXED1IO1 */
+    ALT_SYSMGR_PINMUX_MIXED1IO2_t      MIXED1IO2;             /* ALT_SYSMGR_PINMUX_MIXED1IO2 */
+    ALT_SYSMGR_PINMUX_MIXED1IO3_t      MIXED1IO3;             /* ALT_SYSMGR_PINMUX_MIXED1IO3 */
+    ALT_SYSMGR_PINMUX_MIXED1IO4_t      MIXED1IO4;             /* ALT_SYSMGR_PINMUX_MIXED1IO4 */
+    ALT_SYSMGR_PINMUX_MIXED1IO5_t      MIXED1IO5;             /* ALT_SYSMGR_PINMUX_MIXED1IO5 */
+    ALT_SYSMGR_PINMUX_MIXED1IO6_t      MIXED1IO6;             /* ALT_SYSMGR_PINMUX_MIXED1IO6 */
+    ALT_SYSMGR_PINMUX_MIXED1IO7_t      MIXED1IO7;             /* ALT_SYSMGR_PINMUX_MIXED1IO7 */
+    ALT_SYSMGR_PINMUX_MIXED1IO8_t      MIXED1IO8;             /* ALT_SYSMGR_PINMUX_MIXED1IO8 */
+    ALT_SYSMGR_PINMUX_MIXED1IO9_t      MIXED1IO9;             /* ALT_SYSMGR_PINMUX_MIXED1IO9 */
+    ALT_SYSMGR_PINMUX_MIXED1IO10_t     MIXED1IO10;            /* ALT_SYSMGR_PINMUX_MIXED1IO10 */
+    ALT_SYSMGR_PINMUX_MIXED1IO11_t     MIXED1IO11;            /* ALT_SYSMGR_PINMUX_MIXED1IO11 */
+    ALT_SYSMGR_PINMUX_MIXED1IO12_t     MIXED1IO12;            /* ALT_SYSMGR_PINMUX_MIXED1IO12 */
+    ALT_SYSMGR_PINMUX_MIXED1IO13_t     MIXED1IO13;            /* ALT_SYSMGR_PINMUX_MIXED1IO13 */
+    ALT_SYSMGR_PINMUX_MIXED1IO14_t     MIXED1IO14;            /* ALT_SYSMGR_PINMUX_MIXED1IO14 */
+    ALT_SYSMGR_PINMUX_MIXED1IO15_t     MIXED1IO15;            /* ALT_SYSMGR_PINMUX_MIXED1IO15 */
+    ALT_SYSMGR_PINMUX_MIXED1IO16_t     MIXED1IO16;            /* ALT_SYSMGR_PINMUX_MIXED1IO16 */
+    ALT_SYSMGR_PINMUX_MIXED1IO17_t     MIXED1IO17;            /* ALT_SYSMGR_PINMUX_MIXED1IO17 */
+    ALT_SYSMGR_PINMUX_MIXED1IO18_t     MIXED1IO18;            /* ALT_SYSMGR_PINMUX_MIXED1IO18 */
+    ALT_SYSMGR_PINMUX_MIXED1IO19_t     MIXED1IO19;            /* ALT_SYSMGR_PINMUX_MIXED1IO19 */
+    ALT_SYSMGR_PINMUX_MIXED1IO20_t     MIXED1IO20;            /* ALT_SYSMGR_PINMUX_MIXED1IO20 */
+    ALT_SYSMGR_PINMUX_MIXED1IO21_t     MIXED1IO21;            /* ALT_SYSMGR_PINMUX_MIXED1IO21 */
+    ALT_SYSMGR_PINMUX_MIXED2IO0_t      MIXED2IO0;             /* ALT_SYSMGR_PINMUX_MIXED2IO0 */
+    ALT_SYSMGR_PINMUX_MIXED2IO1_t      MIXED2IO1;             /* ALT_SYSMGR_PINMUX_MIXED2IO1 */
+    ALT_SYSMGR_PINMUX_MIXED2IO2_t      MIXED2IO2;             /* ALT_SYSMGR_PINMUX_MIXED2IO2 */
+    ALT_SYSMGR_PINMUX_MIXED2IO3_t      MIXED2IO3;             /* ALT_SYSMGR_PINMUX_MIXED2IO3 */
+    ALT_SYSMGR_PINMUX_MIXED2IO4_t      MIXED2IO4;             /* ALT_SYSMGR_PINMUX_MIXED2IO4 */
+    ALT_SYSMGR_PINMUX_MIXED2IO5_t      MIXED2IO5;             /* ALT_SYSMGR_PINMUX_MIXED2IO5 */
+    ALT_SYSMGR_PINMUX_MIXED2IO6_t      MIXED2IO6;             /* ALT_SYSMGR_PINMUX_MIXED2IO6 */
+    ALT_SYSMGR_PINMUX_MIXED2IO7_t      MIXED2IO7;             /* ALT_SYSMGR_PINMUX_MIXED2IO7 */
+    ALT_SYSMGR_PINMUX_GPLINMUX48_t     GPLINMUX48;            /* ALT_SYSMGR_PINMUX_GPLINMUX48 */
+    ALT_SYSMGR_PINMUX_GPLINMUX49_t     GPLINMUX49;            /* ALT_SYSMGR_PINMUX_GPLINMUX49 */
+    ALT_SYSMGR_PINMUX_GPLINMUX50_t     GPLINMUX50;            /* ALT_SYSMGR_PINMUX_GPLINMUX50 */
+    ALT_SYSMGR_PINMUX_GPLINMUX51_t     GPLINMUX51;            /* ALT_SYSMGR_PINMUX_GPLINMUX51 */
+    ALT_SYSMGR_PINMUX_GPLINMUX52_t     GPLINMUX52;            /* ALT_SYSMGR_PINMUX_GPLINMUX52 */
+    ALT_SYSMGR_PINMUX_GPLINMUX53_t     GPLINMUX53;            /* ALT_SYSMGR_PINMUX_GPLINMUX53 */
+    ALT_SYSMGR_PINMUX_GPLINMUX54_t     GPLINMUX54;            /* ALT_SYSMGR_PINMUX_GPLINMUX54 */
+    ALT_SYSMGR_PINMUX_GPLINMUX55_t     GPLINMUX55;            /* ALT_SYSMGR_PINMUX_GPLINMUX55 */
+    ALT_SYSMGR_PINMUX_GPLINMUX56_t     GPLINMUX56;            /* ALT_SYSMGR_PINMUX_GPLINMUX56 */
+    ALT_SYSMGR_PINMUX_GPLINMUX57_t     GPLINMUX57;            /* ALT_SYSMGR_PINMUX_GPLINMUX57 */
+    ALT_SYSMGR_PINMUX_GPLINMUX58_t     GPLINMUX58;            /* ALT_SYSMGR_PINMUX_GPLINMUX58 */
+    ALT_SYSMGR_PINMUX_GPLINMUX59_t     GPLINMUX59;            /* ALT_SYSMGR_PINMUX_GPLINMUX59 */
+    ALT_SYSMGR_PINMUX_GPLINMUX60_t     GPLINMUX60;            /* ALT_SYSMGR_PINMUX_GPLINMUX60 */
+    ALT_SYSMGR_PINMUX_GPLINMUX61_t     GPLINMUX61;            /* ALT_SYSMGR_PINMUX_GPLINMUX61 */
+    ALT_SYSMGR_PINMUX_GPLINMUX62_t     GPLINMUX62;            /* ALT_SYSMGR_PINMUX_GPLINMUX62 */
+    ALT_SYSMGR_PINMUX_GPLINMUX63_t     GPLINMUX63;            /* ALT_SYSMGR_PINMUX_GPLINMUX63 */
+    ALT_SYSMGR_PINMUX_GPLINMUX64_t     GPLINMUX64;            /* ALT_SYSMGR_PINMUX_GPLINMUX64 */
+    ALT_SYSMGR_PINMUX_GPLINMUX65_t     GPLINMUX65;            /* ALT_SYSMGR_PINMUX_GPLINMUX65 */
+    ALT_SYSMGR_PINMUX_GPLINMUX66_t     GPLINMUX66;            /* ALT_SYSMGR_PINMUX_GPLINMUX66 */
+    ALT_SYSMGR_PINMUX_GPLINMUX67_t     GPLINMUX67;            /* ALT_SYSMGR_PINMUX_GPLINMUX67 */
+    ALT_SYSMGR_PINMUX_GPLINMUX68_t     GPLINMUX68;            /* ALT_SYSMGR_PINMUX_GPLINMUX68 */
+    ALT_SYSMGR_PINMUX_GPLINMUX69_t     GPLINMUX69;            /* ALT_SYSMGR_PINMUX_GPLINMUX69 */
+    ALT_SYSMGR_PINMUX_GPLINMUX70_t     GPLINMUX70;            /* ALT_SYSMGR_PINMUX_GPLINMUX70 */
+    ALT_SYSMGR_PINMUX_GPLMUX0_t        GPLMUX0;               /* ALT_SYSMGR_PINMUX_GPLMUX0 */
+    ALT_SYSMGR_PINMUX_GPLMUX1_t        GPLMUX1;               /* ALT_SYSMGR_PINMUX_GPLMUX1 */
+    ALT_SYSMGR_PINMUX_GPLMUX2_t        GPLMUX2;               /* ALT_SYSMGR_PINMUX_GPLMUX2 */
+    ALT_SYSMGR_PINMUX_GPLMUX3_t        GPLMUX3;               /* ALT_SYSMGR_PINMUX_GPLMUX3 */
+    ALT_SYSMGR_PINMUX_GPLMUX4_t        GPLMUX4;               /* ALT_SYSMGR_PINMUX_GPLMUX4 */
+    ALT_SYSMGR_PINMUX_GPLMUX5_t        GPLMUX5;               /* ALT_SYSMGR_PINMUX_GPLMUX5 */
+    ALT_SYSMGR_PINMUX_GPLMUX6_t        GPLMUX6;               /* ALT_SYSMGR_PINMUX_GPLMUX6 */
+    ALT_SYSMGR_PINMUX_GPLMUX7_t        GPLMUX7;               /* ALT_SYSMGR_PINMUX_GPLMUX7 */
+    ALT_SYSMGR_PINMUX_GPLMUX8_t        GPLMUX8;               /* ALT_SYSMGR_PINMUX_GPLMUX8 */
+    ALT_SYSMGR_PINMUX_GPLMUX9_t        GPLMUX9;               /* ALT_SYSMGR_PINMUX_GPLMUX9 */
+    ALT_SYSMGR_PINMUX_GPLMUX10_t       GPLMUX10;              /* ALT_SYSMGR_PINMUX_GPLMUX10 */
+    ALT_SYSMGR_PINMUX_GPLMUX11_t       GPLMUX11;              /* ALT_SYSMGR_PINMUX_GPLMUX11 */
+    ALT_SYSMGR_PINMUX_GPLMUX12_t       GPLMUX12;              /* ALT_SYSMGR_PINMUX_GPLMUX12 */
+    ALT_SYSMGR_PINMUX_GPLMUX13_t       GPLMUX13;              /* ALT_SYSMGR_PINMUX_GPLMUX13 */
+    ALT_SYSMGR_PINMUX_GPLMUX14_t       GPLMUX14;              /* ALT_SYSMGR_PINMUX_GPLMUX14 */
+    ALT_SYSMGR_PINMUX_GPLMUX15_t       GPLMUX15;              /* ALT_SYSMGR_PINMUX_GPLMUX15 */
+    ALT_SYSMGR_PINMUX_GPLMUX16_t       GPLMUX16;              /* ALT_SYSMGR_PINMUX_GPLMUX16 */
+    ALT_SYSMGR_PINMUX_GPLMUX17_t       GPLMUX17;              /* ALT_SYSMGR_PINMUX_GPLMUX17 */
+    ALT_SYSMGR_PINMUX_GPLMUX18_t       GPLMUX18;              /* ALT_SYSMGR_PINMUX_GPLMUX18 */
+    ALT_SYSMGR_PINMUX_GPLMUX19_t       GPLMUX19;              /* ALT_SYSMGR_PINMUX_GPLMUX19 */
+    ALT_SYSMGR_PINMUX_GPLMUX20_t       GPLMUX20;              /* ALT_SYSMGR_PINMUX_GPLMUX20 */
+    ALT_SYSMGR_PINMUX_GPLMUX21_t       GPLMUX21;              /* ALT_SYSMGR_PINMUX_GPLMUX21 */
+    ALT_SYSMGR_PINMUX_GPLMUX22_t       GPLMUX22;              /* ALT_SYSMGR_PINMUX_GPLMUX22 */
+    ALT_SYSMGR_PINMUX_GPLMUX23_t       GPLMUX23;              /* ALT_SYSMGR_PINMUX_GPLMUX23 */
+    ALT_SYSMGR_PINMUX_GPLMUX24_t       GPLMUX24;              /* ALT_SYSMGR_PINMUX_GPLMUX24 */
+    ALT_SYSMGR_PINMUX_GPLMUX25_t       GPLMUX25;              /* ALT_SYSMGR_PINMUX_GPLMUX25 */
+    ALT_SYSMGR_PINMUX_GPLMUX26_t       GPLMUX26;              /* ALT_SYSMGR_PINMUX_GPLMUX26 */
+    ALT_SYSMGR_PINMUX_GPLMUX27_t       GPLMUX27;              /* ALT_SYSMGR_PINMUX_GPLMUX27 */
+    ALT_SYSMGR_PINMUX_GPLMUX28_t       GPLMUX28;              /* ALT_SYSMGR_PINMUX_GPLMUX28 */
+    ALT_SYSMGR_PINMUX_GPLMUX29_t       GPLMUX29;              /* ALT_SYSMGR_PINMUX_GPLMUX29 */
+    ALT_SYSMGR_PINMUX_GPLMUX30_t       GPLMUX30;              /* ALT_SYSMGR_PINMUX_GPLMUX30 */
+    ALT_SYSMGR_PINMUX_GPLMUX31_t       GPLMUX31;              /* ALT_SYSMGR_PINMUX_GPLMUX31 */
+    ALT_SYSMGR_PINMUX_GPLMUX32_t       GPLMUX32;              /* ALT_SYSMGR_PINMUX_GPLMUX32 */
+    ALT_SYSMGR_PINMUX_GPLMUX33_t       GPLMUX33;              /* ALT_SYSMGR_PINMUX_GPLMUX33 */
+    ALT_SYSMGR_PINMUX_GPLMUX34_t       GPLMUX34;              /* ALT_SYSMGR_PINMUX_GPLMUX34 */
+    ALT_SYSMGR_PINMUX_GPLMUX35_t       GPLMUX35;              /* ALT_SYSMGR_PINMUX_GPLMUX35 */
+    ALT_SYSMGR_PINMUX_GPLMUX36_t       GPLMUX36;              /* ALT_SYSMGR_PINMUX_GPLMUX36 */
+    ALT_SYSMGR_PINMUX_GPLMUX37_t       GPLMUX37;              /* ALT_SYSMGR_PINMUX_GPLMUX37 */
+    ALT_SYSMGR_PINMUX_GPLMUX38_t       GPLMUX38;              /* ALT_SYSMGR_PINMUX_GPLMUX38 */
+    ALT_SYSMGR_PINMUX_GPLMUX39_t       GPLMUX39;              /* ALT_SYSMGR_PINMUX_GPLMUX39 */
+    ALT_SYSMGR_PINMUX_GPLMUX40_t       GPLMUX40;              /* ALT_SYSMGR_PINMUX_GPLMUX40 */
+    ALT_SYSMGR_PINMUX_GPLMUX41_t       GPLMUX41;              /* ALT_SYSMGR_PINMUX_GPLMUX41 */
+    ALT_SYSMGR_PINMUX_GPLMUX42_t       GPLMUX42;              /* ALT_SYSMGR_PINMUX_GPLMUX42 */
+    ALT_SYSMGR_PINMUX_GPLMUX43_t       GPLMUX43;              /* ALT_SYSMGR_PINMUX_GPLMUX43 */
+    ALT_SYSMGR_PINMUX_GPLMUX44_t       GPLMUX44;              /* ALT_SYSMGR_PINMUX_GPLMUX44 */
+    ALT_SYSMGR_PINMUX_GPLMUX45_t       GPLMUX45;              /* ALT_SYSMGR_PINMUX_GPLMUX45 */
+    ALT_SYSMGR_PINMUX_GPLMUX46_t       GPLMUX46;              /* ALT_SYSMGR_PINMUX_GPLMUX46 */
+    ALT_SYSMGR_PINMUX_GPLMUX47_t       GPLMUX47;              /* ALT_SYSMGR_PINMUX_GPLMUX47 */
+    ALT_SYSMGR_PINMUX_GPLMUX48_t       GPLMUX48;              /* ALT_SYSMGR_PINMUX_GPLMUX48 */
+    ALT_SYSMGR_PINMUX_GPLMUX49_t       GPLMUX49;              /* ALT_SYSMGR_PINMUX_GPLMUX49 */
+    ALT_SYSMGR_PINMUX_GPLMUX50_t       GPLMUX50;              /* ALT_SYSMGR_PINMUX_GPLMUX50 */
+    ALT_SYSMGR_PINMUX_GPLMUX51_t       GPLMUX51;              /* ALT_SYSMGR_PINMUX_GPLMUX51 */
+    ALT_SYSMGR_PINMUX_GPLMUX52_t       GPLMUX52;              /* ALT_SYSMGR_PINMUX_GPLMUX52 */
+    ALT_SYSMGR_PINMUX_GPLMUX53_t       GPLMUX53;              /* ALT_SYSMGR_PINMUX_GPLMUX53 */
+    ALT_SYSMGR_PINMUX_GPLMUX54_t       GPLMUX54;              /* ALT_SYSMGR_PINMUX_GPLMUX54 */
+    ALT_SYSMGR_PINMUX_GPLMUX55_t       GPLMUX55;              /* ALT_SYSMGR_PINMUX_GPLMUX55 */
+    ALT_SYSMGR_PINMUX_GPLMUX56_t       GPLMUX56;              /* ALT_SYSMGR_PINMUX_GPLMUX56 */
+    ALT_SYSMGR_PINMUX_GPLMUX57_t       GPLMUX57;              /* ALT_SYSMGR_PINMUX_GPLMUX57 */
+    ALT_SYSMGR_PINMUX_GPLMUX58_t       GPLMUX58;              /* ALT_SYSMGR_PINMUX_GPLMUX58 */
+    ALT_SYSMGR_PINMUX_GPLMUX59_t       GPLMUX59;              /* ALT_SYSMGR_PINMUX_GPLMUX59 */
+    ALT_SYSMGR_PINMUX_GPLMUX60_t       GPLMUX60;              /* ALT_SYSMGR_PINMUX_GPLMUX60 */
+    ALT_SYSMGR_PINMUX_GPLMUX61_t       GPLMUX61;              /* ALT_SYSMGR_PINMUX_GPLMUX61 */
+    ALT_SYSMGR_PINMUX_GPLMUX62_t       GPLMUX62;              /* ALT_SYSMGR_PINMUX_GPLMUX62 */
+    ALT_SYSMGR_PINMUX_GPLMUX63_t       GPLMUX63;              /* ALT_SYSMGR_PINMUX_GPLMUX63 */
+    ALT_SYSMGR_PINMUX_GPLMUX64_t       GPLMUX64;              /* ALT_SYSMGR_PINMUX_GPLMUX64 */
+    ALT_SYSMGR_PINMUX_GPLMUX65_t       GPLMUX65;              /* ALT_SYSMGR_PINMUX_GPLMUX65 */
+    ALT_SYSMGR_PINMUX_GPLMUX66_t       GPLMUX66;              /* ALT_SYSMGR_PINMUX_GPLMUX66 */
+    ALT_SYSMGR_PINMUX_GPLMUX67_t       GPLMUX67;              /* ALT_SYSMGR_PINMUX_GPLMUX67 */
+    ALT_SYSMGR_PINMUX_GPLMUX68_t       GPLMUX68;              /* ALT_SYSMGR_PINMUX_GPLMUX68 */
+    ALT_SYSMGR_PINMUX_GPLMUX69_t       GPLMUX69;              /* ALT_SYSMGR_PINMUX_GPLMUX69 */
+    ALT_SYSMGR_PINMUX_GPLMUX70_t       GPLMUX70;              /* ALT_SYSMGR_PINMUX_GPLMUX70 */
+    ALT_SYSMGR_PINMUX_NANDUSEFPGA_t    NANDUSEFPGA;           /* ALT_SYSMGR_PINMUX_NANDUSEFPGA */
+    volatile uint32_t                  _pad_0x2f4_0x2f7;      /* *UNDEFINED* */
+    ALT_SYSMGR_PINMUX_RGMII1USEFPGA_t  RGMII1USEFPGA;         /* ALT_SYSMGR_PINMUX_RGMII1USEFPGA */
+    volatile uint32_t                  _pad_0x2fc_0x303[2];   /* *UNDEFINED* */
+    ALT_SYSMGR_PINMUX_I2C0USEFPGA_t    I2C0USEFPGA;           /* ALT_SYSMGR_PINMUX_I2C0USEFPGA */
+    volatile uint32_t                  _pad_0x308_0x313[3];   /* *UNDEFINED* */
+    ALT_SYSMGR_PINMUX_RGMII0USEFPGA_t  RGMII0USEFPGA;         /* ALT_SYSMGR_PINMUX_RGMII0USEFPGA */
+    volatile uint32_t                  _pad_0x318_0x323[3];   /* *UNDEFINED* */
+    ALT_SYSMGR_PINMUX_I2C3USEFPGA_t    I2C3USEFPGA;           /* ALT_SYSMGR_PINMUX_I2C3USEFPGA */
+    ALT_SYSMGR_PINMUX_I2C2USEFPGA_t    I2C2USEFPGA;           /* ALT_SYSMGR_PINMUX_I2C2USEFPGA */
+    ALT_SYSMGR_PINMUX_I2C1USEFPGA_t    I2C1USEFPGA;           /* ALT_SYSMGR_PINMUX_I2C1USEFPGA */
+    ALT_SYSMGR_PINMUX_SPIM1USEFPGA_t   SPIM1USEFPGA;          /* ALT_SYSMGR_PINMUX_SPIM1USEFPGA */
+    volatile uint32_t                  _pad_0x334_0x337;      /* *UNDEFINED* */
+    ALT_SYSMGR_PINMUX_SPIM0USEFPGA_t   SPIM0USEFPGA;          /* ALT_SYSMGR_PINMUX_SPIM0USEFPGA */
+    volatile uint32_t                  _pad_0x33c_0x400[49];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_SYSMGR_PINMUX. */
@@ -24703,20 +24703,20 @@ struct ALT_SYSMGR_PINMUX_raw_s
     volatile uint32_t  GPLMUX69;              /* ALT_SYSMGR_PINMUX_GPLMUX69 */
     volatile uint32_t  GPLMUX70;              /* ALT_SYSMGR_PINMUX_GPLMUX70 */
     volatile uint32_t  NANDUSEFPGA;           /* ALT_SYSMGR_PINMUX_NANDUSEFPGA */
-    volatile uint32_t  _pad_0x2f4_0x2f7;      /* *UNDEFINED* */
+    uint32_t           _pad_0x2f4_0x2f7;      /* *UNDEFINED* */
     volatile uint32_t  RGMII1USEFPGA;         /* ALT_SYSMGR_PINMUX_RGMII1USEFPGA */
-    volatile uint32_t  _pad_0x2fc_0x303[2];   /* *UNDEFINED* */
+    uint32_t           _pad_0x2fc_0x303[2];   /* *UNDEFINED* */
     volatile uint32_t  I2C0USEFPGA;           /* ALT_SYSMGR_PINMUX_I2C0USEFPGA */
-    volatile uint32_t  _pad_0x308_0x313[3];   /* *UNDEFINED* */
+    uint32_t           _pad_0x308_0x313[3];   /* *UNDEFINED* */
     volatile uint32_t  RGMII0USEFPGA;         /* ALT_SYSMGR_PINMUX_RGMII0USEFPGA */
-    volatile uint32_t  _pad_0x318_0x323[3];   /* *UNDEFINED* */
+    uint32_t           _pad_0x318_0x323[3];   /* *UNDEFINED* */
     volatile uint32_t  I2C3USEFPGA;           /* ALT_SYSMGR_PINMUX_I2C3USEFPGA */
     volatile uint32_t  I2C2USEFPGA;           /* ALT_SYSMGR_PINMUX_I2C2USEFPGA */
     volatile uint32_t  I2C1USEFPGA;           /* ALT_SYSMGR_PINMUX_I2C1USEFPGA */
     volatile uint32_t  SPIM1USEFPGA;          /* ALT_SYSMGR_PINMUX_SPIM1USEFPGA */
-    volatile uint32_t  _pad_0x334_0x337;      /* *UNDEFINED* */
+    uint32_t           _pad_0x334_0x337;      /* *UNDEFINED* */
     volatile uint32_t  SPIM0USEFPGA;          /* ALT_SYSMGR_PINMUX_SPIM0USEFPGA */
-    volatile uint32_t  _pad_0x33c_0x400[49];  /* *UNDEFINED* */
+    uint32_t           _pad_0x33c_0x400[49];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_SYSMGR_PINMUX. */
@@ -24737,33 +24737,33 @@ typedef volatile struct ALT_SYSMGR_PINMUX_raw_s  ALT_SYSMGR_PINMUX_raw_t;
  */
 struct ALT_SYSMGR_s
 {
-    volatile ALT_SYSMGR_SILICONID1_t  siliconid1;               /* ALT_SYSMGR_SILICONID1 */
-    volatile ALT_SYSMGR_SILICONID2_t  siliconid2;               /* ALT_SYSMGR_SILICONID2 */
-    volatile uint32_t                 _pad_0x8_0xf[2];          /* *UNDEFINED* */
-    volatile ALT_SYSMGR_WDDBG_t       wddbg;                    /* ALT_SYSMGR_WDDBG */
-    volatile ALT_SYSMGR_BOOT_t        bootinfo;                 /* ALT_SYSMGR_BOOT */
-    volatile ALT_SYSMGR_HPSINFO_t     hpsinfo;                  /* ALT_SYSMGR_HPSINFO */
-    volatile ALT_SYSMGR_PARITYINJ_t   parityinj;                /* ALT_SYSMGR_PARITYINJ */
-    volatile ALT_SYSMGR_FPGAINTF_t    fpgaintfgrp;              /* ALT_SYSMGR_FPGAINTF */
-    volatile ALT_SYSMGR_SCANMGR_t     scanmgrgrp;               /* ALT_SYSMGR_SCANMGR */
-    volatile uint32_t                 _pad_0x34_0x3f[3];        /* *UNDEFINED* */
-    volatile ALT_SYSMGR_FRZCTL_t      frzctrl;                  /* ALT_SYSMGR_FRZCTL */
-    volatile ALT_SYSMGR_EMAC_t        emacgrp;                  /* ALT_SYSMGR_EMAC */
-    volatile ALT_SYSMGR_DMA_t         dmagrp;                   /* ALT_SYSMGR_DMA */
-    volatile uint32_t                 _pad_0x78_0x7f[2];        /* *UNDEFINED* */
-    volatile ALT_SYSMGR_ISW_t         iswgrp;                   /* ALT_SYSMGR_ISW */
-    volatile uint32_t                 _pad_0xa0_0xbf[8];        /* *UNDEFINED* */
-    volatile ALT_SYSMGR_ROMCODE_t     romcodegrp;               /* ALT_SYSMGR_ROMCODE */
-    volatile ALT_SYSMGR_ROMHW_t       romhwgrp;                 /* ALT_SYSMGR_ROMHW */
-    volatile uint32_t                 _pad_0x104_0x107;         /* *UNDEFINED* */
-    volatile ALT_SYSMGR_SDMMC_t       sdmmcgrp;                 /* ALT_SYSMGR_SDMMC */
-    volatile ALT_SYSMGR_NAND_t        nandgrp;                  /* ALT_SYSMGR_NAND */
-    volatile ALT_SYSMGR_USB_t         usbgrp;                   /* ALT_SYSMGR_USB */
-    volatile uint32_t                 _pad_0x11c_0x13f[9];      /* *UNDEFINED* */
-    volatile ALT_SYSMGR_ECC_t         eccgrp;                   /* ALT_SYSMGR_ECC */
-    volatile uint32_t                 _pad_0x180_0x3ff[160];    /* *UNDEFINED* */
-    volatile ALT_SYSMGR_PINMUX_t      pinmuxgrp;                /* ALT_SYSMGR_PINMUX */
-    volatile uint32_t                 _pad_0x800_0x4000[3584];  /* *UNDEFINED* */
+    ALT_SYSMGR_SILICONID1_t  siliconid1;               /* ALT_SYSMGR_SILICONID1 */
+    ALT_SYSMGR_SILICONID2_t  siliconid2;               /* ALT_SYSMGR_SILICONID2 */
+    volatile uint32_t        _pad_0x8_0xf[2];          /* *UNDEFINED* */
+    ALT_SYSMGR_WDDBG_t       wddbg;                    /* ALT_SYSMGR_WDDBG */
+    ALT_SYSMGR_BOOT_t        bootinfo;                 /* ALT_SYSMGR_BOOT */
+    ALT_SYSMGR_HPSINFO_t     hpsinfo;                  /* ALT_SYSMGR_HPSINFO */
+    ALT_SYSMGR_PARITYINJ_t   parityinj;                /* ALT_SYSMGR_PARITYINJ */
+    ALT_SYSMGR_FPGAINTF_t    fpgaintfgrp;              /* ALT_SYSMGR_FPGAINTF */
+    ALT_SYSMGR_SCANMGR_t     scanmgrgrp;               /* ALT_SYSMGR_SCANMGR */
+    volatile uint32_t        _pad_0x34_0x3f[3];        /* *UNDEFINED* */
+    ALT_SYSMGR_FRZCTL_t      frzctrl;                  /* ALT_SYSMGR_FRZCTL */
+    ALT_SYSMGR_EMAC_t        emacgrp;                  /* ALT_SYSMGR_EMAC */
+    ALT_SYSMGR_DMA_t         dmagrp;                   /* ALT_SYSMGR_DMA */
+    volatile uint32_t        _pad_0x78_0x7f[2];        /* *UNDEFINED* */
+    ALT_SYSMGR_ISW_t         iswgrp;                   /* ALT_SYSMGR_ISW */
+    volatile uint32_t        _pad_0xa0_0xbf[8];        /* *UNDEFINED* */
+    ALT_SYSMGR_ROMCODE_t     romcodegrp;               /* ALT_SYSMGR_ROMCODE */
+    ALT_SYSMGR_ROMHW_t       romhwgrp;                 /* ALT_SYSMGR_ROMHW */
+    volatile uint32_t        _pad_0x104_0x107;         /* *UNDEFINED* */
+    ALT_SYSMGR_SDMMC_t       sdmmcgrp;                 /* ALT_SYSMGR_SDMMC */
+    ALT_SYSMGR_NAND_t        nandgrp;                  /* ALT_SYSMGR_NAND */
+    ALT_SYSMGR_USB_t         usbgrp;                   /* ALT_SYSMGR_USB */
+    volatile uint32_t        _pad_0x11c_0x13f[9];      /* *UNDEFINED* */
+    ALT_SYSMGR_ECC_t         eccgrp;                   /* ALT_SYSMGR_ECC */
+    volatile uint32_t        _pad_0x180_0x3ff[160];    /* *UNDEFINED* */
+    ALT_SYSMGR_PINMUX_t      pinmuxgrp;                /* ALT_SYSMGR_PINMUX */
+    volatile uint32_t        _pad_0x800_0x4000[3584];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for register group ALT_SYSMGR. */
@@ -24771,33 +24771,33 @@ typedef volatile struct ALT_SYSMGR_s  ALT_SYSMGR_t;
 /* The struct declaration for the raw register contents of register group ALT_SYSMGR. */
 struct ALT_SYSMGR_raw_s
 {
-    volatile uint32_t                   siliconid1;               /* ALT_SYSMGR_SILICONID1 */
-    volatile uint32_t                   siliconid2;               /* ALT_SYSMGR_SILICONID2 */
-    volatile uint32_t                   _pad_0x8_0xf[2];          /* *UNDEFINED* */
-    volatile uint32_t                   wddbg;                    /* ALT_SYSMGR_WDDBG */
-    volatile uint32_t                   bootinfo;                 /* ALT_SYSMGR_BOOT */
-    volatile uint32_t                   hpsinfo;                  /* ALT_SYSMGR_HPSINFO */
-    volatile uint32_t                   parityinj;                /* ALT_SYSMGR_PARITYINJ */
-    volatile ALT_SYSMGR_FPGAINTF_raw_t  fpgaintfgrp;              /* ALT_SYSMGR_FPGAINTF */
-    volatile ALT_SYSMGR_SCANMGR_raw_t   scanmgrgrp;               /* ALT_SYSMGR_SCANMGR */
-    volatile uint32_t                   _pad_0x34_0x3f[3];        /* *UNDEFINED* */
-    volatile ALT_SYSMGR_FRZCTL_raw_t    frzctrl;                  /* ALT_SYSMGR_FRZCTL */
-    volatile ALT_SYSMGR_EMAC_raw_t      emacgrp;                  /* ALT_SYSMGR_EMAC */
-    volatile ALT_SYSMGR_DMA_raw_t       dmagrp;                   /* ALT_SYSMGR_DMA */
-    volatile uint32_t                   _pad_0x78_0x7f[2];        /* *UNDEFINED* */
-    volatile ALT_SYSMGR_ISW_raw_t       iswgrp;                   /* ALT_SYSMGR_ISW */
-    volatile uint32_t                   _pad_0xa0_0xbf[8];        /* *UNDEFINED* */
-    volatile ALT_SYSMGR_ROMCODE_raw_t   romcodegrp;               /* ALT_SYSMGR_ROMCODE */
-    volatile ALT_SYSMGR_ROMHW_raw_t     romhwgrp;                 /* ALT_SYSMGR_ROMHW */
-    volatile uint32_t                   _pad_0x104_0x107;         /* *UNDEFINED* */
-    volatile ALT_SYSMGR_SDMMC_raw_t     sdmmcgrp;                 /* ALT_SYSMGR_SDMMC */
-    volatile ALT_SYSMGR_NAND_raw_t      nandgrp;                  /* ALT_SYSMGR_NAND */
-    volatile ALT_SYSMGR_USB_raw_t       usbgrp;                   /* ALT_SYSMGR_USB */
-    volatile uint32_t                   _pad_0x11c_0x13f[9];      /* *UNDEFINED* */
-    volatile ALT_SYSMGR_ECC_raw_t       eccgrp;                   /* ALT_SYSMGR_ECC */
-    volatile uint32_t                   _pad_0x180_0x3ff[160];    /* *UNDEFINED* */
-    volatile ALT_SYSMGR_PINMUX_raw_t    pinmuxgrp;                /* ALT_SYSMGR_PINMUX */
-    volatile uint32_t                   _pad_0x800_0x4000[3584];  /* *UNDEFINED* */
+    volatile uint32_t          siliconid1;               /* ALT_SYSMGR_SILICONID1 */
+    volatile uint32_t          siliconid2;               /* ALT_SYSMGR_SILICONID2 */
+    uint32_t                   _pad_0x8_0xf[2];          /* *UNDEFINED* */
+    volatile uint32_t          wddbg;                    /* ALT_SYSMGR_WDDBG */
+    volatile uint32_t          bootinfo;                 /* ALT_SYSMGR_BOOT */
+    volatile uint32_t          hpsinfo;                  /* ALT_SYSMGR_HPSINFO */
+    volatile uint32_t          parityinj;                /* ALT_SYSMGR_PARITYINJ */
+    ALT_SYSMGR_FPGAINTF_raw_t  fpgaintfgrp;              /* ALT_SYSMGR_FPGAINTF */
+    ALT_SYSMGR_SCANMGR_raw_t   scanmgrgrp;               /* ALT_SYSMGR_SCANMGR */
+    uint32_t                   _pad_0x34_0x3f[3];        /* *UNDEFINED* */
+    ALT_SYSMGR_FRZCTL_raw_t    frzctrl;                  /* ALT_SYSMGR_FRZCTL */
+    ALT_SYSMGR_EMAC_raw_t      emacgrp;                  /* ALT_SYSMGR_EMAC */
+    ALT_SYSMGR_DMA_raw_t       dmagrp;                   /* ALT_SYSMGR_DMA */
+    uint32_t                   _pad_0x78_0x7f[2];        /* *UNDEFINED* */
+    ALT_SYSMGR_ISW_raw_t       iswgrp;                   /* ALT_SYSMGR_ISW */
+    uint32_t                   _pad_0xa0_0xbf[8];        /* *UNDEFINED* */
+    ALT_SYSMGR_ROMCODE_raw_t   romcodegrp;               /* ALT_SYSMGR_ROMCODE */
+    ALT_SYSMGR_ROMHW_raw_t     romhwgrp;                 /* ALT_SYSMGR_ROMHW */
+    uint32_t                   _pad_0x104_0x107;         /* *UNDEFINED* */
+    ALT_SYSMGR_SDMMC_raw_t     sdmmcgrp;                 /* ALT_SYSMGR_SDMMC */
+    ALT_SYSMGR_NAND_raw_t      nandgrp;                  /* ALT_SYSMGR_NAND */
+    ALT_SYSMGR_USB_raw_t       usbgrp;                   /* ALT_SYSMGR_USB */
+    uint32_t                   _pad_0x11c_0x13f[9];      /* *UNDEFINED* */
+    ALT_SYSMGR_ECC_raw_t       eccgrp;                   /* ALT_SYSMGR_ECC */
+    uint32_t                   _pad_0x180_0x3ff[160];    /* *UNDEFINED* */
+    ALT_SYSMGR_PINMUX_raw_t    pinmuxgrp;                /* ALT_SYSMGR_PINMUX */
+    uint32_t                   _pad_0x800_0x4000[3584];  /* *UNDEFINED* */
 };
 
 /* The typedef declaration for the raw register contents of register group ALT_SYSMGR. */

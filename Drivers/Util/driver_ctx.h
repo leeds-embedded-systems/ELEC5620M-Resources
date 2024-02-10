@@ -57,7 +57,7 @@
     // Example driver initialisation routine
 
     // Initialise My driver
-    //  - base is a pointer to my hardware
+    //  - base is a pointer to my hardwar
     //  - Returns Util/error Code
     //  - Returns context pointer to *ctx
     HpsErr_t MY_initialise(void* base, PMyDriverCtx_t* pCtx) {
@@ -72,6 +72,10 @@
         ctx->base = (unsigned int*)base;
 
         ... Any other initialisation "stuff" ...
+
+        ... Maybe something went wrong? If so init failure
+        status = MyFunc(ctx);    
+        if (IS_ERROR(status)) return DriverContextInitFail(pCtx, status);
 
         //Initialised
         DriverContextSetInit(ctx);
@@ -137,6 +141,14 @@ HpsErr_t DRV_allocateContext(unsigned int drvSize, PDrvCtx_t* pCtx, ContextClean
 // - Can be cast to HpsErrExt_t.
 HpsErr_t DRV_freeContext(PDrvCtx_t* pCtx);
 
+// Cleanum context with status
+// - Same as DRV_freeContext, except returns
+//   provided status code.
+inline HpsErr_t DRV_freeContextWithStatus(PDrvCtx_t* pCtx, HpsErr_t retVal) {
+    DRV_freeContext(pCtx);
+    return retVal;
+}
+
 // Check if the driver context is initialised
 bool DRV_isInitialised(PDrvCtx_t ctx);
 
@@ -167,6 +179,14 @@ HpsErr_t DRV_checkContext(PDrvCtx_t ctx);
 // - Returns HpsErr_t or HpsErrExt_t
 #define DriverContextFree(pCtx) \
     DRV_freeContext((PDrvCtx_t*)(pCtx))
+
+// Driver initialise failed
+// - Call after Allocate but before SetInit if something
+//   goes wrong in the constructor.
+// - This will clean up the allocated context then return
+//   the provided return value
+#define DriverContextInitFail(pCtx, retVal) \
+    DRV_freeContextWithStatus((PDrvCtx_t*)(pCtx), retVal)
 
 // Mark driver context as initialised.
 // - Call once at end of driver initialisation function

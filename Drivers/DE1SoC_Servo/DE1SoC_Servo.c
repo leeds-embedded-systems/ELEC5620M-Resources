@@ -20,6 +20,7 @@
  */
 
 #include "DE1SoC_Servo.h"
+#include "Util/bit_helpers.h"
 
 //
 // Register Maps

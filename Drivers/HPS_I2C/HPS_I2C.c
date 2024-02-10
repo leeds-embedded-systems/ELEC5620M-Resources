@@ -173,12 +173,12 @@ HpsErr_t HPS_I2C_initialise(void* base, I2CSpeed speed, PHPSI2CCtx_t* pCtx) {
     //driver, but for simplicity it is done here.
     volatile unsigned int* gpio1_base_ptr = (unsigned int*) 0xFF709000;
     //If I2C controller ID 0, make sure GPIO is configured to route external I2C mux on DE1-SoC to HPS
-    if (base == 0xFFC04000) {
+    if (base == (void*)0xFFC04000) {
         gpio1_base_ptr[1] = gpio1_base_ptr[1] | (1 << 19); //Make sure bit 19 (GPIO48) is an output
         gpio1_base_ptr[0] = gpio1_base_ptr[0] | (1 << 19); //Then set it high.
     }
     //If I2C controller ID 1, make sure GPIO is configured to route LTC Header I2C mux on DE1-SoC to HPS
-    if (base == 0xFFC05000) {
+    if (base == (void*)0xFFC05000) {
         gpio1_base_ptr[1] = gpio1_base_ptr[1] | (1 << 11); //Make sure bit 11 (GPIO40) is an output
         gpio1_base_ptr[0] = gpio1_base_ptr[0] | (1 << 11); //Then set it high.
     }

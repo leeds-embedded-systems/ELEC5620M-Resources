@@ -6,6 +6,7 @@
  */
 
 #include "DE1SoC_Mandelbrot.h"
+#include "Util/bit_helpers.h"
 
 /*
  * Registers
@@ -112,7 +113,7 @@ static void _Mandelbrot_setCalculationPrecision( PMandelbrotCtx_t ctx, Mandelbro
 //Function to initialise the Mandelbrot driver
 // - Requires that the LT24 controller has already been initialised.
 // - Returns 0 if successful
-HpsErr_t Mandelbrot_initialise( unsigned int base, PLT24Ctx_t lt24ctx, PMandelbrotCtx_t* pCtx ) {
+HpsErr_t Mandelbrot_initialise( void* base, PLT24Ctx_t lt24ctx, PMandelbrotCtx_t* pCtx ) {
     //Ensure user pointers valid.
     if (!base) return ERR_NULLPTR;
     if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
@@ -156,7 +157,7 @@ HpsErrExt_t Mandelbrot_getCalculationPrecision( PMandelbrotCtx_t ctx ) {
 // - returns 0 if successful
 // - Once precision is changed, *all* coefficients (Zmax, Xmin, Ymin, Xstep, Ystep)
 //   will automatically be updated.
-HpsErr_t Mandelbrot_setCalculationPrecision( PMandelbrotCtx_t ctx, PMandelbrotCtx_t precision ) {
+HpsErr_t Mandelbrot_setCalculationPrecision( PMandelbrotCtx_t ctx, MandelbrotPrecision precision ) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (IS_ERROR(status)) return status;

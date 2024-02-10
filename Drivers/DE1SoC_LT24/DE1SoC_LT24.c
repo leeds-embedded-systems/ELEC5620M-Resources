@@ -20,6 +20,7 @@
 #include "DE1SoC_LT24.h"
 #include "HPS_Watchdog/HPS_Watchdog.h"
 #include "HPS_usleep/HPS_usleep.h"
+#include "Util/bit_helpers.h"
 
 //
 // Useful Defines

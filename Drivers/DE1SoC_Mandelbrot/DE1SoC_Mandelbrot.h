@@ -46,7 +46,7 @@ typedef struct {
 //Function to initialise the Mandelbrot driver
 // - Requires that the LT24 controller has already been initialised.
 // - Returns 0 if successful
-HpsErr_t Mandelbrot_initialise( unsigned int base, PLT24Ctx_t lt24ctx, PMandelbrotCtx_t* pCtx );
+HpsErr_t Mandelbrot_initialise( void* base, PLT24Ctx_t lt24ctx, PMandelbrotCtx_t* pCtx );
 
 //Check if driver initialised
 // - returns true if initialised

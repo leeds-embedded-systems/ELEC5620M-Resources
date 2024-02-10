@@ -53,7 +53,7 @@
 
 // Fail-back implementation of popcount if not available.
 // http://graphics.stanford.edu/~seander/bithacks.html
-inline unsigned int __popcount_failback(unsigned int x) {
+static inline unsigned int __popcount_failback(unsigned int x) {
     x = x - ((x >> 1) & 0x55555555U);
     x = (x & 0x33333333U) + ((x >> 2) & 0x33333333U);
     return ((x + (x >> 4) & 0xF0F0F0FU) * 0x1010101U) >> 24; // count
@@ -61,7 +61,7 @@ inline unsigned int __popcount_failback(unsigned int x) {
 
 // Fail-back implementation of RBIT if not available.
 // https://stackoverflow.com/a/9144870/1557472
-inline unsigned int __rbit_failback(unsigned int x) {
+static inline unsigned int __rbit_failback(unsigned int x) {
     x = ((x >> 1) & 0x55555555u) | ((x & 0x55555555u) << 1);
     x = ((x >> 2) & 0x33333333u) | ((x & 0x33333333u) << 2);
     x = ((x >> 4) & 0x0f0f0f0fu) | ((x & 0x0f0f0f0fu) << 4);
@@ -72,7 +72,7 @@ inline unsigned int __rbit_failback(unsigned int x) {
 
 // Fail-back implementation of CLZ if not available.
 // https://stackoverflow.com/a/23857066/1557472
-inline static unsigned int __clz_failback(unsigned int x) {
+static inline unsigned int __clz_failback(unsigned int x) {
     unsigned int n = 32;
     unsigned int y;
     y = x >>16; if (y != 0) { n = n -16; x = y; }
@@ -96,26 +96,26 @@ inline static unsigned int __clz_failback(unsigned int x) {
 #define MaxAddressSpanOfBaseMask(base) (((base) & -(base)) - 1)
 
 // Reverse the bytes in a 32-bit word
-inline __attribute__((always_inline)) unsigned int reverseInt(unsigned int data) {
+static inline __attribute__((always_inline)) unsigned int reverseInt(unsigned int data) {
     // compiler should optimise this to __REV instruction
     data = ((data & 0xFF000000) >> 24) | ((data & 0x00FF0000) >> 8) | ((data & 0x0000FF00) << 8) | ((data & 0x000000FF) << 24);
     return data;
 }
 
 // Reverse the bytes in a 16-bit word
-inline __attribute__((always_inline)) unsigned short reverseShort(unsigned short data) {
+static inline __attribute__((always_inline)) unsigned short reverseShort(unsigned short data) {
     // compiler should optimise this to __REV16 instruction
     data = ((data & 0xFF00) >> 8) | ((data & 0x00FF) << 8);
     return data;
 }
 
 // Check if address alignment is correct
-inline bool pointerIsAligned(const void* ptr, unsigned int size) {
+static inline bool pointerIsAligned(const void* ptr, unsigned int size) {
     return !(((unsigned int)ptr) & (size - 1));
 }
 
 // Align an address or length to a size boundary
-inline void* alignPointer(const void* ptr, unsigned int size, bool toNext) {
+static inline void* alignPointer(const void* ptr, unsigned int size, bool toNext) {
     unsigned int val = (unsigned int)ptr;
     if (toNext) val = val + size - 1;
     return (void*)(val & (size - 1));
@@ -124,17 +124,17 @@ inline void* alignPointer(const void* ptr, unsigned int size, bool toNext) {
 // Find most significant set bit
 // - Returns the index of the highest set bit
 // - Returns -1 if no bits set
-inline signed int findHighestBit(unsigned int x) {
+static inline signed int findHighestBit(unsigned int x) {
     return 31-__clz(x);
 }
 
 // Performs the hamming count on a 32bit integer (counts ones)
-inline unsigned int countOnes(unsigned int x) {
+static inline unsigned int countOnes(unsigned int x) {
     return __popcount(x);
 }
 
 // Optimised function for finding least significant 0 in a bitmask.
-inline unsigned int findFirstZero(unsigned int x) {
+static inline unsigned int findFirstZero(unsigned int x) {
     //First invert, as intrinsics are looking for 1's
     x = ~x;
     //Then flip bit order so that we can look for first MSB

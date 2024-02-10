@@ -77,6 +77,7 @@ enum {
     ERR_CHECKSUM  = -52,
     ERR_MISMATCH  = -53,
     ERR_CORRUPT   = -54,
+    ERR_OUTRANGE  = -55,
 
     // File/Disk
     ERR_WRITEPROT = -80,

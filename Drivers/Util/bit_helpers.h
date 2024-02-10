@@ -11,6 +11,7 @@
  *
  * Date       | Changes
  * -----------+----------------------------------
+ * 03/02/2024 | Add countBits implementation
  * 28/12/2023 | Creation of header
  *
  */
@@ -25,6 +26,8 @@
     //ARM has both of these already defined in its instruction set
     #include <arm_acle.h>
 
+    #define __popcount(x) __popcount_failback(x)
+
 #elif defined(__NIOS2__)
     //Nios has building CLZ, and optional custom instruction for RBIT.
     #define __clz(x) __builtin_clz(x)
@@ -37,17 +40,28 @@
         #define __rbit(x) __rbit_failback(x)
     #endif
 
+    #define __popcount(x) __builtin_popcount(x)
+
 #else
     //Otherwise use fail-back methods
     #warning "Please re-define __clz and __rbit for your system type if accelerators exist."
     #define __clz(x)  __clz_failback(x)
     #define __rbit(x) __rbit_failback(x)
+    #define __popcount(x) __popcount_failback(x)
 
 #endif
 
+// Fail-back implementation of popcount if not available.
+// http://graphics.stanford.edu/~seander/bithacks.html
+inline unsigned int __popcount_failback(unsigned int x) {
+    x = x - ((x >> 1) & 0x55555555U);
+    x = (x & 0x33333333U) + ((x >> 2) & 0x33333333U);
+    return ((x + (x >> 4) & 0xF0F0F0FU) * 0x1010101U) >> 24; // count
+}
+
 // Fail-back implementation of RBIT if not available.
 // https://stackoverflow.com/a/9144870/1557472
-static unsigned int __rbit_failback(unsigned int x) {
+inline unsigned int __rbit_failback(unsigned int x) {
     x = ((x >> 1) & 0x55555555u) | ((x & 0x55555555u) << 1);
     x = ((x >> 2) & 0x33333333u) | ((x & 0x33333333u) << 2);
     x = ((x >> 4) & 0x0f0f0f0fu) | ((x & 0x0f0f0f0fu) << 4);
@@ -58,7 +72,7 @@ static unsigned int __rbit_failback(unsigned int x) {
 
 // Fail-back implementation of CLZ if not available.
 // https://stackoverflow.com/a/23857066/1557472
-static unsigned int __clz_failback(unsigned int x) {
+inline static unsigned int __clz_failback(unsigned int x) {
     unsigned int n = 32;
     unsigned int y;
     y = x >>16; if (y != 0) { n = n -16; x = y; }
@@ -73,6 +87,10 @@ static unsigned int __clz_failback(unsigned int x) {
 #ifndef _BV
 #define _BV(a) (1 << (a))
 #endif
+
+//Masked bit value
+#define MaskInsert( val, mask, ofs) (((val) & (mask)) << (ofs))
+#define MaskExtract(val, mask, ofs) (((val) >> (ofs)) & (mask))
 
 // Given a base address, calculate the maximum power of two span the address can access as a bitmask
 #define MaxAddressSpanOfBaseMask(base) (((base) & -(base)) - 1)
@@ -108,6 +126,11 @@ inline void* alignPointer(const void* ptr, unsigned int size, bool toNext) {
 // - Returns -1 if no bits set
 inline signed int findHighestBit(unsigned int x) {
     return 31-__clz(x);
+}
+
+// Performs the hamming count on a 32bit integer (counts ones)
+inline unsigned int countOnes(unsigned int x) {
+    return __popcount(x);
 }
 
 // Optimised function for finding least significant 0 in a bitmask.

@@ -48,6 +48,16 @@
 #define CEIL_DIV(a,b) (((a)+(b)-1)/(b))
 #endif
 
+//Integer rounding Division
+#ifndef ROUND_DIV
+#define ROUND_DIV(a,b) (((a)+(b)/2)/(b))
+#endif
+
+//Integer flooring Division
+#ifndef FLOOR_DIV
+#define FLOOR_DIV(a,b) ((a) / (b))
+#endif
+
 //Min and Max macros if allowed
 #ifndef NOMINMAX
 

@@ -11,6 +11,7 @@
  *
  * Date       | Changes
  * -----------+-------------------------------
+ * 10/02/2024 | Add new API for FIFO access
  * 31/01/2024 | Update to new driver contexts
  * 20/10/2017 | Change to include status codes
  * 20/09/2017 | Creation of driver
@@ -18,6 +19,8 @@
  */
 
 #include "DE1SoC_WM8731.h"
+#include "Util/bit_helpers.h"
+#include "Util/macros.h"
 
 //WM8731 ARM Address Offsets
 #define WM8731_CONTROL    (0x0/sizeof(unsigned int))
@@ -28,6 +31,13 @@
 //Bits
 #define WM8731_FIFO_RESET_ADC 2
 #define WM8731_FIFO_RESET_DAC 3
+
+//FIFO Offsets
+#define WM8731_FIFO_RARC 0
+#define WM8731_FIFO_RALC 8
+#define WM8731_FIFO_WSRC 16
+#define WM8731_FIFO_WSLC 24
+#define WM8731_FIFO_MASK 0xFF
 
 //I2C Register Address Offsets
 #define WM8731_I2C_LEFTINCNTRL   (0x00/sizeof(unsigned short))
@@ -68,6 +78,8 @@ HpsErr_t WM8731_initialise( void* base, PHPSI2CCtx_t i2c, PWM8731Ctx_t* pCtx ) {
     ctx->base = (unsigned int*)base;
     ctx->i2c = i2c;
     ctx->i2cAddr = 0x1A;
+    // - For the time being this is hard-coded to 48kHz, but could be changed later.
+    ctx->sampleRate = 48000;
     //Initialise the WM8731 codec over I2C. See Page 46 of datasheet
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_POWERCNTRL   <<9) | 0x12); //Power-up chip. Leave mic off as not used.
     if (IS_ERROR(status)) return status;
@@ -103,6 +115,17 @@ bool WM8731_isInitialised( PWM8731Ctx_t ctx ) {
     return DriverContextCheckInit(ctx);
 }
 
+//Get the sample rate for the ADC/DAC
+HpsErr_t WM8731_getSampleRate( PWM8731Ctx_t ctx, unsigned int* sampleRate ) {
+	if (!sampleRate) return ERR_NULLPTR;
+    //Ensure context valid and initialised
+    HpsErr_t status = DriverContextValidate(ctx);
+    if (IS_ERROR(status)) return status;
+    //Return the sample rate.
+	*sampleRate = ctx->sampleRate;
+	return ERR_SUCCESS;
+}
+
 //Clears FIFOs
 // - returns 0 if successful
 HpsErr_t WM8731_clearFIFO( PWM8731Ctx_t ctx, bool adc, bool dac) {
@@ -116,36 +139,57 @@ HpsErr_t WM8731_clearFIFO( PWM8731Ctx_t ctx, bool adc, bool dac) {
     return ERR_SUCCESS;
 }
 
-//Get FIFO Space Address
-HpsErr_t WM8731_getFIFOSpacePtr( PWM8731Ctx_t ctx, volatile unsigned char** fifoSpacePtr ) {
-    if (!fifoSpacePtr) return ERR_NULLPTR;
+//Get FIFO Space (DAC)
+HpsErr_t WM8731_getFIFOSpace( PWM8731Ctx_t ctx, unsigned int* fifoSpace ) {
+	if (!fifoSpace) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (IS_ERROR(status)) return status;
-    //Update the pointer
-    *fifoSpacePtr = (unsigned char*)&ctx->base[WM8731_FIFOSPACE];
+    //Get the FIFO fill register value
+    unsigned int fill = ctx->base[WM8731_FIFOSPACE];
+    //Space is the minimum space from either FIFO
+    *fifoSpace = min(MaskExtract(fill, WM8731_FIFO_MASK, WM8731_FIFO_WSRC), MaskExtract(fill, WM8731_FIFO_MASK, WM8731_FIFO_WSLC));
     return ERR_SUCCESS;
 }
 
-//Get Left FIFO Address
-HpsErr_t WM8731_getLeftFIFOPtr( PWM8731Ctx_t ctx, volatile unsigned int** fifoPtr ) {
-    if (!fifoPtr) return ERR_NULLPTR;
+//Get FIFO Fill (ADC)
+HpsErr_t WM8731_getFIFOFill( PWM8731Ctx_t ctx, unsigned int* fifoFill ) {
+	if (!fifoFill) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (IS_ERROR(status)) return status;
-    //Update the pointer
-    *fifoPtr = (unsigned char*)&ctx->base[WM8731_LEFTFIFO];
+    //Get the FIFO fill register value
+    unsigned int fill = ctx->base[WM8731_FIFOSPACE];
+    //Space is the minimum space from either FIFO
+    *fifoFill = min(MaskExtract(fill, WM8731_FIFO_MASK, WM8731_FIFO_RARC), MaskExtract(fill, WM8731_FIFO_MASK, WM8731_FIFO_RALC));
     return ERR_SUCCESS;
 }
 
-//Get Right FIFO Address
-HpsErr_t WM8731_getRightFIFOPtr( PWM8731Ctx_t ctx, volatile unsigned int** fifoPtr ) {
-    if (!fifoPtr) return ERR_NULLPTR;
+
+//Write a sample to the FIFO for the both channels
+// - You must check there is data available in the FIFO before calling this function.
+HpsErr_t WM8731_writeSample( PWM8731Ctx_t ctx, unsigned int left, unsigned int right) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (IS_ERROR(status)) return status;
-    //Update the pointer
-    *fifoPtr = (unsigned char*)&ctx->base[WM8731_RIGHTFIFO];
+	//Write the sample
+    ctx->base[WM8731_LEFTFIFO] = left;
+    ctx->base[WM8731_RIGHTFIFO] = right;
     return ERR_SUCCESS;
+}
+
+//Read a sample from the FIFO for both channels
+// - You must check there is space in the FIFO before calling this function.
+HpsErr_t WM8731_readSample( PWM8731Ctx_t ctx, unsigned int* left, unsigned int* right ) {
+	//Must provide place for returning values too.
+	if (!left || !right) return ERR_NULLPTR;
+    //Ensure context valid and initialised
+    HpsErr_t status = DriverContextValidate(ctx);
+    if (IS_ERROR(status)) return status;
+	//Write the sample
+    *left = ctx->base[WM8731_LEFTFIFO];
+    *right = ctx->base[WM8731_RIGHTFIFO];
+    return ERR_SUCCESS;
+
 }
 

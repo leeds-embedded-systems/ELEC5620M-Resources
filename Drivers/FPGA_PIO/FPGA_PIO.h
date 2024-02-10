@@ -24,8 +24,8 @@
  *
  */
 
-#ifndef UARP_FPGAPIO_H_
-#define UARP_FPGAPIO_H_
+#ifndef FPGA_PIO_H_
+#define FPGA_PIO_H_
 
 #include "Util/ct_assert.h"
 #include "Util/bit_helpers.h"
@@ -149,5 +149,5 @@ HpsErr_t FPGA_PIO_getInterruptFlags(PFPGAPIOCtx_t ctx, unsigned int* flags, unsi
 // - Only possible if has edge detector
 HpsErr_t FPGA_PIO_clearInterruptFlags(PFPGAPIOCtx_t ctx, unsigned int mask);
 
-#endif /* UARP_FPGAPIO_H_ */
+#endif /* FPGA_PIO_H_ */
 

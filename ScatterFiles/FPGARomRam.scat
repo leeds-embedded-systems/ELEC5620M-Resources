@@ -14,8 +14,8 @@ FPGA_OCRAM 0xC0000000 0x10000
         *(+RW,+ZI)
     }
 } 
-; The APP_CODE and APP_DATA must fit within FPGA OCRAM. An Error will be given if total
-; usage exceeds memory
+; The APP_CODE and APP_DATA must fit within FPGA OCRAM. 
+; An Error will be given if total usage exceeds memory.
 
 ; Stack placed in main On-Chip RAM, filling the 64kB of RAM.
 OCRAM 0xFFFF0000 0x10000

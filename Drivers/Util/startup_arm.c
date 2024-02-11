@@ -88,7 +88,7 @@ void __default_isr (void) { // No __isr attribute used as we never return.
  */
 
 // Reset Handler
-void __reset_isr (void) __attribute__ ((noreturn));
+void __reset_isr (void) __attribute__ ((noreturn, naked));
 // Other Interrupt Handlers. Can be overridden
 __undef void __undef_isr (void) __attribute__ ((weak, alias("__default_isr")));
 __swi   void __svc_isr   (void) __attribute__ ((weak, alias("__default_isr")));
@@ -143,6 +143,7 @@ extern unsigned int IRQ_STACK_TOP_LINK;
  * the programs main entry point.
  */
 
+void __init_stacks (void) __attribute__ ((noreturn));
 void __main(void) __attribute__((noreturn));
 
 void __reset_isr (void) {
@@ -150,36 +151,31 @@ void __reset_isr (void) {
     __disable_bothirqs();
     // Move to system mode (don't use USR mode as bare-metal not OS)
     __SET_PROC_STATE(PROC_STATE_SYS);
+    // Initialise a temporary stack
+    __INIT_SP_SYS(IRQ_STACK_TOP);
+    // And continue
+    __asm__ __volatile__ ("B __init_stacks \n");
+}
+
+void __init_stacks (void) {
+    // Initialise all IRQ stack pointers
+    unsigned int stackTop = IRQ_STACK_TOP;
+    // FIQ
+    __INIT_SP_MODE(PROC_STATE_FIQ, stackTop);
+    // IRQ
+    __INIT_SP_MODE(PROC_STATE_IRQ, stackTop - IRQ_STACK_SIZE);
+    // SVC
+    __INIT_SP_MODE(PROC_STATE_SVC, stackTop - 2*IRQ_STACK_SIZE);
+    // Abrt
+    __INIT_SP_MODE(PROC_STATE_ABT, stackTop - 3*IRQ_STACK_SIZE);
+    // Undef
+    __INIT_SP_MODE(PROC_STATE_UND, stackTop - 4*IRQ_STACK_SIZE);
     // Set the location of the vector table using VBAR register
     __SET_SYSREG(SYSREG_COPROC, VBAR, (unsigned int)&__vector_table);
     // Enable non-aligned access by clearing the A bit (bit 1) of the SCTLR register
     unsigned int sctlr = __GET_SYSREG(SYSREG_COPROC, SCTLR);
     sctlr &= ~(1 << SYSREG_SCTLR_BIT_A);
     __SET_SYSREG(SYSREG_COPROC, SCTLR, sctlr);
-    // Initialise all IRQ stack pointers
-    unsigned int stackTop;
-    // FIQ
-    stackTop = IRQ_STACK_TOP;
-    __SET_PROC_STATE(PROC_STATE_FIQ);
-    __SET_SP(stackTop);
-    // IRQ
-    stackTop -= IRQ_STACK_SIZE;
-    __SET_PROC_STATE(PROC_STATE_IRQ);
-    __SET_SP(stackTop);
-    // SVC
-    stackTop -= IRQ_STACK_SIZE;
-    __SET_PROC_STATE(PROC_STATE_SVC);
-    __SET_SP(stackTop);
-    // Abrt
-    stackTop -= IRQ_STACK_SIZE;
-    __SET_PROC_STATE(PROC_STATE_ABT);
-    __SET_SP(stackTop);
-    // Undef
-    stackTop -= IRQ_STACK_SIZE;
-    __SET_PROC_STATE(PROC_STATE_UND);
-    __SET_SP(stackTop);
-    // Return to system mode
-    __SET_PROC_STATE(PROC_STATE_SYS);
     // If program is compiled targetting a hardware VFP, we must
     // enable the floating point unit to prevent run-time errors
     // in the C standard library.

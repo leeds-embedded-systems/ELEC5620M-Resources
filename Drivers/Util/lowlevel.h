@@ -153,6 +153,16 @@ __MOV_REG_GEN(pc)
 #define __GET_SP()    __current_sp()
 #define __SET_SP(val) __set_sp_reg(val)
 
+// Stack Init Functions
+#define __INIT_SP_SYS(top) __asm__ __volatile__("MOV SP, %[sp]\n" ::[sp] "r" (top):)
+#define __INIT_SP_MODE(mode, top)  \
+    __asm volatile ( \
+		"CPS %[state]    \n\t" \
+		"MOV SP, %[sp]   \n\t" \
+		"CPS %[sysstate] \n\t" \
+		:: [state] "i" (mode), [sp] "r" (top), [sysstate] "i" (PROC_STATE_SYS) \
+	);
+
 /*
  * System Register Access
  */

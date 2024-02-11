@@ -144,7 +144,7 @@ HpsErr_t DRV_freeContext(PDrvCtx_t* pCtx);
 // Cleanum context with status
 // - Same as DRV_freeContext, except returns
 //   provided status code.
-inline HpsErr_t DRV_freeContextWithStatus(PDrvCtx_t* pCtx, HpsErr_t retVal) {
+static inline HpsErr_t DRV_freeContextWithStatus(PDrvCtx_t* pCtx, HpsErr_t retVal) {
     DRV_freeContext(pCtx);
     return retVal;
 }

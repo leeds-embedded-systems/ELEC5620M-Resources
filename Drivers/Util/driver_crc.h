@@ -66,7 +66,7 @@ typedef struct {
 } CRCCtx_t, *PCRCCtx_t;
 
 // Check if driver initialised
-inline HpsErr_t CRC_isInitialised(PCRCCtx_t crc) {
+static inline HpsErr_t CRC_isInitialised(PCRCCtx_t crc) {
     if (!crc) return ERR_NULLPTR;
     return DriverContextCheckInit(crc->ctx);
 }

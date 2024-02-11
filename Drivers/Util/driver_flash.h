@@ -66,7 +66,7 @@ typedef struct {
 } FlashCtx_t, *PFlashCtx_t;
 
 // Check if driver initialised
-inline HpsErr_t FLASH_isInitialised(PFlashCtx_t flash) {
+static inline HpsErr_t FLASH_isInitialised(PFlashCtx_t flash) {
     if (!flash) return ERR_NULLPTR;
     return DriverContextCheckInit(flash->ctx);
 }
@@ -75,63 +75,63 @@ inline HpsErr_t FLASH_isInitialised(PFlashCtx_t flash) {
 bool FLASH_rangeInRegion(PFlashRegion_t region, unsigned int address, unsigned int length);
 
 // Check if an address or length is aligned to the flash word size
-inline HpsErr_t FLASH_checkAlignment(PFlashCtx_t flash, unsigned int val) {
+static inline HpsErr_t FLASH_checkAlignment(PFlashCtx_t flash, unsigned int val) {
     if (!flash) return ERR_NULLPTR;
     return pointerIsAligned((void*)val, flash->wordSize) ? ERR_SUCCESS : ERR_ALIGNMENT;
 }
 
 // Align address or length to the flash word size
 // - If to next, will round up. Else will round down.
-inline HpsErr_t FLASH_ensureAlignment(PFlashCtx_t flash, unsigned int *val, bool toNext) {
+static inline HpsErr_t FLASH_ensureAlignment(PFlashCtx_t flash, unsigned int *val, bool toNext) {
     if (!flash) return ERR_NULLPTR;
     *val = (unsigned int)alignPointer((void*)*val, flash->wordSize, toNext);
     return ERR_SUCCESS;
 }
 
 // Check the flash word size
-inline HpsErr_t FLASH_wordSize(PFlashCtx_t flash, unsigned int* wordSize) {
+static inline HpsErr_t FLASH_wordSize(PFlashCtx_t flash, unsigned int* wordSize) {
     if (!flash || !wordSize) return ERR_NULLPTR;
     *wordSize = flash->wordSize;
     return ERR_SUCCESS;
 }
 
 // Check the flash block size
-inline HpsErr_t FLASH_blockSize(PFlashCtx_t flash, unsigned int* blockSize) {
+static inline HpsErr_t FLASH_blockSize(PFlashCtx_t flash, unsigned int* blockSize) {
     if (!flash || !blockSize) return ERR_NULLPTR;
     *blockSize = flash->blockSize;
     return ERR_SUCCESS;
 }
 
 // Check the flash type
-inline HpsErr_t FLASH_type(PFlashCtx_t flash, FlashType* type) {
+static inline HpsErr_t FLASH_type(PFlashCtx_t flash, FlashType* type) {
     if (!flash || !type) return ERR_NULLPTR;
     *type = flash->type;
     return ERR_SUCCESS;
 }
 
 // Read from the flash
-inline HpsErr_t FLASH_read(PFlashCtx_t flash, unsigned int address, unsigned int length, uint8_t* dest) {
+static inline HpsErr_t FLASH_read(PFlashCtx_t flash, unsigned int address, unsigned int length, uint8_t* dest) {
     if (!flash) return ERR_NULLPTR;
     if (!flash->read) return ERR_NOSUPPORT;
     return flash->read(flash->ctx,address,length,dest);
 }
 
 // Erase a flash region
-inline HpsErr_t FLASH_erase(PFlashCtx_t flash, unsigned int address, unsigned int length) {
+static inline HpsErr_t FLASH_erase(PFlashCtx_t flash, unsigned int address, unsigned int length) {
     if (!flash) return ERR_NULLPTR;
     if (!flash->erase) return ERR_NOSUPPORT;
     return flash->erase(flash->ctx,address,length);
 }
 
 // Write to a flash region
-inline HpsErr_t FLASH_write(PFlashCtx_t flash, unsigned int address, unsigned int length, const uint8_t* src) {
+static inline HpsErr_t FLASH_write(PFlashCtx_t flash, unsigned int address, unsigned int length, const uint8_t* src) {
     if (!flash) return ERR_NULLPTR;
     if (!flash->write) return ERR_NOSUPPORT;
     return flash->write(flash->ctx,address,length,src);
 }
 
 // Verify a flash region
-inline HpsErr_t FLASH_verify(PFlashCtx_t flash, unsigned int address, unsigned int length, const uint8_t* src) {
+static inline HpsErr_t FLASH_verify(PFlashCtx_t flash, unsigned int address, unsigned int length, const uint8_t* src) {
     if (!flash) return ERR_NULLPTR;
     if (!flash->verify) return ERR_NOSUPPORT;
     return flash->verify(flash->ctx,address,length,src);

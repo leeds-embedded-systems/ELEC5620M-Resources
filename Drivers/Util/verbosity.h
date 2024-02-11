@@ -40,7 +40,8 @@
 typedef UARP_VERBOSE_MASKS VerbosityLevelMasks;
 
 #else
-// Otherwise implement local copy as UARP shared header is not available.
+// Otherwise implement local copy as shared header is not available. This
+// must not be changed as both defines must stay in sync.
 
 #include "Util/bit_helpers.h"
 

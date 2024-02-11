@@ -77,7 +77,7 @@ typedef struct {
 } SpiCtx_t, *PSpiCtx_t;
 
 // Check if driver initialised
-inline HpsErr_t SPI_isInitialised(PSpiCtx_t spi) {
+static inline HpsErr_t SPI_isInitialised(PSpiCtx_t spi) {
     if (!spi) return ERR_NULLPTR;
     return DriverContextCheckInit(spi->ctx);
 }
@@ -86,7 +86,7 @@ inline HpsErr_t SPI_isInitialised(PSpiCtx_t spi) {
 // - If the SPI is configured for 3-wire mode with a bidirectional data
 //   line, this sets the MISO direction for all lanes.
 // - Negative indicates error
-inline HpsErr_t SPI_setDirection(PSpiCtx_t spi, SpiMISODirection dir) {
+static inline HpsErr_t SPI_setDirection(PSpiCtx_t spi, SpiMISODirection dir) {
     if (!spi) return ERR_NULLPTR;
     if (!spi->setDirection) return (dir == SPI_MISO_OUT) ? ERR_NOSUPPORT : ERR_SUCCESS;
     return spi->setDirection(spi->ctx, dir);
@@ -95,7 +95,7 @@ inline HpsErr_t SPI_setDirection(PSpiCtx_t spi, SpiMISODirection dir) {
 // Set the SPI data width
 // - If supported, allows changing of the current SPI data width.
 // - Negative indicates error
-inline HpsErr_t SPI_setDataWidth(PSpiCtx_t spi, unsigned int width) {
+static inline HpsErr_t SPI_setDataWidth(PSpiCtx_t spi, unsigned int width) {
     if (!spi) return ERR_NULLPTR;
     if (!spi->setDataWidth) return ERR_NOSUPPORT;
     return spi->setDirection(spi->ctx, width);
@@ -106,7 +106,7 @@ inline HpsErr_t SPI_setDataWidth(PSpiCtx_t spi, unsigned int width) {
 //   for example asserting for each word. The manual
 // - Manual mode will immediately select the value of the slave selects such that those slaves with
 //   bits set in the mask will be selected (polarity of slave-select is determined by hardware).
-inline HpsErr_t SPI_slaveSelect(PSpiCtx_t spi, bool autoSlaveSel, uint32_t slaveMask) {
+static inline HpsErr_t SPI_slaveSelect(PSpiCtx_t spi, bool autoSlaveSel, uint32_t slaveMask) {
     if (!spi) return ERR_NULLPTR;
     if (!spi->slaveSelect) return ERR_NOSUPPORT;
     return spi->slaveSelect(spi->ctx, autoSlaveSel, slaveMask);
@@ -117,7 +117,7 @@ inline HpsErr_t SPI_slaveSelect(PSpiCtx_t spi, bool autoSlaveSel, uint32_t slave
 // - Otherwise return ERR_SUCCESS or optionally available transmit space
 // - Lane mask indicates which lanes to check. Max 31 lanes - MSB is ignored.
 // - Negative indicates error
-inline HpsErrExt_t SPI_writeReady(PSpiCtx_t spi, uint32_t laneMask) {
+static inline HpsErrExt_t SPI_writeReady(PSpiCtx_t spi, uint32_t laneMask) {
     if (!spi) return ERR_NULLPTR;
     if (!spi->writeReady) return ERR_NOSUPPORT;
     laneMask &= INT32_MAX;
@@ -132,7 +132,7 @@ inline HpsErrExt_t SPI_writeReady(PSpiCtx_t spi, uint32_t laneMask) {
 // - The number of words per lane depends on the SPI configuration (e.g. long data bursts, or single word)
 // - Transfer is write-only, read value will be ignored.
 // - Negative indicates error.
-inline HpsErr_t SPI_write(PSpiCtx_t spi, uint32_t laneMask, uint32_t* data, SpiTransferType type) {
+static inline HpsErr_t SPI_write(PSpiCtx_t spi, uint32_t laneMask, uint32_t* data, SpiTransferType type) {
     if (!laneMask) return ERR_SUCCESS;
     if (!spi || !data) return ERR_NULLPTR;
     if (!spi->write) return ERR_NOSUPPORT;
@@ -146,7 +146,7 @@ inline HpsErr_t SPI_write(PSpiCtx_t spi, uint32_t laneMask, uint32_t* data, SpiT
 // - Lane mask indicates which lanes to check. Max 31 lanes - MSB is ignored.
 // - If clearFlag is true, the status flag should be cleared
 // - Negative indicates error
-inline HpsErrExt_t SPI_readReady(PSpiCtx_t spi, uint32_t laneMask) {
+static inline HpsErrExt_t SPI_readReady(PSpiCtx_t spi, uint32_t laneMask) {
     if (!spi) return ERR_NULLPTR;
     if (!spi->readReady) return ERR_NOSUPPORT;
     laneMask &= INT32_MAX;
@@ -161,7 +161,7 @@ inline HpsErrExt_t SPI_readReady(PSpiCtx_t spi, uint32_t laneMask) {
 // - The number of words per lane depends on the SPI configuration (e.g. long data bursts, or single word)
 // - Transfer is read-only, write value will be .
 // - Negative indicates error.
-inline HpsErr_t SPI_read(PSpiCtx_t spi, uint32_t laneMask, uint32_t* data) {
+static inline HpsErr_t SPI_read(PSpiCtx_t spi, uint32_t laneMask, uint32_t* data) {
     if (!laneMask) return ERR_SUCCESS;
     if (!spi || !data) return ERR_NULLPTR;
     if (!spi->read) return ERR_NOSUPPORT;

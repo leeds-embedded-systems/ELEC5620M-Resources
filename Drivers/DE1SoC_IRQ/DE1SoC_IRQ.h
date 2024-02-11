@@ -16,8 +16,8 @@
  * 30/01/2024 | Create Header
  */
 
-#ifndef DE1SOC_IRQ_IDS_H_
-#define DE1SOC_IRQ_IDS_H_
+#ifndef DE1SOC_IRQ_H_
+#define DE1SOC_IRQ_H_
 
 #include "HPS_IRQ/HPS_IRQ.h"
 
@@ -33,4 +33,4 @@ enum {
     IRQ_LSC_PS2_SECONDARY           = IRQ_FPGA17,
 };
 
-#endif /* HPS_IRQ_DE1SOC_IRQ_IDS_H_ */
+#endif /* DE1SOC_IRQ_H_ */

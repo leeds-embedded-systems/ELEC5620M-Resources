@@ -12,4 +12,4 @@ Memory scatter files which tell the compiler how to lay out the final binary so 
 
 ## Debug Config
 
-A special DS-5 eclipse project which assists connecting to the hardware for executuion and step-by-step debugging.
+A special Arm Development Studio project which assists connecting to the hardware for execution and step-by-step debugging.

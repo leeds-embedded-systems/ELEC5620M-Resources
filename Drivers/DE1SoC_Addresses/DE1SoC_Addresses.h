@@ -58,4 +58,7 @@
 #define ARM_GPIO_I2C_GENERAL_MUX  (1 << 19) //GPIO48. Must set to output-high to use I2C_GENERAL
 #define ARM_GPIO_I2C_LT14HDR_MUX  (1 << 11) //GPIO40. Must set to output-high to use I2C_LT14HDR
 
+// Pin directions for ARM GPIO (pins which are outputs)
+#define ARM_GPIO_DIR              (ARM_GPIO_HPS_LED | ARM_GPIO_I2C_GENERAL_MUX | ARM_GPIO_I2C_LT14HDR_MUX)
+
 #endif /* DE1SOC_ADDRESSES_H_ */

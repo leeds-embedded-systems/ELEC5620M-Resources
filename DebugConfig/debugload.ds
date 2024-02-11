@@ -15,7 +15,7 @@ wait 5s
 #
 # Perform a reset of the system to get it back to some known place
 #
-reset system
+reset reset.hardware
 
 # Processor should now be stopped at 0x00000000
 

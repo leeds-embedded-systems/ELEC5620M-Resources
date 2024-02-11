@@ -71,4 +71,16 @@
 
 #endif
 
+//Constants
+// Pi
+#ifndef M_PI
+#define M_PI     3.14159265358979323846
+#endif
+// 2*Pi
+#define M_2PI    (2*M_PI)
+// e
+#ifndef M_E
+#define M_E      2.71828182845904523536
+#endif
+
 #endif /* MACROS_H_ */

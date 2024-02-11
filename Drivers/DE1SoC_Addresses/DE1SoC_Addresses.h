@@ -49,6 +49,8 @@
 #define LSC_BASE_ARM_GPIO      ((unsigned char*)0xFF709000)   // ARM A9 GPIO 1                                         [HPS_GPIO]
 #define LSC_BASE_I2C_GENERAL   ((unsigned char*)0xFFC04000)   // HPS I2C Master (Accelerometer/VGA/Audio/ADC)          [HPS_I2C]
 #define LSC_BASE_I2C_LT14HDR   ((unsigned char*)0xFFC05000)   // HPS I2C Master (LT 14-pin Header)                     [HPS_I2C]
+#define LSC_BASE_HPS_TIMERSP0  ((unsigned char*)0xFFC08000)   // HPS SP Timer 0 (runs at 100MHz)
+#define LSC_BASE_HPS_TIMERSP1  ((unsigned char*)0xFFC09000)   // HPS SP Timer 1 (runs at 100MHz)
 #define LSC_BASE_WATCHDOG      ((unsigned char*)0xFFD02000)   // ARM A9 Watchdog Timer (CPU 0)                         [HPS_Watchdog]
 #define LSC_BASE_PRIV_TIM      ((unsigned char*)0xFFFEC600)   // ARM A9 Private Timer
 #define LSC_BASE_PROC_OCRAM    ((unsigned char*)0xFFFF0000)   // ARM A9 64kB On-chip Memory used by Preloader
@@ -61,5 +63,13 @@
 
 // Pin directions for ARM GPIO (pins which are outputs)
 #define ARM_GPIO_DIR              (ARM_GPIO_HPS_LED | ARM_GPIO_I2C_GENERAL_MUX | ARM_GPIO_I2C_LT14HDR_MUX)
+
+// Init values for FPGA_PIO driver
+//   e.g. FPGA_PIO_initialise(LSC_BASE_7SEG_0to3, LSC_CONFIG_7SEG, &drivers.hex0to3);
+#define LSC_CONFIG_KEYS           FPGA_PIO_DIRECTION_IN, false, false, true, true, 0, 0
+#define LSC_CONFIG_SLIDE_SWITCH   FPGA_PIO_DIRECTION_IN, false, false, false, false, 0, 0
+#define LSC_CONFIG_GPIO           FPGA_PIO_DIRECTION_BIDIR, false, false, true, true, 0, 0
+#define LSC_CONFIG_7SEG           FPGA_PIO_DIRECTION_OUT, false, false, false, false, 0, 0
+#define LSC_CONFIG_RED_LEDS       FPGA_PIO_DIRECTION_OUT, false, false, false, false, 0, 0
 
 #endif /* DE1SOC_ADDRESSES_H_ */

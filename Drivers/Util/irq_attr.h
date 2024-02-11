@@ -21,7 +21,7 @@
 // Generic Interrupt Handler
 #define __isr   __attribute__((interrupt))
 // Specific Source Handler
-#if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6000000)
+#if !defined(__ARMCC_VERSION) || (__ARMCC_VERSION >= 6000000)
 #define __irq   __attribute__((interrupt("IRQ")))
 #endif
 #define __fiq   __attribute__((interrupt("FIQ")))

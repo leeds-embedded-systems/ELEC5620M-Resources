@@ -48,7 +48,7 @@
 #define LSC_BASE_ARM_GPIO      (void*)0xFF709000   // ARM A9 GPIO 1                                         [HPS_GPIO]
 #define LSC_BASE_I2C_GENERAL   (void*)0xFFC04000   // HPS I2C Master (Accelerometer/VGA/Audio/ADC)          [HPS_I2C]
 #define LSC_BASE_I2C_LT14HDR   (void*)0xFFC05000   // HPS I2C Master (LT 14-pin Header)                     [HPS_I2C]
-#define LSC_BASE_WATCHDOG      (void*)0xFFD0200C   // ARM A9 Watchdog Timer (CPU 0)                         [HPS_Watchdog]
+#define LSC_BASE_WATCHDOG      (void*)0xFFD02000   // ARM A9 Watchdog Timer (CPU 0)                         [HPS_Watchdog]
 #define LSC_BASE_PRIV_TIM      (void*)0xFFFEC600   // ARM A9 Private Timer
 #define LSC_BASE_PROC_OCRAM    (void*)0xFFFF0000   // ARM A9 64kB On-chip Memory used by Preloader
 

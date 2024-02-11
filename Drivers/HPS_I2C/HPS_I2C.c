@@ -148,7 +148,8 @@ static void _HPS_I2C_cleanup(PHPSI2CCtx_t ctx) {
  */
 
 //Initialise HPS I2C Controller
-// - For base, DE1-SoC uses 0xFFC04000 for Accelerometer/VGA/Audio/ADC. 0xFFC05000 for LTC 14pin Hdr.
+// - base is the base address of the I2C controller
+// - speed is either standard or fastmode
 // - Returns 0 if successful.
 HpsErr_t HPS_I2C_initialise(void* base, I2CSpeed speed, PHPSI2CCtx_t* pCtx) {
     //Ensure user pointers valid
@@ -167,22 +168,6 @@ HpsErr_t HPS_I2C_initialise(void* base, I2CSpeed speed, PHPSI2CCtx_t* pCtx) {
     ctx->i2c.abort = (I2CAbortFunc_t)&HPS_I2C_abort;
     //Ensure I2C disabled for configuration
     ctx->base[HPS_I2C_ENABLE] = 0x00;
-#ifndef __ARRIA10__
-	//For DE1-SoC, we need to configure some GPIO pins to be output-high in order to enable
-    //access for the HPS to the I2C bus. Really this should be done separately using the HPS_GPIO
-    //driver, but for simplicity it is done here.
-    volatile unsigned int* gpio1_base_ptr = (unsigned int*) 0xFF709000;
-    //If I2C controller ID 0, make sure GPIO is configured to route external I2C mux on DE1-SoC to HPS
-    if (base == (void*)0xFFC04000) {
-        gpio1_base_ptr[1] = gpio1_base_ptr[1] | (1 << 19); //Make sure bit 19 (GPIO48) is an output
-        gpio1_base_ptr[0] = gpio1_base_ptr[0] | (1 << 19); //Then set it high.
-    }
-    //If I2C controller ID 1, make sure GPIO is configured to route LTC Header I2C mux on DE1-SoC to HPS
-    if (base == (void*)0xFFC05000) {
-        gpio1_base_ptr[1] = gpio1_base_ptr[1] | (1 << 11); //Make sure bit 11 (GPIO40) is an output
-        gpio1_base_ptr[0] = gpio1_base_ptr[0] | (1 << 11); //Then set it high.
-    }
-#endif
     //Configure the I2C peripheral
     //See "Hard Processor System Technical Reference Manual" section 20 for magic calculations of HCNT/LCNT
     if (speed == I2C_SPEED_FASTMODE) {
@@ -195,7 +180,7 @@ HpsErr_t HPS_I2C_initialise(void* base, I2CSpeed speed, PHPSI2CCtx_t* pCtx) {
         ctx->base[HPS_I2C_SSLCNT] = 0x1D6; //I2C clock low parameter for 100kHz
     }
     //Enable the I2C peripheral
-    ctx->base[HPS_I2C_ENABLE] = _BV(HPS_I2C_ENABLE_I2CEN);    //I2C enabled
+    ctx->base[HPS_I2C_ENABLE] = _BV(HPS_I2C_ENABLE_I2CEN);
     //And initialised
     DriverContextSetInit(ctx);
     return ERR_SUCCESS;

@@ -42,7 +42,8 @@ typedef struct {
 } HPSI2CCtx_t, *PHPSI2CCtx_t;
 
 //Initialise HPS I2C Controller
-// - For base, DE1-SoC uses 0xFFC04000 for Accelerometer/VGA/Audio/ADC. 0xFFC05000 for LTC 14pin Hdr.
+// - base is the base address of the I2C controller
+// - speed is either standard or fastmode
 // - Returns 0 if successful.
 HpsErr_t HPS_I2C_initialise(void* base, I2CSpeed speed, PHPSI2CCtx_t* pCtx);
 

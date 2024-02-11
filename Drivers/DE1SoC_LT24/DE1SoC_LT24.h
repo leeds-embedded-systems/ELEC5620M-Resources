@@ -33,14 +33,16 @@
 #define LT24_HEIGHT 320
 
 //Some basic colours
-#define LT24_BLACK   (0x0000)
-#define LT24_WHITE   (0xFFFF)
-#define LT24_RED     (0x1F << 11)
-#define LT24_GREEN   (0x1F << 6)
-#define LT24_BLUE    (0x1F << 0)
-#define LT24_YELLOW  (LT24_RED | LT24_GREEN)
-#define LT24_CYAN    (LT24_GREEN | LT24_BLUE)
-#define LT24_MAGENTA (LT24_BLUE | LT24_RED)
+enum {
+    LT24_BLACK   = (0x0000),
+    LT24_WHITE   = (0xFFFF),
+    LT24_RED     = (0x1F << 11),
+    LT24_GREEN   = (0x1F << 6),
+    LT24_BLUE    = (0x1F << 0),
+    LT24_YELLOW  = (LT24_RED   | LT24_GREEN),
+    LT24_CYAN    = (LT24_GREEN | LT24_BLUE ),
+    LT24_MAGENTA = (LT24_BLUE  | LT24_RED  )
+};
 
 // Driver context
 typedef struct {

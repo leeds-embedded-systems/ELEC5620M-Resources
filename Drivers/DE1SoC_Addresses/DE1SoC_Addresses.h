@@ -33,6 +33,7 @@
 #define LSC_BASE_KEYS          ((unsigned char*)0xFF200050)   // 4x Push Buttons                                       [FPGA_PIO]
 #define LSC_BASE_GPIO_JP1      ((unsigned char*)0xFF200060)   // GPIO0 (JP1) Connector for LT24 LCD and Touchscreen    [FPGA_PIO] | [DE1SoC_LT24]
 #define LSC_BASE_GPIO_JP2      ((unsigned char*)0xFF200070)   // GPIO1 (JP2) General Purpose I/O Expansion             [FPGA_PIO]
+#define LSC_BASE_LT24HWDATA    ((unsigned char*)0xFF200080)   // LT24 Hardware Optimised Data Transfer                 [DE1SoC_LT24]
 #define LSC_BASE_MANDELBROT    ((unsigned char*)0xFF200090)   // Mandelbrot Pattern Animation Generator                [DE1SoC_Mandelbrot]
 #define LSC_BASE_SERVO         ((unsigned char*)0xFF2000C0)   // 4-channel Servo PWM Controller                        [DE1SoC_Servo]
 #define LSC_BASE_PS2_PRIMARY   ((unsigned char*)0xFF200100)   // PS/2 (Primary Port)

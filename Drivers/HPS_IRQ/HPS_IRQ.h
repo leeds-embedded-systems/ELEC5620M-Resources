@@ -138,12 +138,20 @@ HpsErr_t HPS_IRQ_initialise(IsrHandlerFunc_t userUnhandledIRQCallback);
 bool HPS_IRQ_isInitialised(void);
 
 //Globally enable or disable interrupts
-// - Requires that driver has been initialise
 // - If trying to enable:
+//    - Requires that driver has been initialised
 //    - Returns ERR_SUCCESS if interrupts have been enabled
 // - If trying to disable
 //    - Returns ERR_SUCCESS if interrupts have been disabled
 //    - Returns ERR_SKIPPED if interrupts were already disabled
+// - This function can be used to temporarily disable interrupts
+//   if for example you are changing the IRQ flags in a peripheral.
+//   To do so, use the following approach:
+//
+//       HpsErr_t irqStatus = HPS_IRQ_globalEnable(false); // Temporarily disable
+//       ... Do as little as possible while IRQs are disabled ...
+//       HPS_IRQ_globalEnable(IS_SUCCESS(irqStatus));      // Re-enable only if it was previously enabled.
+//
 HpsErr_t HPS_IRQ_globalEnable(bool enable);
 
 //Register a new interrupt ID handler

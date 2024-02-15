@@ -23,7 +23,7 @@
 
 #include "HPS_GPIO.h"
 
-#include <arm_compat.h>
+#include "HPS_IRQ/HPS_IRQ.h"
 #include "Util/bit_helpers.h"
 
 #define GPIO_OUTPUT     ( 0x0 / sizeof(unsigned int))
@@ -200,7 +200,7 @@ HpsErr_t HPS_GPIO_setInterruptConfig(PHPSGPIOCtx_t ctx, GPIOIRQPolarity config, 
     HpsErr_t status = DriverContextValidate(ctx);
     if (IS_ERROR(status)) return status;
     //Before changing anything we need to mask global interrupts temporarily
-    bool was_masked = __disable_irq();
+    HpsErr_t irqStatus = HPS_IRQ_globalEnable(false);
     //Disable individual interrupts while we make changes
     unsigned int enBits = ctx->base[GPIO_INTR_EN];
     ctx->base[GPIO_INTR_EN] = 0;
@@ -210,7 +210,7 @@ HpsErr_t HPS_GPIO_setInterruptConfig(PHPSGPIOCtx_t ctx, GPIOIRQPolarity config, 
     //Configure which are enabled
     ctx->base[GPIO_INTR_EN] = _HPS_GPIO_setConfigFlag(enBits, mask, config & GPIO_IRQ_ENBL_FLAG);
     //Re-enable interrupts if they were enabled
-    if (was_masked) __enable_irq();
+    HPS_IRQ_globalEnable(IS_SUCCESS(irqStatus));
     return ERR_SUCCESS;
 }
 

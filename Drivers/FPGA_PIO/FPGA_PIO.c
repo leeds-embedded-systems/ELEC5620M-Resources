@@ -26,7 +26,7 @@
 
 #include "FPGA_PIO.h"
 
-#include <arm_compat.h>
+#include "HPS_IRQ/HPS_IRQ.h"
 #include "Util/bit_helpers.h"
 
 /*
@@ -273,12 +273,12 @@ HpsErr_t FPGA_PIO_getInput(PFPGAPIOCtx_t ctx, unsigned int* in, unsigned int mas
 // - Enable masked pins to generate an interrupt to the processor.
 static HpsErr_t _FPGA_PIO_setInterruptEnable(PFPGAPIOCtx_t ctx, unsigned int flags, unsigned int mask) {
     //Before changing anything we need to mask global interrupts temporarily
-    bool was_masked = __disable_irq();
+    HpsErr_t irqStatus = HPS_IRQ_globalEnable(false);
     //Modify the enable flags
     unsigned int enBits = ctx->csr->base.interruptmask;
     ctx->csr->base.interruptmask = ((flags & mask) | (enBits & ~mask));
     //Re-enable interrupts if they were enabled
-    if (was_masked) __enable_irq();
+    HPS_IRQ_globalEnable(IS_SUCCESS(irqStatus));
     return ERR_SUCCESS;
 }
 HpsErr_t FPGA_PIO_setInterruptEnable(PFPGAPIOCtx_t ctx, unsigned int flags, unsigned int mask) {

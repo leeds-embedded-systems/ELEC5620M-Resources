@@ -30,6 +30,9 @@
 //For structs/unions it will ensure they are packed to the smallest size if applied.
 #define PACKED __attribute__ ((packed))
 
+//Whether field is aligned to certain boundary
+#define ALIGNED(x) __attribute__ ((aligned(x)))
+
 //Define EXTERN_C keyword if not already.
 #ifndef EXTERN_C
 #ifdef __cplusplus

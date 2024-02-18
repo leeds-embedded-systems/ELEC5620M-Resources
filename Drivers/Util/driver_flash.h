@@ -66,8 +66,8 @@ typedef struct {
 } FlashCtx_t, *PFlashCtx_t;
 
 // Check if driver initialised
-static inline HpsErr_t FLASH_isInitialised(PFlashCtx_t flash) {
-    if (!flash) return ERR_NULLPTR;
+static inline bool FLASH_isInitialised(PFlashCtx_t flash) {
+    if (!flash) return false;
     return DriverContextCheckInit(flash->ctx);
 }
 

@@ -95,14 +95,14 @@ typedef struct {
     UartStatusFunc_t txIdle;
     UartStatusFunc_t rxReady;
     // FIFO Functions
-    UartFifoSpaceFunc_t    txFifoSpace;
-    UartFifoSpaceFunc_t    rxFifoAvailable;
-    UartFifoClearFunc_t    clearFifos;
+    UartFifoSpaceFunc_t txFifoSpace;
+    UartFifoSpaceFunc_t rxFifoAvailable;
+    UartFifoClearFunc_t clearFifos;
 } UartCtx_t, *PUartCtx_t;
 
 // Check if driver initialised
-static inline HpsErr_t UART_isInitialised(PUartCtx_t uart) {
-    if (!uart) return ERR_NULLPTR;
+static inline bool UART_isInitialised(PUartCtx_t uart) {
+    if (!uart) return false;
     return DriverContextCheckInit(uart->ctx);
 }
 

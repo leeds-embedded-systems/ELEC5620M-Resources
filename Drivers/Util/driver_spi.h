@@ -77,8 +77,8 @@ typedef struct {
 } SpiCtx_t, *PSpiCtx_t;
 
 // Check if driver initialised
-static inline HpsErr_t SPI_isInitialised(PSpiCtx_t spi) {
-    if (!spi) return ERR_NULLPTR;
+static inline bool SPI_isInitialised(PSpiCtx_t spi) {
+    if (!spi) return false;
     return DriverContextCheckInit(spi->ctx);
 }
 

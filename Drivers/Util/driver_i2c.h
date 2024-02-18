@@ -48,8 +48,8 @@ typedef struct {
 } I2CCtx_t, *PI2CCtx_t;
 
 // Check if driver initialised
-static inline HpsErr_t I2C_isInitialised(PI2CCtx_t i2c) {
-    if (!i2c) return ERR_NULLPTR;
+static inline bool I2C_isInitialised(PI2CCtx_t i2c) {
+    if (!i2c) return false;
     return DriverContextCheckInit(i2c->ctx);
 }
 

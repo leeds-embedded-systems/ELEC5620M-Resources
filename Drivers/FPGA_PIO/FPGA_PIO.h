@@ -112,6 +112,14 @@ HpsErr_t FPGA_PIO_getDirection(PFPGAPIOCtx_t ctx, unsigned int *dir, unsigned in
 // - Masking not supported if has FPGA_PIO_DIRECTION_IN capability, unless hasBitset is true.
 HpsErr_t FPGA_PIO_setOutput(PFPGAPIOCtx_t ctx, unsigned int port, unsigned int mask);
 
+//Set output bits
+// - If bit-set feature is supported, directly sets the masked bits
+HpsErr_t FPGA_PIO_bitsetOutput(PFPGAPIOCtx_t ctx, unsigned int mask);
+
+//Clear output bits
+// - If bit-set feature is supported, directly clears the masked bits
+HpsErr_t FPGA_PIO_bitclearOutput(PFPGAPIOCtx_t ctx, unsigned int mask);
+
 //Toggle output value
 // - Toggles the output value of masked pins.
 // - Will perform read-modify-write such that only pins with

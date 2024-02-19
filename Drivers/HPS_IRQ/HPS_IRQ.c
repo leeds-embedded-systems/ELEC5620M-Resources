@@ -354,16 +354,16 @@ bool HPS_IRQ_isInitialised() {
 }
 
 //Globally enable or disable interrupts
-// - Requires that driver has been initialise
 // - If trying to enable:
+//    - Requires that driver has been initialised
 //    - Returns ERR_SUCCESS if interrupts have been enabled
 // - If trying to disable
 //    - Returns ERR_SUCCESS if interrupts have been disabled
 //    - Returns ERR_SKIPPED if interrupts were already disabled
 HpsErr_t HPS_IRQ_globalEnable(bool enable) {
-    if (!HPS_IRQ_isInitialised()) return ERR_NOINIT;
     // Configure global IRQ flag
     if (enable) {
+        if (!HPS_IRQ_isInitialised()) return ERR_NOINIT;
         __enable_irq();
         return ERR_SUCCESS;
     } else {

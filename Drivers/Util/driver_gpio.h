@@ -45,8 +45,8 @@ typedef struct {
 } GpioCtx_t, *PGpioCtx_t;
 
 // Check if driver initialised
-static inline HpsErr_t GPIO_isInitialised(PGpioCtx_t gpio) {
-    if (!gpio) return ERR_NULLPTR;
+static inline bool GPIO_isInitialised(PGpioCtx_t gpio) {
+    if (!gpio) return false;
     return DriverContextCheckInit(gpio->ctx);
 }
 

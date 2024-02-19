@@ -92,7 +92,7 @@
 
     // Read my value
     // - Reads a certain value from my hardware and returns it via *val
-    HpsErr_t CMD_queueIsInterruptable(PMyDriverCtx_t ctx, unsigned int *val) {
+    HpsErr_t MY_queueIsInterruptable(PMyDriverCtx_t ctx, unsigned int *val) {
         if (!val) return ERR_NULLPTR;
         //Ensure context valid and initialised
         HpsErr_t status = DriverContextValidate(ctx);

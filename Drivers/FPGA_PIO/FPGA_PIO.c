@@ -26,7 +26,7 @@
 
 #include "FPGA_PIO.h"
 
-#include <arm_compat.h>
+#include "HPS_IRQ/HPS_IRQ.h"
 #include "Util/bit_helpers.h"
 
 /*
@@ -100,6 +100,17 @@ static HpsErr_t _FPGA_PIO_getInput(PFPGAPIOCtx_t ctx, unsigned int* in, unsigned
     } else {
         *in = ctx->csr->base.data & mask;
     }
+    return ERR_SUCCESS;
+}
+
+static HpsErr_t _FPGA_PIO_setInterruptEnable(PFPGAPIOCtx_t ctx, unsigned int flags, unsigned int mask) {
+    //Before changing anything we need to mask global interrupts temporarily
+    HpsErr_t irqStatus = HPS_IRQ_globalEnable(false);
+    //Modify the enable flags
+    unsigned int enBits = ctx->csr->base.interruptmask;
+    ctx->csr->base.interruptmask = ((flags & mask) | (enBits & ~mask));
+    //Re-enable interrupts if they were enabled
+    HPS_IRQ_globalEnable(IS_SUCCESS(irqStatus));
     return ERR_SUCCESS;
 }
 
@@ -222,13 +233,37 @@ HpsErr_t FPGA_PIO_getDirection(PFPGAPIOCtx_t ctx, unsigned int* dir, unsigned in
 // - Will perform read-modify-write such that only pins with
 //   their mask bit set will be changed.
 // - e.g. with mask of 0x00010002, pins [1] and [16] will be changed.
-HpsErr_t FPGA_PIO_setOutput(PFPGAPIOCtx_t ctx, unsigned int port, unsigned int mask){
+HpsErr_t FPGA_PIO_setOutput(PFPGAPIOCtx_t ctx, unsigned int port, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (IS_ERROR(status)) return status;
     if (!(ctx->pioType & FPGA_PIO_DIRECTION_OUT)) return ERR_NOSUPPORT;
     //Configure output
     return _FPGA_PIO_setOutput(ctx, port, mask);
+}
+
+//Set output bits
+// - If bit-set feature is supported, directly sets the masked bits
+HpsErr_t FPGA_PIO_bitsetOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
+    //Ensure context valid and initialised
+    HpsErr_t status = DriverContextValidate(ctx);
+    if (IS_ERROR(status)) return status;
+    if (!ctx->hasBitset) return ERR_NOSUPPORT;
+    if (!(ctx->pioType & FPGA_PIO_DIRECTION_OUT)) return ERR_NOSUPPORT;
+    //Configure output
+    return ctx->csr->outset = mask;
+}
+
+//Clear output bits
+// - If bit-set feature is supported, directly clears the masked bits
+HpsErr_t FPGA_PIO_bitclearOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
+    //Ensure context valid and initialised
+    HpsErr_t status = DriverContextValidate(ctx);
+    if (IS_ERROR(status)) return status;
+    if (!ctx->hasBitset) return ERR_NOSUPPORT;
+    if (!(ctx->pioType & FPGA_PIO_DIRECTION_OUT)) return ERR_NOSUPPORT;
+    //Configure output
+    return ctx->csr->outclear = mask;
 }
 
 //Toggle output value
@@ -271,16 +306,6 @@ HpsErr_t FPGA_PIO_getInput(PFPGAPIOCtx_t ctx, unsigned int* in, unsigned int mas
 
 //Set interrupt mask
 // - Enable masked pins to generate an interrupt to the processor.
-static HpsErr_t _FPGA_PIO_setInterruptEnable(PFPGAPIOCtx_t ctx, unsigned int flags, unsigned int mask) {
-    //Before changing anything we need to mask global interrupts temporarily
-    bool was_masked = __disable_irq();
-    //Modify the enable flags
-    unsigned int enBits = ctx->csr->base.interruptmask;
-    ctx->csr->base.interruptmask = ((flags & mask) | (enBits & ~mask));
-    //Re-enable interrupts if they were enabled
-    if (was_masked) __enable_irq();
-    return ERR_SUCCESS;
-}
 HpsErr_t FPGA_PIO_setInterruptEnable(PFPGAPIOCtx_t ctx, unsigned int flags, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);

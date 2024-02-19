@@ -89,8 +89,10 @@ static inline unsigned int __clz_failback(unsigned int x) {
 #endif
 
 //Masked bit value
-#define MaskInsert( val, mask, ofs) (((val) & (mask)) << (ofs))
-#define MaskExtract(val, mask, ofs) (((val) >> (ofs)) & (mask))
+#define MaskInsert( val, mask, ofs) (((val) & (mask)) << (ofs))  // Mask and shift a value to the correct position
+#define MaskExtract(val, mask, ofs) (((val) >> (ofs)) & (mask))  // Shift and mask a field from a register value
+#define MaskCheck(  val, mask, ofs) ((val) & ((mask) << (ofs)))  // Mask a register value to perform logical checks
+#define MaskCreate(      mask, ofs) ((mask) << (ofs))            // Create a bitmask for direct AND/OR with a register value.
 
 // Given a base address, calculate the maximum power of two span the address can access as a bitmask
 #define MaxAddressSpanOfBaseMask(base) (((base) & -(base)) - 1)

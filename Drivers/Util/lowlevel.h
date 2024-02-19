@@ -27,6 +27,7 @@
  * Provides low level macros such as __disable_irq()
  */
 #include <arm_compat.h>
+#include <arm_acle.h>
 
 #define __disable_bothirqs() __asm( "CPSID if")
 

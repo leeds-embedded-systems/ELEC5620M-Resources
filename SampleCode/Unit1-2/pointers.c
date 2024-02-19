@@ -88,6 +88,36 @@ return *(aPointer+1); //Add 1 to aPointer, then dereference - will return 543210
 
 // Create a "pointer" which is set to the base address of the Red LEDs.
 volatile unsigned int *LEDR_ptr = (unsigned int *) 0xFF200000;
-// To access the LEDs, we deference the pointer just like in the previous examples
+// To access the LEDs, we deference the pointer just like in the previous examples.
 *LEDR_ptr = 16; //Use the dereference operator to set the value of the LEDs to 16.
 
+
+// Create a "pointer" which is set to the base address of the switches.
+volatile unsigned int *SW_ptr = (unsigned int *) 0xFF200040;
+//Create a local variable to store the value of the switches
+unsigned int SW_value;
+// To access the switch value, we deference the pointer as in the previous examples.
+SW_value = *SW_ptr; //Use the dereference operator to read the value of the switches.
+
+
+// To access the switch value in a robust way, we deference the pointer just like in
+// the previous examples and bit mask all the valid input the value.
+// Bit mask 0x3FF is equal to the 32 bit, zero padded, binary value 1111111111.
+// The bitwise AND (\&) operation would clear any erronious bits in *SW_ptr.
+SW_value = (*SW_ptr & 0x3FF); //Use the dereference operator to read switch value,
+                              //bitmask and set local variable.
+
+
+// To access an individual switch value we deference the pointer just like in
+// the previous examples and bit mask the required bit.
+// Bit mask 0x2 is equal to the 32 bit, zero padded, binary value 0...0010 and
+// and when combined with the bitwise AND (\&) would isolate the second bit.
+unsigned int SW2_value;
+SW2_value = (*SW_ptr & 0x2); //Use the dereference operator to read switch value,
+                             //bitmask and set local variable.
+
+
+// Create a "pointer" which is set to the base address of the
+// 7-segment HEX[3], HEX[2], HEX[1] & HEX[0] Displays.
+volatile unsigned char *sevenseg03_ptr = (unsigned char *)0xFF200020;
+*(sevenseg_ptr+1)  = (*switch_ptr & 0x3FF); // Set HEX1 to the switch input value

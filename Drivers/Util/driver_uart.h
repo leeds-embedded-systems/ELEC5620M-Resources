@@ -12,6 +12,7 @@
  *
  * Date       | Changes
  * -----------+----------------------------------
+ * 18/02/2024 | Correctly handle 9-bit data format.
  * 08/01/2024 | Creation of driver.
  */
 
@@ -22,25 +23,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <Util/driver_ctx.h>
-
-#include "Util/error.h"
-
-//8-bit variant of Rx Data structure
-typedef struct {
-    uint8_t rxData;       //Data byte
-    bool    partityError; //Indicates that this data byte suffered a parity error
-    bool    frameError;   //Indicates that this data byte suffered a framing error
-    bool    valid;        //Indicates that the FIFO had a data byte when a read was attempted
-} UartRxData_t;
-
-//16-bit variant of Rx Data Structure
-typedef struct {
-    uint16_t rxData;       //Data word
-    bool     partityError; //Indicates that this data byte suffered a parity error
-    bool     frameError;   //Indicates that this data byte suffered a framing error
-    bool     valid;        //Indicates that the FIFO had a data byte when a read was attempted
-} UartRxDataExt_t;
+#include "Util/driver_ctx.h"
+#include "Util/ct_assert.h"
 
 enum {
     UART_BAUD_MIN     = 1      ,
@@ -67,6 +51,19 @@ typedef enum __attribute__ ((packed)) {
     UART_ODDPARITY  = 3
 } UartParity;
 
+typedef enum __attribute__ ((packed)) {
+    UART_FULL_DUPLEX = 0,
+    UART_HALF_DUPLEX = 1
+} UartDuplexMode;
+
+//Rx Data Structure
+typedef struct {
+    bool     valid;        //Indicates that the FIFO had a data byte when a read was attempted
+    bool     partityError; //Indicates that this data byte suffered a parity error
+    bool     frameError;   //Indicates that this data byte suffered a framing error
+    uint16_t rxData;       //Data word
+} UartRxData_t;
+
 enum {
     UART_3BIT = 3,
     UART_4BIT = 4,
@@ -88,6 +85,8 @@ typedef HpsErrExt_t (*UartStatusFunc_t)   (void* ctx, bool clearFlag);
 typedef struct {
     // Driver Context
     void* ctx;
+    // Whether data is 9-bit
+    bool is9bit;
     // Driver Function Pointers
     UartTxRxFunc_t transmit;
     UartTxRxFunc_t receive;
@@ -104,6 +103,14 @@ typedef struct {
 static inline bool UART_isInitialised(PUartCtx_t uart) {
     if (!uart) return false;
     return DriverContextCheckInit(uart->ctx);
+}
+
+// Check if data format is 9-bit
+// - In 9-bit mode, the Tx/Rx functions take uint16_t data array
+//   rather than uint8_t data array otherwise.
+static inline HpsErrExt_t UART_is9bit(PUartCtx_t uart) {
+    if (!uart) return ERR_NULLPTR;
+    return (HpsErrExt_t)uart->is9bit;
 }
 
 // Check transmitter is idle
@@ -155,6 +162,8 @@ static inline HpsErr_t UART_clearFifos(PUartCtx_t uart, bool tx, bool rx) {
 
 // Transmit data
 // - Positive return value indicates amount of data sent.
+// - Length is size of data in words.
+// - In 9-bit data mode, data[] is cast to a uint16_t internally.
 // - Negative indicates error.
 static inline HpsErrExt_t UART_transmit(PUartCtx_t uart, uint8_t data[], uint8_t length) {
     if (!length) return ERR_SUCCESS;
@@ -165,6 +174,8 @@ static inline HpsErrExt_t UART_transmit(PUartCtx_t uart, uint8_t data[], uint8_t
 
 // Receive data
 // - Positive return value indicates amount of data received.
+// - Length is size of data in words.
+// - In 9-bit data mode, data[] is cast to a uint16_t internally.
 // - Negative indicates error.
 static inline HpsErrExt_t UART_receive(PUartCtx_t uart, uint8_t data[], uint8_t length) {
     if (!length) return ERR_SUCCESS;

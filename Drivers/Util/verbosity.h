@@ -28,20 +28,12 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-// Include UARP Command Enums header if a UARP system
-#if defined(UARP_SYSTEM) || defined(UARPIIA_SYSTEM) || defined(UARPIII_SYSTEM)
-#include "UarpCommandEnums.h"
-#endif
-
 // Verbosity Enum
-#ifdef UARPCOMMANDENUMS_H_
-// For UARP systems, this enum is already defined in the UARP shared header,
-// so we can simply typedef to the existing enum.
-typedef UARP_VERBOSE_MASKS VerbosityLevelMasks;
-
-#else
-// Otherwise implement local copy as shared header is not available. This
-// must not be changed as both defines must stay in sync.
+#ifndef VERBOSITY_LEVEL_MASKS_DEFINED
+#define VERBOSITY_LEVEL_MASKS_DEFINED
+// Verbosity masks enum must not be changed
+// as it is used in multiple systems which
+// may have their own implementation.
 
 #include "Util/bit_helpers.h"
 

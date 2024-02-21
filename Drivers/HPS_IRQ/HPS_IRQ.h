@@ -42,11 +42,11 @@
  *
  * For software IRQs (SVC/SWI), the standard handler is always
  * used as it provides additional decoding and context handling.
- * To add your own handling, provide the following function
- * implementation.
+ * This can be extended with your own functionality by providing
+ * the following function implementation:
  *
  *    // Software IRQ
- *    __swi void __svc_handler(unsigned int id, unsigned int param[4]){   }
+ *    void __svc_handler(unsigned int id, unsigned int param[4]){   }
  *
  * The driver supports both Cyclone V devices (default) or
  * Arria 10 devices (-D __ARRIA_10__).
@@ -58,6 +58,7 @@
  *
  * Date       | Changes
  * -----------+----------------------------------
+ * 21/02/2024 | Fix software interrupt handler.
  * 31/01/2024 | Correct ISR attributes
  * 22/01/2024 | Split Vector table to Util/startup_arm.c
  * 14/01/2024 | Make use of Util/lowlevel.h

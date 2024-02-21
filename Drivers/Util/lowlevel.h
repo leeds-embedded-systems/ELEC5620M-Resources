@@ -153,6 +153,9 @@ __MOV_REG_GEN(pc)
 #define __GET_SP()    __current_sp()
 #define __SET_SP(val) __set_sp_reg(val)
 
+// Simple branch
+#define __BRANCH(to) __asm__ __volatile__ ("B " #to " \n");
+
 // Stack Init Functions
 #define __INIT_SP_SYS(top) __asm__ __volatile__("MOV SP, %[sp]\n" ::[sp] "r" (top):)
 #define __INIT_SP_MODE(mode, top)  \

@@ -151,13 +151,19 @@ void __reset_isr (void) {
     __disable_bothirqs();
     // Move to system mode (don't use USR mode as bare-metal not OS)
     __SET_PROC_STATE(PROC_STATE_SYS);
-    // Initialise a temporary stack
+    // Initialise a temporary stack needed by the __init_stacks function
     __INIT_SP_SYS(IRQ_STACK_TOP);
     // And continue
-    __asm__ __volatile__ ("B __init_stacks \n");
+    __BRANCH(__init_stacks);
 }
 
 void __init_stacks (void) {
+    // Set the location of the vector table using VBAR register
+    __SET_SYSREG(SYSREG_COPROC, VBAR, (unsigned int)&__vector_table);
+    // Enable non-aligned access by clearing the A bit (bit 1) of the SCTLR register
+    unsigned int sctlr = __GET_SYSREG(SYSREG_COPROC, SCTLR);
+    sctlr &= ~(1 << SYSREG_SCTLR_BIT_A);
+    __SET_SYSREG(SYSREG_COPROC, SCTLR, sctlr);
     // Initialise all IRQ stack pointers
     unsigned int stackTop = IRQ_STACK_TOP;
     // FIQ
@@ -170,12 +176,6 @@ void __init_stacks (void) {
     __INIT_SP_MODE(PROC_STATE_ABT, stackTop - 3*IRQ_STACK_SIZE);
     // Undef
     __INIT_SP_MODE(PROC_STATE_UND, stackTop - 4*IRQ_STACK_SIZE);
-    // Set the location of the vector table using VBAR register
-    __SET_SYSREG(SYSREG_COPROC, VBAR, (unsigned int)&__vector_table);
-    // Enable non-aligned access by clearing the A bit (bit 1) of the SCTLR register
-    unsigned int sctlr = __GET_SYSREG(SYSREG_COPROC, SCTLR);
-    sctlr &= ~(1 << SYSREG_SCTLR_BIT_A);
-    __SET_SYSREG(SYSREG_COPROC, SCTLR, sctlr);
     // If program is compiled targetting a hardware VFP, we must
     // enable the floating point unit to prevent run-time errors
     // in the C standard library.

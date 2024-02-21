@@ -19,7 +19,8 @@
  * Change Log:
  *
  * Date       | Changes
- * -----------+----------------------------------
+ * -----------+-----------------------------------------
+ * 21/02/2024 | Conversion from struct to array indexing
  * 30/12/2023 | Creation of driver.
  *
  */
@@ -29,32 +30,34 @@
 #include "HPS_IRQ/HPS_IRQ.h"
 #include "Util/bit_helpers.h"
 
+#include "FPGA_PIORegs.h"
+
 /*
  * Internal Functions
  */
 
 static void _FPGA_PIO_cleanup(PFPGAPIOCtx_t ctx) {
     //Disable interrupts and reset default output states
-    if (ctx->csr) {
-        ctx->csr->base.interruptmask = 0x0;
+    if (ctx->base) {
+        ctx->base[GPIO_INTR_MASK] = 0x0;
         if (ctx->pioType & FPGA_PIO_DIRECTION_OUT) {
-            ctx->csr->base.data = ctx->initPort;
+            ctx->base[GPIO_OUTPUT] = ctx->initPort;
         }
         if (ctx->pioType == FPGA_PIO_DIRECTION_BIDIR) {
-            ctx->csr->base.direction = ctx->initDir;
+            ctx->base[GPIO_DIRECTION] = ctx->initDir;
         }
     }
 }
 
 static HpsErr_t _FPGA_PIO_setDirection(PFPGAPIOCtx_t ctx, unsigned int dir, unsigned int mask) {
     //R-M-W direction
-    unsigned int curVal = ctx->csr->base.direction;
-    ctx->csr->base.direction = ((dir & mask) | (curVal & ~mask));
+    unsigned int curVal = ctx->base[GPIO_DIRECTION];
+    ctx->base[GPIO_DIRECTION] = ((dir & mask) | (curVal & ~mask));
     return ERR_SUCCESS;
 }
 
 static HpsErr_t _FPGA_PIO_getDirection(PFPGAPIOCtx_t ctx, unsigned int* dir, unsigned int mask) {
-    *dir = ctx->csr->base.direction & mask;
+    *dir = ctx->base[GPIO_DIRECTION] & mask;
     return ERR_SUCCESS;
 }
 
@@ -62,19 +65,19 @@ static HpsErr_t _FPGA_PIO_setOutput(PFPGAPIOCtx_t ctx, unsigned int port, unsign
     //Masking required
     if (ctx->gpio.getOutput) {
         // Can read output register, so do R-M-W
-        unsigned int curVal = ctx->csr->base.data;
-        ctx->csr->base.data = ((port & mask) | (curVal & ~mask));
+        unsigned int curVal = ctx->base[GPIO_OUTPUT];
+        ctx->base[GPIO_OUTPUT] = ((port & mask) | (curVal & ~mask));
     } else {
         //Configure output
         if (mask == UINT32_MAX) {
             //No masking required, just write port
-            ctx->csr->base.data = port;
+            ctx->base[GPIO_OUTPUT] = port;
         } else {
             // Can't read register. Can only do R-M-W if we have bitset support
             if (!ctx->hasBitset) return ERR_NOSUPPORT;
             // Clear zero bits and set one bits.
-            ctx->csr->outclear = (~port & mask);
-            ctx->csr->outset = (port & mask);
+            ctx->base[GPIO_OUT_CLEAR] = (~port & mask);
+            ctx->base[GPIO_OUT_SET  ] = ( port & mask);
         }
     }
     return ERR_SUCCESS;
@@ -82,13 +85,13 @@ static HpsErr_t _FPGA_PIO_setOutput(PFPGAPIOCtx_t ctx, unsigned int port, unsign
 
 static HpsErr_t _FPGA_PIO_toggleOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
     //Toggle outputs
-    ctx->csr->base.data = (ctx->csr->base.data ^ mask);
+    ctx->base[GPIO_OUTPUT] = (ctx->base[GPIO_OUTPUT] ^ mask);
     return ERR_SUCCESS;
 }
 
 static HpsErr_t _FPGA_PIO_getOutput(PFPGAPIOCtx_t ctx, unsigned int* port, unsigned int mask) {
     //Get output
-    *port = ctx->csr->base.data & mask;
+    *port = ctx->base[GPIO_OUTPUT] & mask;
     return ERR_SUCCESS;
 }
 
@@ -96,9 +99,9 @@ static HpsErr_t _FPGA_PIO_getOutput(PFPGAPIOCtx_t ctx, unsigned int* port, unsig
 static HpsErr_t _FPGA_PIO_getInput(PFPGAPIOCtx_t ctx, unsigned int* in, unsigned int mask) {
     //Get input
     if (ctx->splitData) {
-        *in = ctx->csr->base.read & mask;
+        *in = ctx->base[GPIO_SPLITINPUT] & mask;
     } else {
-        *in = ctx->csr->base.data & mask;
+        *in = ctx->base[GPIO_INPUT     ] & mask;
     }
     return ERR_SUCCESS;
 }
@@ -107,8 +110,8 @@ static HpsErr_t _FPGA_PIO_setInterruptEnable(PFPGAPIOCtx_t ctx, unsigned int fla
     //Before changing anything we need to mask global interrupts temporarily
     HpsErr_t irqStatus = HPS_IRQ_globalEnable(false);
     //Modify the enable flags
-    unsigned int enBits = ctx->csr->base.interruptmask;
-    ctx->csr->base.interruptmask = ((flags & mask) | (enBits & ~mask));
+    unsigned int enBits = ctx->base[GPIO_INTR_MASK];
+    ctx->base[GPIO_INTR_MASK] = ((flags & mask) | (enBits & ~mask));
     //Re-enable interrupts if they were enabled
     HPS_IRQ_globalEnable(IS_SUCCESS(irqStatus));
     return ERR_SUCCESS;
@@ -116,10 +119,10 @@ static HpsErr_t _FPGA_PIO_setInterruptEnable(PFPGAPIOCtx_t ctx, unsigned int fla
 
 static HpsErr_t _FPGA_PIO_getInterruptFlags(PFPGAPIOCtx_t ctx, unsigned int* flags, unsigned int mask, bool autoClear) {
     //Read the flags
-    unsigned int edgeCapt = ctx->csr->base.edgecapture & mask;
+    unsigned int edgeCapt = ctx->base[GPIO_INTR_FLAGS] & mask;
     //Clear the flags if requested
     if (ctx->hasEdge && edgeCapt && autoClear) {
-        ctx->csr->base.edgecapture = edgeCapt;
+        ctx->base[GPIO_INTR_FLAGS] = edgeCapt;
     }
     //Return the flags if there is somewhere to return them to.
     if (flags) *flags = edgeCapt;
@@ -127,7 +130,7 @@ static HpsErr_t _FPGA_PIO_getInterruptFlags(PFPGAPIOCtx_t ctx, unsigned int* fla
 }
 
 static HpsErr_t _FPGA_PIO_clearInterruptFlags(PFPGAPIOCtx_t ctx, unsigned int mask) {
-    ctx->csr->base.edgecapture = mask;
+    ctx->base[GPIO_INTR_FLAGS] = mask;
     return ERR_SUCCESS;
 }
 
@@ -150,13 +153,13 @@ static HpsErr_t _FPGA_PIO_clearInterruptFlags(PFPGAPIOCtx_t ctx, unsigned int ma
 HpsErr_t FPGA_PIO_initialise(void* base, FPGAPIODirectionType pioType, bool splitData, bool hasBitset, bool hasEdge, bool hasIrq, unsigned int dir, unsigned int port, PFPGAPIOCtx_t* pCtx) {
     //Ensure user pointers valid
     if (!base) return ERR_NULLPTR;
-    if (!pointerIsAligned(base, sizeof(FPGAPIOCSR_t))) return ERR_ALIGNMENT;
+    if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
     //Allocate the driver context, validating return value.
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_FPGA_PIO_cleanup);
     if (IS_ERROR(status)) return status;
     //Save base address pointers
     PFPGAPIOCtx_t ctx = *pCtx;
-    ctx->csr = (PFPGAPIOExtCSR_t)base;
+    ctx->base = (unsigned int*)base;
     ctx->pioType = pioType;
     ctx->splitData = splitData;
     ctx->hasBitset = hasBitset;
@@ -165,18 +168,18 @@ HpsErr_t FPGA_PIO_initialise(void* base, FPGAPIODirectionType pioType, bool spli
     ctx->initDir = dir;
     ctx->initPort = port;
     //Ensure no interrupts are enabled.
-    ctx->csr->base.interruptmask = 0x0;
-    ctx->csr->base.edgecapture = UINT32_MAX;
+    ctx->base[GPIO_INTR_MASK] = 0x0;
+    ctx->base[GPIO_INTR_FLAGS] = UINT32_MAX;
     //Populate the GPIO structure
     ctx->gpio.ctx = ctx;
     if (pioType == FPGA_PIO_DIRECTION_BIDIR) {
         ctx->gpio.getDirection = (GpioReadFunc_t)&_FPGA_PIO_getDirection;
         ctx->gpio.setDirection = (GpioWriteFunc_t)&_FPGA_PIO_setDirection;
-        ctx->csr->base.direction = dir;
+        ctx->base[GPIO_DIRECTION] = dir;
     }
     if (pioType & FPGA_PIO_DIRECTION_OUT) {
         ctx->gpio.setOutput = (GpioWriteFunc_t)&_FPGA_PIO_setOutput;
-        ctx->csr->base.data = port;
+        ctx->base[GPIO_OUTPUT] = port;
     }
     if (pioType & FPGA_PIO_DIRECTION_IN) {
         ctx->gpio.getInput = (GpioReadFunc_t)&_FPGA_PIO_getInput;
@@ -251,7 +254,7 @@ HpsErr_t FPGA_PIO_bitsetOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
     if (!ctx->hasBitset) return ERR_NOSUPPORT;
     if (!(ctx->pioType & FPGA_PIO_DIRECTION_OUT)) return ERR_NOSUPPORT;
     //Configure output
-    return ctx->csr->outset = mask;
+    return ctx->base[GPIO_OUT_SET] = mask;
 }
 
 //Clear output bits
@@ -263,7 +266,7 @@ HpsErr_t FPGA_PIO_bitclearOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
     if (!ctx->hasBitset) return ERR_NOSUPPORT;
     if (!(ctx->pioType & FPGA_PIO_DIRECTION_OUT)) return ERR_NOSUPPORT;
     //Configure output
-    return ctx->csr->outclear = mask;
+    return ctx->base[GPIO_OUT_CLEAR] = mask;
 }
 
 //Toggle output value

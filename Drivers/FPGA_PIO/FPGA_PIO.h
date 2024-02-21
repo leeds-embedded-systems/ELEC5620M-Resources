@@ -19,7 +19,8 @@
  * Change Log:
  *
  * Date       | Changes
- * -----------+----------------------------------
+ * -----------+-----------------------------------------
+ * 21/02/2024 | Conversion from struct to array indexing
  * 30/12/2023 | Creation of driver.
  *
  */
@@ -41,28 +42,10 @@ typedef enum {
 } FPGAPIODirectionType;
 
 typedef struct {
-    uint32_t data;
-    union {
-        uint32_t direction;
-        uint32_t read;
-    };
-    uint32_t interruptmask;
-    uint32_t edgecapture;
-} FPGAPIOCSR_t, *PFPGAPIOCSR_t;
-ct_assert(FPGAPIOCSR_t, (4 * sizeof(uint32_t)));
-
-typedef struct {
-    FPGAPIOCSR_t base;
-    uint32_t  outset;
-    uint32_t  outclear;
-} FPGAPIOExtCSR_t, *PFPGAPIOExtCSR_t;
-ct_assert(FPGAPIOExtCSR_t, 6 * sizeof(uint32_t));
-
-typedef struct {
     //Header
     DrvCtx_t header;
     //Body
-    volatile PFPGAPIOExtCSR_t csr;
+    volatile unsigned int* base;
     FPGAPIODirectionType pioType;
     bool splitData;
     bool hasBitset;

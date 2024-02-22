@@ -122,6 +122,11 @@ __irq void HPS_IRQ_unhandledIRQ(HPSIRQSource interruptID, void* param, bool* han
 #define ICDICFR              (0xC00/sizeof(unsigned int)) // + to INT configuration regs
 
 
+#define IRQ_REG_BYTES        (sizeof(unsigned int))
+#define IRQ_REG_BYTEMASK     (IRQ_REG_BYTES - 1)
+#define IRQ_REG_BITS         (IRQ_REG_BYTES * 8)
+#define IRQ_REG_BITMASK      (IRQ_REG_BITS - 1)
+
 /*
  * Global variables for the IRQ driver
  *
@@ -158,7 +163,7 @@ void __svc_handler (unsigned int id, unsigned int* val) __attribute__ ((weak));
 __irq void __irq_isr (void) {
     // If not initialised, jump to default ISR handler.
     if (!__isInitialised) {
-        __asm__("B __default_isr");
+        __BRANCH(__default_isr);
     }
     // Otherwise initialised, handle IRQs
     bool isr_handled = false;
@@ -249,11 +254,14 @@ static void _HPS_IRQ_doRegister(unsigned int handler, HPSIRQSource interruptID, 
     __isr_handlers[handler].param = handlerParam;
     __isr_handlers[handler].interruptID = interruptID;
     __isr_handlers[handler].enabled = true;
-    //Then we need to enable the interrupt in the distributor
-    __gic_dist_ptr[ICDISER + (interruptID / 32)] = 1 << (interruptID % 32);
-    //And set the affinity to CPU0
-    diptr = (unsigned char*)&(__gic_dist_ptr[ICDIPTR + interruptID / 4]);
-    diptr[interruptID % 4] = 0x1;
+    //Assuming a valid ID
+    if (interruptID < IRQ_SOURCE_COUNT) {
+        //We need to enable the interrupt in the distributor
+        __gic_dist_ptr[ICDISER + (interruptID / IRQ_REG_BITS)] = 1 << (interruptID & IRQ_REG_BITMASK);
+        //And set the affinity to CPU0
+        diptr = (unsigned char*)&(__gic_dist_ptr[ICDIPTR + interruptID / IRQ_REG_BYTES]);
+        diptr[interruptID & IRQ_REG_BYTEMASK] = 0x1;
+    }
     //Done
     return;
 }
@@ -290,7 +298,6 @@ static unsigned int _HPS_IRQ_findHandler(HPSIRQSource interruptID) {
     return handler;
 }
 
-
 //Do the unregistering of an interrupt.
 // - Function will mask interrupts automatically.
 static void _HPS_IRQ_doUnregister(unsigned int handler, HPSIRQSource interruptID) {
@@ -300,7 +307,9 @@ static void _HPS_IRQ_doUnregister(unsigned int handler, HPSIRQSource interruptID
     __isr_handlers[handler].handler = 0x0;
     __isr_handlers[handler].enabled = false;
     //Then we need to disable the interrupt in the distributor
-    __gic_dist_ptr[ICDICER + (interruptID / 32)] = 1 << (interruptID & 31);
+    if (interruptID < IRQ_SOURCE_COUNT) {
+        __gic_dist_ptr[ICDICER + (interruptID / IRQ_REG_BITS)] = 1 << (interruptID & IRQ_REG_BITMASK);
+    }
     //Finally we unmask interrupts to resume processing.
     if (!was_masked) {
         __enable_irq();
@@ -312,11 +321,15 @@ static void _HPS_IRQ_doUnregister(unsigned int handler, HPSIRQSource interruptID
  */
 
 //Initialise HPS IRQ Driver
-HpsErr_t HPS_IRQ_initialise( IsrHandlerFunc_t userUnhandledIRQCallback ) {
-    /* Configure Global Interrupt Controller (GIC) */
-    //Disable IRQ interrupts before configuring
+HpsErr_t HPS_IRQ_initialise( bool enableIrqs, IsrHandlerFunc_t userUnhandledIRQCallback ) {
+    // Disable IRQ interrupts before configuring GIC
     __disable_irq();
-    
+
+    // Ensure no interrupt sources were previously left enabled
+    for (unsigned int idGroup = 0; idGroup < IRQ_SOURCE_COUNT/IRQ_REG_BITS; idGroup++) {
+        __gic_dist_ptr[ICDICER + idGroup] = UINT32_MAX;
+    }
+        
     // Set Interrupt Priority Mask Register (ICCPMR)
     // Enable interrupts of all priorities
     __gic_cpuif_ptr[ICCPMR] = 0xFFFF;
@@ -329,7 +342,7 @@ HpsErr_t HPS_IRQ_initialise( IsrHandlerFunc_t userUnhandledIRQCallback ) {
     // Send pending interrupts to CPUs
     __gic_dist_ptr[ICDDCR] = 0x1;
 
-    //Initially no handlers
+    // Initially no handlers
     __isr_handler_count = 0;
     __isr_handlers = NULL;
     
@@ -341,12 +354,15 @@ HpsErr_t HPS_IRQ_initialise( IsrHandlerFunc_t userUnhandledIRQCallback ) {
         //Otherwise use default
         __isr_unhandledIRQCallback = HPS_IRQ_unhandledIRQ;
     }
-
-    //Enable interrupts again
-    __enable_irq();
-
+    
     //Mark as initialised
     __isInitialised = true;
+    
+    //Enable interrupts if requested
+    if (enableIrqs) {
+        __enable_irq();
+    }
+    
     //And done
     return ERR_SUCCESS;
 }

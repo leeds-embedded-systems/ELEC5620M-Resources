@@ -92,6 +92,8 @@
 #include "HPS_IRQ_IDs.h"
 #endif
 
+//Maximum number of IRQ IDs supported by hardware
+#define IRQ_SOURCE_COUNT 256
 
 //Function Pointer Type for Interrupt Handlers
 // - interruptID is the ID of the interrupt that called the handler.
@@ -127,12 +129,15 @@ HPS_IRQ_registerHandler(IRQ_TIMER_L4SP_0, &exampleIRQHandlerWithNoParams, &thePa
 
 
 //Initialise HPS IRQ Driver
+// - enableIrqs controls whether to enable the IRQs immediately on return or not.
+//   If setting up interrupt handlers, probably best to set this to `false` and
+//   then run HPS_IRQ_globalEnable() later.
 // - userUnhandledIRQCallback can be a function pointer to an isr_handler to be
 //   called in the event of an unhandled IRQ occurring. If this parameter is
 //   passed as NULL (0x0), a default handler which causes reset by watchdog will
 //   be used.
 // - Returns Util/error Code
-HpsErr_t HPS_IRQ_initialise(IsrHandlerFunc_t userUnhandledIRQCallback);
+HpsErr_t HPS_IRQ_initialise(bool enableIrqs, IsrHandlerFunc_t userUnhandledIRQCallback);
 
 //Check if driver initialised
 // - Returns true if driver previously initialised

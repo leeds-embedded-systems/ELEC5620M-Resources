@@ -125,8 +125,8 @@ static inline bool pointerIsAligned(const void* ptr, unsigned int size) {
 // Align an address or length to a size boundary
 static inline void* alignPointer(const void* ptr, unsigned int size, bool toNext) {
     unsigned int val = (unsigned int)ptr;
-    if (toNext) val = val + size - 1;
-    return (void*)(val & (size - 1));
+    if (toNext) val = val + (size - 1);
+    return (void*)(val & ~(size - 1));
 }
 
 // Find most significant set bit

@@ -179,16 +179,15 @@ void __init_stacks (void) {
     // If program is compiled targetting a hardware VFP, we must
     // enable the floating point unit to prevent run-time errors
     // in the C standard library.
-#if __TARGET_FPU_VFP
+#if defined(__ARM_PCS_VFP) || defined(__TARGET_FPU_VFP)
     //Inline assembly code for enabling FPU
     unsigned int cpacr = __GET_SYSREG(SYSREG_COPROC, CPACR);
-    cpacr = cparc |
-    		(3 << 20) |                 // OR in User and Privileged access for CP10
-			(3 << 22);                  // OR in User and Privileged access for CP11
-    cpacr &= ~(3 << 30);                // Clear ASEDIS/D32DIS if set
-	__SET_SYSREG(SYSREG_COPROC, CPACR); // Store new access permissions into CPACR
-	__isb();                            // Synchronise any branch prediction so that effects are now visible
-	__SET_PROC_VMSR(1 << 30);           // Enable VFP and SIMD extensions
+    cpacr |= ((3 << 20) |                      // OR in User and Privileged access for CP10
+              (3 << 22));                      // OR in User and Privileged access for CP11
+    cpacr &= ~(3 << 30);                       // Clear ASEDIS/D32DIS if set
+    __SET_SYSREG(SYSREG_COPROC, CPACR, cpacr); // Store new access permissions into CPACR
+    __ISB();                                   // Synchronise any branch prediction so that effects are now visible
+    __SET_PROC_VMSR(1 << 30);                  // Enable VFP and SIMD extensions
 #endif
     // Launch the C entry point
     __main();

@@ -156,6 +156,9 @@ __MOV_REG_GEN(pc)
 // Simple branch
 #define __BRANCH(to) __asm__ __volatile__ ("B " #to " \n");
 
+// Instruction barrier
+#define __ISB()       __isb(15)
+
 // Stack Init Functions
 #define __INIT_SP_SYS(top) __asm__ __volatile__("MOV SP, %[sp]\n" ::[sp] "r" (top):)
 #define __INIT_SP_MODE(mode, top)  \

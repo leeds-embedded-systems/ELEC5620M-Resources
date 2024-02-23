@@ -98,7 +98,7 @@ static inline HpsErr_t SPI_setDirection(PSpiCtx_t spi, SpiMISODirection dir) {
 static inline HpsErr_t SPI_setDataWidth(PSpiCtx_t spi, unsigned int width) {
     if (!spi) return ERR_NULLPTR;
     if (!spi->setDataWidth) return ERR_NOSUPPORT;
-    return spi->setDirection(spi->ctx, width);
+    return spi->setDataWidth(spi->ctx, width);
 }
 
 // Configure slave selects

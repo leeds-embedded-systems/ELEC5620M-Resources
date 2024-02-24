@@ -4,9 +4,9 @@ while (1) { //Main Run Loop - runs forever.
  
     while (event2Occurred() == false);  //Wait for second event to occur    
     do_something_else();                //Do something else
-   
-   //Were stuck in the loops waiting for events, so didn't do other things
+   //Were stuck in the while loops waiting for events, so didn't do other things.
 }
+
 
 while (1) { //Main Run Loop - runs forever.
    if (event1Occurred() == true){  //If event1 occurred

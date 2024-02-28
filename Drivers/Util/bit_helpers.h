@@ -129,7 +129,7 @@ static inline void* alignPointer(const void* ptr, unsigned int size, bool toNext
     return (void*)(val & ~(size - 1));
 }
 
-// Find most significant set bit
+// Find most significant set bit (effectively performs floor(log2(x)))
 // - Returns the index of the highest set bit
 // - Returns -1 if no bits set
 static inline signed int findHighestBit(unsigned int x) {

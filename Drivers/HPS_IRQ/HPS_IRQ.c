@@ -157,6 +157,8 @@ static volatile unsigned int* __gic_dist_ptr  = (unsigned int *)MPCORE_GIC_DIST;
  * and cause an unhandledIRQCallback call if it is an unhandled interrupt
  */
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wextra"
 __irq void __irq_isr (void) {
     // If not initialised, jump to default ISR handler.
     if (!__isInitialised) {
@@ -196,6 +198,7 @@ __irq void __irq_isr (void) {
     //And done.
     return;
 }
+#pragma clang diagnostic pop
 
 
 /*

@@ -203,6 +203,8 @@ void __reset_isr (void) {
 void __init_stacks (void) {
     // Set the location of the vector table using VBAR register
     __SET_SYSREG(SYSREG_COPROC, VBAR, (unsigned int)&__vector_table);
+    // Reset the debugger check flag
+    __semihostingEnabled = SVC_HAS_DEBUGGER;
     // Enable non-aligned access by clearing the A bit (bit 1) of the SCTLR register
     unsigned int sctlr = __GET_SYSREG(SYSREG_COPROC, SCTLR);
     sctlr &= ~(1 << SYSREG_SCTLR_BIT_A);

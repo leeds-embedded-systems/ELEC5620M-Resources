@@ -38,7 +38,7 @@
  *    // Data Abort
  *    __abort void __dataAb_isr(void){   }
  *    // Fast IRQ
- *    __fiq void __fiq_isr   (void){   }
+ *    __fiq   void __fiq_isr   (void){   }
  *
  * For software IRQs (SVC/SWI), the standard handler is always
  * used as it provides additional decoding and context handling.

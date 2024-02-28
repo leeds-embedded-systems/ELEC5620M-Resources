@@ -248,7 +248,7 @@ static unsigned int _HPS_IRQ_findHandler(HPSIRQSource interruptID) {
 // - Function will mask interrupts automatically.
 static void _HPS_IRQ_doUnregister(unsigned int handler, HPSIRQSource interruptID) {
     //Before changing anything we need to mask interrupts temporarily while we change the handlers
-    bool was_masked = __disable_irq();
+    bool wasMasked = __disable_irq();
     //Clear the handler pointer, and mark as disabled
     __isr_handlers[handler].handler = 0x0;
     __isr_handlers[handler].enabled = false;
@@ -257,7 +257,7 @@ static void _HPS_IRQ_doUnregister(unsigned int handler, HPSIRQSource interruptID
         __gic_dist_ptr[ICDICER + (interruptID / IRQ_REG_BITS)] = 1 << (interruptID & IRQ_REG_BITMASK);
     }
     //Finally we unmask interrupts to resume processing.
-    if (!was_masked) {
+    if (!wasMasked) {
         __enable_irq();
     }
 }
@@ -334,21 +334,21 @@ HpsErr_t HPS_IRQ_globalEnable(bool enable) {
         return ERR_SUCCESS;
     } else {
         bool wasMasked = __disable_irq();
-        return wasMasked ? ERR_SUCCESS : ERR_SKIPPED;
+        return wasMasked ? ERR_SKIPPED : ERR_SUCCESS;
     }
 }
 
 //Register an IRQ handler
 HpsErr_t HPS_IRQ_registerHandler(HPSIRQSource interruptID, IsrHandlerFunc_t handlerFunction, void* handlerParam) {
     unsigned int handler;
-    bool was_masked;
+    bool wasMasked;
     if (!HPS_IRQ_isInitialised()) return ERR_NOINIT;
 
     //First check if a handler already exists (we can overwrite it if it does)
     handler = _HPS_IRQ_findHandler(interruptID);
 
     //Before changing anything we need to mask interrupts temporarily while we change the handlers
-    was_masked = __disable_irq();
+    wasMasked = __disable_irq();
 
     //Grow the handler table if ID not found
     if (handler == __isr_handler_count) {
@@ -361,7 +361,7 @@ HpsErr_t HPS_IRQ_registerHandler(HPSIRQSource interruptID, IsrHandlerFunc_t hand
     _HPS_IRQ_doRegister(handler, interruptID, handlerFunction, handlerParam);
 
     //Finally we unmask interrupts to resume processing.
-    if (!was_masked) {
+    if (!wasMasked) {
         __enable_irq();
     }
     //And done.
@@ -371,7 +371,7 @@ HpsErr_t HPS_IRQ_registerHandler(HPSIRQSource interruptID, IsrHandlerFunc_t hand
 //Register multiple IRQ handlers
 HpsErr_t HPS_IRQ_registerHandlers(HPSIRQSource* interruptIDs, IsrHandlerFunc_t* handlerFunctions, void** handlerParams, unsigned int count) {
     unsigned int handlers [count];
-    bool was_masked;
+    bool wasMasked;
     //Validate inputs
     if (!HPS_IRQ_isInitialised()) return ERR_NOINIT;
     if (!interruptIDs || !handlerFunctions) return ERR_NULLPTR;
@@ -391,7 +391,7 @@ HpsErr_t HPS_IRQ_registerHandlers(HPSIRQSource* interruptIDs, IsrHandlerFunc_t* 
     }
 
     //Before changing anything we need to mask interrupts temporarily while we change the handlers
-    was_masked = __disable_irq();
+    wasMasked = __disable_irq();
 
     //Ensure the handler table is big enough
     HpsErr_t status = _HPS_IRQ_growTable(growBy);
@@ -409,7 +409,7 @@ HpsErr_t HPS_IRQ_registerHandlers(HPSIRQSource* interruptIDs, IsrHandlerFunc_t* 
     }
 
     //Finally we unmask interrupts to resume processing.
-    if (!was_masked) {
+    if (!wasMasked) {
         __enable_irq();
     }
     //And done.

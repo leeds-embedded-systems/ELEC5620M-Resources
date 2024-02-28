@@ -105,12 +105,16 @@ bool checkIfSemihostingConnected(void) {
 void __default_isr (void) __attribute__ ((alias("__reset_isr"))); // @suppress("Unused function declaration")
 #else
 
-void __default_isr (void) { // No __isr attribute used as we never return.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wextra"
+void __irq __default_isr (void) {
     if (checkIfSemihostingConnected()) {
         printf("!EXCEPTION! In %s Mode.\n", __name_proc_state(__current_proc_state()));
     }
     while(1);
 }
+#pragma clang diagnostic pop
+
 #endif
 
 /* Exception Vector Handlers

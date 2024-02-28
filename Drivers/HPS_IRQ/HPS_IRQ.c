@@ -150,9 +150,6 @@ static IsrHandlerFunc_t __isr_unhandledIRQCallback;
 static volatile unsigned int* __gic_cpuif_ptr = (unsigned int *)MPCORE_GIC_CPUIF;
 static volatile unsigned int* __gic_dist_ptr  = (unsigned int *)MPCORE_GIC_DIST;
 
-// User software interrupt handler. Can be overridden
-void __svc_handler (unsigned int id, unsigned int* val) __attribute__ ((weak));
-
 /*
  * Next we need our interrupt service routine for IRQs
  *
@@ -187,57 +184,6 @@ __irq void __irq_isr (void) {
     __gic_cpuif_ptr[ICCEOIR] = (unsigned int)int_ID;
     //And done.
     return;
-}
-
-
-/*
- * Software Interrupt Handler
- *
- * The SVC vector is used by the debugger to run semi-hosting
- * commands which allow IO commands to send data to the debugger
- * e.g. using printf.
- *
- * When the debugger is not connected, we still need to handle
- * this SVC call otherwise the processor will hang. As we have no
- * other SVC calls by default, we can handle by simply returning.
- */
-
-__swi void __svc_isr(void) __attribute__ ((naked));
-__swi void __svc_isr(void) {
-    // Store the four registers r0-r3 to the stack. These contain any parameters
-    // to be passed to the SVC handler. Also store r12 as we need something we
-    // can clobber, as well as the link register which will be popped back to
-    // the page counter on return.
-    __asm volatile (
-        "STMFD   sp!, {r0-r3, r12, lr}  ;"
-        // Grab the stack pointer as this is the address in RAM where our four parameters have been saved
-        "MOV      r1, sp                ;"
-        // Grab SPSR. We will restore this at the end, but also need it to see if
-        // the caller was in thumb mode. We store it to the stack to save for later
-        "MRS      r0, spsr              ;"
-        "PUSH    {r0, r3}               ;" // r3 is just a random register to ensure stack stays 8-byte aligned
-        // Extract the SVC ID. This is embedded in the SVC instruction itself which
-        // is located one instruction before the value of the current banked link register.
-        "TST      r0, %[TMask]          ;"
-        // If caller was in thumb, then instructions is 2-byte, with lower byte being ID
-        "LDRHNE   r0, [lr,#-2]          ;"
-        "BICNE    r0, r0, #0xFF00       ;"
-        // Otherwise caller was in arm mode, then instructions are 4-byte, with lower three bytes being ID.
-        "LDREQ    r0, [lr,#-4]          ;"
-        "BICEQ    r0, r0, #0xFF000000   ;"
-        // Call user handler (r0 is first parameter [ID], r1 is second parameter [SP])
-        "BLX      __svc_handler         ;"
-        // Restore the processor state from before the SVC was triggered. We have this value saved on the stack.
-        "POP     {r0, r3}               ;"
-        "MSR     SPSR_cxsf, r0          ;"
-        // Remove pushed registers from stack, and return, restoring SPSR to CPSR
-        "LDMFD   sp!, {r0-r3, r12, pc}^ ;"
-        :: [TMask] "i" (1 << __PROC_CPSR_BIT_T)
-    );
-}
-
-void __svc_handler (unsigned int id, unsigned int* val) {
-
 }
 
 

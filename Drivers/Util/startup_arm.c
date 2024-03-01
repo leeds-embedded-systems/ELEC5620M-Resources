@@ -272,7 +272,8 @@ __swi void __svc_isr(void) {
     // can clobber, as well as the link register which will be popped back to
     // the page counter on return.
     __asm volatile (
-        "STMFD   SP!, {r0-r3, r12, LR}         ;"
+        "STMFD   SP!, {r12, LR}                ;"
+        "PUSH    {r0-r3}                       ;"
         // Grab the stack pointer as this is the address in RAM where our four parameters have been saved
         "MOV      r1, SP                       ;"
         // Grab SPSR. We will restore this at the end, but also need it to see if
@@ -301,10 +302,12 @@ __swi void __svc_isr(void) {
         // Restore the processor state from before the SVC was triggered. We have this value saved on the stack.
         "POP     {r0, r3}                      ;"
         "MSR     SPSR_cxsf, r0                 ;"
+        // Remove pushed registers from stack
+        "POP     {r0-r3}                       ;"
         // For semi-hosting call, return success status (even though we have done nothing)
         "EOREQ    r0, r0                       ;"
         // Remove pushed registers from stack, and return, restoring SPSR to CPSR
-        "LDMFD   SP!, {r0-r3, r12, PC}^        ;"
+        "LDMFD   SP!, {r12, PC}^               ;"
         ::
         [TMask]   "i" (1 << __PROC_CPSR_BIT_T),
         [SvcIdT]  "i" (SVC_ID_SEMIHOST_THUMB),                // Thumb value is 8bit, so can load directly with MOV.

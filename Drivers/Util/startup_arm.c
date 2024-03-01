@@ -204,15 +204,32 @@ void __reset_isr (void) {
     __BRANCH(__init_stacks);
 }
 
+// Masks for checking/configuring Co-Proc registers
+#define SCTLR_REQCLR_MASK   ((1 << SYSREG_SCTLR_BIT_A) | (1 << SYSREG_SCTLR_BIT_V))  // Need V and A bits clear
+#define CPACR_REQCLR_MASK   ((1 << SYSREG_CPACR_BIT_D32DIS) | (1 << SYSREG_CPACR_BIT_ASEDIS)) // Must have ASEDIS/D32DIS clear
+#define CPACR_REQSET_MASK   ((SYSREG_CPACR_MASK_NS << SYSREG_CPACR_BIT_CP(10)) | /* Must enable User and Privileged access for CP10 */ \
+                             (SYSREG_CPACR_MASK_NS << SYSREG_CPACR_BIT_CP(11)))  /* Must enable User and Privileged access for CP11*/
+
 void __init_stacks (void) {
     // Set the location of the vector table using VBAR register
     __SET_SYSREG(SYSREG_COPROC, VBAR, (unsigned int)&__vector_table);
+    // Enable VBAR and non-aligned access by clearing the V (bit 13) and
+    // A bit (bit 1) of the SCTLR register if set.
+    unsigned int sctlr = __GET_SYSREG(SYSREG_COPROC, SCTLR);
+    if (sctlr & SCTLR_REQCLR_MASK) {
+        sctlr &= ~SCTLR_REQCLR_MASK;
+        __SET_SYSREG(SYSREG_COPROC, SCTLR, sctlr);
+    }
+    // Enable access to the CP10/CP11 co-processors. These are used
+    // for some SIMD and VFP type instructions
+    unsigned int cpacr = __GET_SYSREG(SYSREG_COPROC, CPACR);
+    if ((cpacr & CPACR_REQCLR_MASK) || (~cpacr & CPACR_REQSET_MASK)) {
+        cpacr |= CPACR_REQSET_MASK;
+        cpacr &= ~CPACR_REQCLR_MASK;
+        __SET_SYSREG(SYSREG_COPROC, CPACR, cpacr); // Store new access permissions into CPACR
+    }
     // Reset the debugger check flag
     __semihostingEnabled = SVC_HAS_DEBUGGER;
-    // Enable non-aligned access by clearing the A bit (bit 1) of the SCTLR register
-    unsigned int sctlr = __GET_SYSREG(SYSREG_COPROC, SCTLR);
-    sctlr &= ~(1 << SYSREG_SCTLR_BIT_A);
-    __SET_SYSREG(SYSREG_COPROC, SCTLR, sctlr);
     // Initialise all IRQ stack pointers
     unsigned int stackTop = IRQ_STACK_TOP;
     // FIQ
@@ -229,14 +246,8 @@ void __init_stacks (void) {
     // enable the floating point unit to prevent run-time errors
     // in the C standard library.
 #if defined(__ARM_PCS_VFP) || defined(__TARGET_FPU_VFP)
-    //Inline assembly code for enabling FPU
-    unsigned int cpacr = __GET_SYSREG(SYSREG_COPROC, CPACR);
-    cpacr |= ((3 << 20) |                      // OR in User and Privileged access for CP10
-              (3 << 22));                      // OR in User and Privileged access for CP11
-    cpacr &= ~(3 << 30);                       // Clear ASEDIS/D32DIS if set
-    __SET_SYSREG(SYSREG_COPROC, CPACR, cpacr); // Store new access permissions into CPACR
-    __ISB();                                   // Synchronise any branch prediction so that effects are now visible
-    __SET_PROC_VMSR(1 << 30);                  // Enable VFP and SIMD extensions
+    __ISB();  // Synchronise any branch prediction so that effects are now visible
+    __SET_PROC_FPEXC(1 << __PROC_FPEXC_BIT_EN);  // Enable VFP and SIMD extensions
 #endif
     // Launch the C entry point
     __main();

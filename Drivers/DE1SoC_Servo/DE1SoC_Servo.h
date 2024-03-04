@@ -30,7 +30,7 @@
 //Maximum number of servos
 #define SERVO_MAX_COUNT  4
 
-// Driver context
+// Servo Driver Context
 typedef struct {
     // Context Header
     DrvCtx_t header;

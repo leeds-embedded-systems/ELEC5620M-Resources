@@ -52,7 +52,8 @@ static bool _Servo_invalidID( PServoCtx_t ctx, unsigned int channel ) {
 }
 
 static void _Servo_enable( PServoCtx_t ctx, unsigned int channel, bool enable) {
-    volatile unsigned char* servo_ptr = (unsigned char*)&ctx->base[channel]; //Get the csr for the requested servo
+    //Get the csr for the requested servo
+    volatile unsigned char* servo_ptr = (unsigned char*)&ctx->base[channel]; 
     if (enable) {
         servo_ptr[SERVO_CONTROL] |=  SERVO_ENABLE;
     } else {

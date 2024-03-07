@@ -159,7 +159,7 @@ static inline HpsErrExt_t SPI_readReady(PSpiCtx_t spi, uint32_t laneMask) {
 //   - e.g. if the mask is 0x05, there must be two words, one for lane 0, and the second for lane 2.
 //   - If the controller has only one lane, set the mask to 0x1.
 // - The number of words per lane depends on the SPI configuration (e.g. long data bursts, or single word)
-// - Transfer is read-only, write value will be .
+// - Transfer is read-only, write value will be ignored.
 // - Negative indicates error.
 static inline HpsErr_t SPI_read(PSpiCtx_t spi, uint32_t laneMask, uint32_t* data) {
     if (!laneMask) return ERR_SUCCESS;

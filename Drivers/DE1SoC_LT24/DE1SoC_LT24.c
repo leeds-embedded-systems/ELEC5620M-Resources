@@ -309,7 +309,7 @@ HpsErr_t LT24_initialise( void* cntrlBase, void* dataBase, PLT24Ctx_t* pCtx ) {
     //Save base address pointers
     PLT24Ctx_t ctx = *pCtx;
     ctx->cntrl = (unsigned int*)cntrlBase;
-    ctx->data  = (unsigned int*)dataBase;
+    ctx->data  = (unsigned short*)dataBase;
     ctx->hwOpt = (dataBase != NULL); // Use HW Opt mode if we have a data pointer
     //Initialise LCD PIO direction
     ctx->cntrl[LT24_PIO_DIR] |= (LT24_CMDDATMASK | LT24_LCD_ON | LT24_RESETn | LT24_HW_OPT(1)); //All data/cmd bits are outputs

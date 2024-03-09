@@ -42,6 +42,13 @@
 #endif
 #endif
 
+//Fallthrough attribute for case statements.
+#if ((defined(__GNUC__) && __GNUC__ >= 7) || (defined(__clang__) && __clang_major__ >= 12)) && !defined( __CDT_PARSER__)
+ #define FALLTHROUGH __attribute__ ((fallthrough))
+#else
+ #define FALLTHROUGH ((void)0)
+#endif
+
 //Size of fixed array
 #define ARRAYSIZE(arr) (sizeof((arr))/sizeof(*(arr)))
 #define ARRAYWITHSIZE(arr) arr, ARRAYSIZE(arr)

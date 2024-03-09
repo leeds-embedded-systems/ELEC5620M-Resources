@@ -74,6 +74,7 @@ typedef signed int HpsErr_t;
 #define IS_BUSY(code)      ((code) == ERR_BUSY)
 #define IS_RETRY(code)     ((code) == ERR_AGAIN)
 #define IS_SKIPPED(code)   ((code) == ERR_SKIPPED)
+#define IS_TIMEOUT(code)   ((code) == ERR_TIMEOUT)
 #define IS_NOSUPPORT(code) ((code) == ERR_NOSUPPORT)
 
 // Extended error check scheme:

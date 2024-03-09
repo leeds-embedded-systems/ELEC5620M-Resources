@@ -80,29 +80,42 @@ HpsErr_t WM8731_initialise( void* base, PHPSI2CCtx_t i2c, PWM8731Ctx_t* pCtx ) {
     ctx->i2cAddr = 0x1A;
     // - For the time being this is hard-coded to 48kHz, but could be changed later.
     ctx->sampleRate = 48000;
-    //Initialise the WM8731 codec over I2C. See Page 46 of datasheet
+    //Initialise the WM8731 codec over I2C. See Page 46 of datasheet.
+    //I2C write is non-blocking & returns before complete.
+    //Retry until complete by writing zero length data until successful.
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_POWERCNTRL   <<9) | 0x12); //Power-up chip. Leave mic off as not used.
-    if (IS_ERROR(status)) return status;
+    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); } //Retry until write successful.
+    if (IS_ERROR_EXT(status)) return status; //Return if status is indicates an error.
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_LEFTINCNTRL  <<9) | 0x17); //+4.5dB Volume. Unmute.
-    if (IS_ERROR(status)) return status;
+    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (IS_ERROR_EXT(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_RIGHTINCNTRL <<9) | 0x17); //+4.5dB Volume. Unmute.
-    if (IS_ERROR(status)) return status;
+    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (IS_ERROR_EXT(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_LEFTOUTCNTRL <<9) | 0x70); //-24dB Volume. Unmute.
-    if (IS_ERROR(status)) return status;
+    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (IS_ERROR_EXT(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_RIGHTOUTCNTRL<<9) | 0x70); //-24dB Volume. Unmute.
-    if (IS_ERROR(status)) return status;
+    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (IS_ERROR_EXT(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_ANLGPATHCNTRL<<9) | 0x12); //Use Line In. Disable Bypass. Use DAC
-    if (IS_ERROR(status)) return status;
+    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (IS_ERROR_EXT(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_DGTLPATHCNTRL<<9) | 0x06); //Enable High-Pass filter. 48kHz sample rate.
-    if (IS_ERROR(status)) return status;
+    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (IS_ERROR_EXT(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_DATAFMTCNTRL <<9) | 0x4E); //I2S Mode, 24bit, Master Mode (do not change this!)
-    if (IS_ERROR(status)) return status;
+    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (IS_ERROR_EXT(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_SMPLINGCNTRL <<9) | 0x00); //Normal Mode, 48kHz sample rate
-    if (IS_ERROR(status)) return status;
+    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (IS_ERROR_EXT(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_ACTIVECNTRL  <<9) | 0x01); //Enable Codec
-    if (IS_ERROR(status)) return status;
+    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (IS_ERROR_EXT(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_POWERCNTRL   <<9) | 0x02); //Power-up output.
-    if (IS_ERROR(status)) return status;
+    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (IS_ERROR_EXT(status)) return status;
     //Initialised
     DriverContextSetInit(ctx);
     return WM8731_clearFIFO(ctx,true,true);

@@ -51,66 +51,59 @@
 #define LT24_INIT_DATA_LEN (sizeof(LT24_initData)/sizeof(LT24_initData[0]))
 unsigned short LT24_initData [][2] = {
    //isDat, value
-    {false, 0x00EF},
+    {false, 0x00EF}, //Undocumented write sequence!
     {true , 0x0003},
     {true , 0x0080},
-    {true , 0X0002},
-    {false, 0x00CF},
+    {true , 0x0002},
+    {false, 0x00CF}, //Power control B
     {true , 0x0000},
     {true , 0x0081},
     {true , 0x00C0},
-    {false, 0x00ED},
+    {false, 0x00ED}, //Power on sequence control
     {true , 0x0064},
     {true , 0x0003},
-    {true , 0X0012},
-    {true , 0X0081},
-    {false, 0x00E8},
+    {true , 0x0012},
+    {true , 0x0081},
+    {false, 0x00E8}, //Driver timing control A
     {true , 0x0085},
     {true , 0x0001},
     {true , 0x0078},
-    {false, 0x00CB},
+    {false, 0x00CB}, //Power controlA
     {true , 0x0039},
     {true , 0x002C},
     {true , 0x0000},
     {true , 0x0034},
     {true , 0x0002},
-    {false, 0x00F7},
+    {false, 0x00F7}, //Pump ratio control
     {true , 0x0020},
-    {false, 0x00EA},
-    {true , 0x0000},
-    {true , 0x0000},
-    //Power control
-    {false, 0x00C0},         
-    {true , 0x0023}, //VRH[5:0]
-    {false, 0x00C1},
-    {true , 0x0010}, //SAP[2:0];BT[3:0]
-    //VCM control
-    {false, 0x00C5},         
+    {false, 0x00EA}, //Driver timing control B
+    {true , 0x0000}, //NOP
+    {true , 0x0000}, //NOP
+    {false, 0x00C0}, //Power control 1
+    {true , 0x0023}, //  VRH[5:0]
+    {false, 0x00C1}, //Power control 2
+    {true , 0x0010}, //  SAP[2:0];BT[3:0]
+    {false, 0x00C5}, //VCOM Control 1
     {true , 0x003E},
     {true , 0x0028},
-    {false, 0x00C7},
+    {false, 0x00C7}, //VCOM Control 2
     {true , 0x0086},
-    // Memory Access Control (MADCTL)
-    {false, 0x0036},         
+    {false, 0x0036}, //Memory Access Control (MADCTL)
     {true , 0x0048},
-    // More settings...
-    {false, 0x003A},
-    {true , 0x0055},
-    {false, 0x00B1},
+    {false, 0x003A}, //Pixel Format Set
+    {true , 0x0055}, //  16 bit RGB Interface, 16 bit MCU
+    {false, 0x00B1}, //Frame Control
+    {true , 0x0000}, //  No-clock oscillator division
+    {true , 0x001B}, //  27 clock/line, 70 Hz default
+    {false, 0x00B6}, //Display Function Control
+    {true , 0x0008}, //  Non-Display Area Inaccessible
+    {true , 0x0082}, //  Normally White, Normal Scan Direction (A2 = Reverse Scan Direction)
+    {true , 0x0027}, //  320 Lines
+    {false, 0x00F2}, //3-Gamma Function Disable
     {true , 0x0000},
-    {true , 0x001B},
-    {false, 0x00B6},
-    {true , 0x0008}, //Non-Display Area Inaccessible
-    {true , 0x0082}, //Normally White, Normal Scan Direction (A2 = Reverse Scan Direction)
-    {true , 0x0027}, //320 Lines
-    //3-Gamma Function Disable
-    {false, 0x00F2},         
-    {true , 0x0000},
-    //Gamma curve selected
-    {false, 0x0026},         
+    {false, 0x0026}, //Gamma curve selected
     {true , 0x0001},
-    //Set Gamma
-    {false, 0x00E0},         
+    {false, 0x00E0}, //Positive Gamma Correction
     {true , 0x000F},
     {true , 0x0031},
     {true , 0x002B},
@@ -118,7 +111,7 @@ unsigned short LT24_initData [][2] = {
     {true , 0x000E},
     {true , 0x0008},
     {true , 0x004E},
-    {true , 0X00F1},
+    {true , 0x00F1},
     {true , 0x0037},
     {true , 0x0007},
     {true , 0x0010},
@@ -126,7 +119,7 @@ unsigned short LT24_initData [][2] = {
     {true , 0x000E},
     {true , 0x0009},
     {true , 0x0000},
-    {false, 0x00E1},
+    {false, 0x00E1}, //Negative Gamma Correction
     {true , 0x0000},
     {true , 0x000E},
     {true , 0x0014},
@@ -142,17 +135,14 @@ unsigned short LT24_initData [][2] = {
     {true , 0x0031},
     {true , 0x0036},
     {true , 0x000f},
-    //Frame Rate
-    {false, 0x00B1},
+    {false, 0x00B1}, //Frame Rate
     {true , 0x0000},
     {true , 0x0001},
-    //Interface Control
-    {false, 0x00F6},
+    {false, 0x00F6}, //Interface Control
     {true , 0x0001},
     {true , 0x0010},
     {true , 0x0000},
-    //Disable Internal Sleep
-    {false, 0x0011},
+    {false, 0x0011}, //Disable Internal Sleep
 };
 
 /*

@@ -56,7 +56,8 @@ typedef HpsErr_t    (*SpiReadFunc_t)     (void* ctx, uint32_t laneMask, uint32_t
 typedef HpsErr_t    (*SpiSlaveSelFunc_t) (void* ctx, bool autoSlaveSel, uint32_t slaveMask);
 typedef HpsErrExt_t (*SpiStatusFunc_t)   (void* ctx, uint32_t laneMask);
 typedef HpsErr_t    (*SpiDirectionFunc_t)(void* ctx, SpiMISODirection dir);
-typedef HpsErr_t    (*SpiDataWidth_t)    (void* ctx, unsigned int dataWidth);
+typedef HpsErr_t    (*SpiDataWidthFunc_t)(void* ctx, unsigned int dataWidth);
+typedef HpsErr_t    (*SpiAbortFunc_t)    (void* ctx);
 
 // GPIO Context
 typedef struct {
@@ -68,12 +69,13 @@ typedef struct {
     SpiWriteFunc_t    write;
     SpiReadFunc_t     read;
     SpiSlaveSelFunc_t slaveSelect;
+    SpiAbortFunc_t    abort;
     // Status Functions
     SpiStatusFunc_t    writeReady;
     SpiStatusFunc_t    readReady;
     // Config Functions
     SpiDirectionFunc_t setDirection;
-    SpiDataWidth_t     setDataWidth;
+    SpiDataWidthFunc_t setDataWidth;
 } SpiCtx_t, *PSpiCtx_t;
 
 // Check if driver initialised
@@ -139,6 +141,13 @@ static inline HpsErr_t SPI_write(PSpiCtx_t spi, uint32_t laneMask, uint32_t* dat
     laneMask &= INT32_MAX;
     if (findHighestBit(laneMask) >= spi->laneCount) return ERR_BEYONDEND;
     return spi->write(spi->ctx, laneMask, data, type);
+}
+
+// Abort any running transfer immediately
+static inline HpsErrExt_t SPI_abort(PSpiCtx_t spi) {
+    if (!spi) return ERR_NULLPTR;
+    if (!spi->abort) return ERR_NOSUPPORT;
+    return spi->abort(spi->ctx);
 }
 
 // Check if read has data ready

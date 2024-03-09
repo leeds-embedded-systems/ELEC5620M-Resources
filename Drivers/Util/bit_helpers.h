@@ -90,15 +90,17 @@ static inline unsigned int __clz_failback(unsigned int x) {
 
 //Masked bit value helpers
 // - Mask and shift a value to the correct position
-#define MaskInsert(      val, mask, ofs) (((val) & (mask)) << (ofs))
+#define MaskInsert(       val, mask, ofs) (((val) & (mask)) << (ofs))
 // - Shift and mask a field from a register value
-#define MaskExtract(     val, mask, ofs) (((val) >> (ofs)) & (mask))
+#define MaskExtract(      val, mask, ofs) (((val) >> (ofs)) & (mask))
+// - Shift and mask a signed field from a register value
+#define MaskExtractSigned(val, mask, ofs) ((MaskExtract(val, mask, ofs) ^ (((mask) + 1)/2)) - (((mask) + 1)/2))
 // - Mask a register value to perform logical checks
-#define MaskCheck(       val, mask, ofs) ((val) & ((mask) << (ofs)))
+#define MaskCheck(        val, mask, ofs) ((val) & ((mask) << (ofs)))
 // - Create a bitmask for direct AND/OR with a register value.
-#define MaskCreate(           mask, ofs) ((mask) << (ofs))
+#define MaskCreate(            mask, ofs) ((mask) << (ofs))
 // - Read-Modify-Write value with new masked value.
-#define MaskModify( reg, val, mask, ofs) (((reg) & ~MaskCreate(mask, ofs)) | MaskInsert(val, mask, ofs))
+#define MaskModify(  reg, val, mask, ofs) (((reg) & ~MaskCreate(mask, ofs)) | MaskInsert(val, mask, ofs))
 
 // Given a base address, calculate the maximum power of two span the address can access as a bitmask
 #define MaxAddressSpanOfBaseMask(base) (((base) & -(base)) - 1)
@@ -129,7 +131,7 @@ static inline void* alignPointer(const void* ptr, unsigned int size, bool toNext
     return (void*)(val & ~(size - 1));
 }
 
-// Find most significant set bit
+// Find most significant set bit (effectively performs floor(log2(x)))
 // - Returns the index of the highest set bit
 // - Returns -1 if no bits set
 static inline signed int findHighestBit(unsigned int x) {

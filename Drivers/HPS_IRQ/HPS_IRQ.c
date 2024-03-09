@@ -150,9 +150,6 @@ static IsrHandlerFunc_t __isr_unhandledIRQCallback;
 static volatile unsigned int* __gic_cpuif_ptr = (unsigned int *)MPCORE_GIC_CPUIF;
 static volatile unsigned int* __gic_dist_ptr  = (unsigned int *)MPCORE_GIC_DIST;
 
-// User software interrupt handler. Can be overridden
-void __svc_handler (unsigned int id, unsigned int* val) __attribute__ ((weak));
-
 /*
  * Next we need our interrupt service routine for IRQs
  *
@@ -160,11 +157,16 @@ void __svc_handler (unsigned int id, unsigned int* val) __attribute__ ((weak));
  * and cause an unhandledIRQCallback call if it is an unhandled interrupt
  */
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wextra"
 __irq void __irq_isr (void) {
     // If not initialised, jump to default ISR handler.
     if (!__isInitialised) {
         __BRANCH(__default_isr);
     }
+    // Backup the SPSR from the caller as we will clobber this when calling
+    // the IRQ handlers.
+    unsigned int spsr = __GET_PROC_SPSR();
     // Otherwise initialised, handle IRQs
     bool isr_handled = false;
     // Read the ICCIAR value to get interrupt ID
@@ -174,71 +176,29 @@ __irq void __irq_isr (void) {
     for (handler = 0; handler < __isr_handler_count; handler++) {
         if (int_ID == __isr_handlers[handler].interruptID) {
             //If we have found a handler for this ID
-            __isr_handlers[handler].handler(int_ID, __isr_handlers[handler].param, &isr_handled); //Call it and check status
+            //Backup our CPSR to the SPSR as the handler will clobber CPSR and restore from SPSR afterwards
+            __SET_PROC_SPSR(__GET_PROC_CPSR());
+            //Call it and check status
+            __isr_handlers[handler].handler(int_ID, __isr_handlers[handler].param, &isr_handled);
             break;
         }
     }
     //Check if we have an unhandled interrupt
     if (!isr_handled) {
-        __isr_unhandledIRQCallback(int_ID, NULL, NULL); //Call the unhandled IRQ callback.
+        //Backup our CPSR to the SPSR as the handler will clobber CPSR and restore from SPSR afterwards
+        __SET_PROC_SPSR(__GET_PROC_CPSR());
+        //Call the unhandled IRQ callback.
+        __isr_unhandledIRQCallback(int_ID, NULL, NULL);
     }
 
     //Otherwise write to the End of Interrupt Register (ICCEOIR) to mark as handled
     __gic_cpuif_ptr[ICCEOIR] = (unsigned int)int_ID;
+    //Restore the SPSR state before returning from the IRQ.
+    __SET_PROC_SPSR(spsr);
     //And done.
     return;
 }
-
-
-/*
- * Software Interrupt Handler
- *
- * The SVC vector is used by the debugger to run semi-hosting
- * commands which allow IO commands to send data to the debugger
- * e.g. using printf.
- *
- * When the debugger is not connected, we still need to handle
- * this SVC call otherwise the processor will hang. As we have no
- * other SVC calls by default, we can handle by simply returning.
- */
-
-__swi void __svc_isr(void) __attribute__ ((naked));
-__swi void __svc_isr(void) {
-    // Store the four registers r0-r3 to the stack. These contain any parameters
-    // to be passed to the SVC handler. Also store r12 as we need something we
-    // can clobber, as well as the link register which will be popped back to
-    // the page counter on return.
-    __asm volatile (
-        "STMFD   sp!, {r0-r3, r12, lr}  ;"
-        // Grab the stack pointer as this is the address in RAM where our four parameters have been saved
-        "MOV      r1, sp                ;"
-        // Grab SPSR. We will restore this at the end, but also need it to see if
-        // the caller was in thumb mode. We store it to the stack to save for later
-        "MRS      r0, spsr              ;"
-        "PUSH    {r0, r3}               ;" // r3 is just a random register to ensure stack stays 8-byte aligned
-        // Extract the SVC ID. This is embedded in the SVC instruction itself which
-        // is located one instruction before the value of the current banked link register.
-        "TST      r0, %[TMask]          ;"
-        // If caller was in thumb, then instructions is 2-byte, with lower byte being ID
-        "LDRHNE   r0, [lr,#-2]          ;"
-        "BICNE    r0, r0, #0xFF00       ;"
-        // Otherwise caller was in arm mode, then instructions are 4-byte, with lower three bytes being ID.
-        "LDREQ    r0, [lr,#-4]          ;"
-        "BICEQ    r0, r0, #0xFF000000   ;"
-        // Call user handler (r0 is first parameter [ID], r1 is second parameter [SP])
-        "BLX      __svc_handler         ;"
-        // Restore the processor state from before the SVC was triggered. We have this value saved on the stack.
-        "POP     {r0, r3}               ;"
-        "MSR     SPSR_cxsf, r0          ;"
-        // Remove pushed registers from stack, and return, restoring SPSR to CPSR
-        "LDMFD   sp!, {r0-r3, r12, pc}^ ;"
-        :: [TMask] "i" (1 << __PROC_CPSR_BIT_T)
-    );
-}
-
-void __svc_handler (unsigned int id, unsigned int* val) {
-
-}
+#pragma clang diagnostic pop
 
 
 /*
@@ -302,7 +262,7 @@ static unsigned int _HPS_IRQ_findHandler(HPSIRQSource interruptID) {
 // - Function will mask interrupts automatically.
 static void _HPS_IRQ_doUnregister(unsigned int handler, HPSIRQSource interruptID) {
     //Before changing anything we need to mask interrupts temporarily while we change the handlers
-    bool was_masked = __disable_irq();
+    bool wasMasked = __disable_irq();
     //Clear the handler pointer, and mark as disabled
     __isr_handlers[handler].handler = 0x0;
     __isr_handlers[handler].enabled = false;
@@ -311,7 +271,7 @@ static void _HPS_IRQ_doUnregister(unsigned int handler, HPSIRQSource interruptID
         __gic_dist_ptr[ICDICER + (interruptID / IRQ_REG_BITS)] = 1 << (interruptID & IRQ_REG_BITMASK);
     }
     //Finally we unmask interrupts to resume processing.
-    if (!was_masked) {
+    if (!wasMasked) {
         __enable_irq();
     }
 }
@@ -388,21 +348,21 @@ HpsErr_t HPS_IRQ_globalEnable(bool enable) {
         return ERR_SUCCESS;
     } else {
         bool wasMasked = __disable_irq();
-        return wasMasked ? ERR_SUCCESS : ERR_SKIPPED;
+        return wasMasked ? ERR_SKIPPED : ERR_SUCCESS;
     }
 }
 
 //Register an IRQ handler
 HpsErr_t HPS_IRQ_registerHandler(HPSIRQSource interruptID, IsrHandlerFunc_t handlerFunction, void* handlerParam) {
     unsigned int handler;
-    bool was_masked;
+    bool wasMasked;
     if (!HPS_IRQ_isInitialised()) return ERR_NOINIT;
 
     //First check if a handler already exists (we can overwrite it if it does)
     handler = _HPS_IRQ_findHandler(interruptID);
 
     //Before changing anything we need to mask interrupts temporarily while we change the handlers
-    was_masked = __disable_irq();
+    wasMasked = __disable_irq();
 
     //Grow the handler table if ID not found
     if (handler == __isr_handler_count) {
@@ -415,7 +375,7 @@ HpsErr_t HPS_IRQ_registerHandler(HPSIRQSource interruptID, IsrHandlerFunc_t hand
     _HPS_IRQ_doRegister(handler, interruptID, handlerFunction, handlerParam);
 
     //Finally we unmask interrupts to resume processing.
-    if (!was_masked) {
+    if (!wasMasked) {
         __enable_irq();
     }
     //And done.
@@ -425,7 +385,7 @@ HpsErr_t HPS_IRQ_registerHandler(HPSIRQSource interruptID, IsrHandlerFunc_t hand
 //Register multiple IRQ handlers
 HpsErr_t HPS_IRQ_registerHandlers(HPSIRQSource* interruptIDs, IsrHandlerFunc_t* handlerFunctions, void** handlerParams, unsigned int count) {
     unsigned int handlers [count];
-    bool was_masked;
+    bool wasMasked;
     //Validate inputs
     if (!HPS_IRQ_isInitialised()) return ERR_NOINIT;
     if (!interruptIDs || !handlerFunctions) return ERR_NULLPTR;
@@ -445,7 +405,7 @@ HpsErr_t HPS_IRQ_registerHandlers(HPSIRQSource* interruptIDs, IsrHandlerFunc_t* 
     }
 
     //Before changing anything we need to mask interrupts temporarily while we change the handlers
-    was_masked = __disable_irq();
+    wasMasked = __disable_irq();
 
     //Ensure the handler table is big enough
     HpsErr_t status = _HPS_IRQ_growTable(growBy);
@@ -463,7 +423,7 @@ HpsErr_t HPS_IRQ_registerHandlers(HPSIRQSource* interruptIDs, IsrHandlerFunc_t* 
     }
 
     //Finally we unmask interrupts to resume processing.
-    if (!was_masked) {
+    if (!wasMasked) {
         __enable_irq();
     }
     //And done.

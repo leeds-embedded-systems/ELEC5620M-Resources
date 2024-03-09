@@ -63,6 +63,8 @@ typedef enum {
 #define __PROC_CPSR_BIT_Z   30
 #define __PROC_CPSR_BIT_N   31
 
+#define __PROC_FPEXC_BIT_EN 30
+
 
 //Helper APIs
 #define __set_proc_state(val) \
@@ -88,8 +90,8 @@ __set_spsr(unsigned int spsr) {
 }
 
 static __inline__ void __attribute__((__always_inline__, __nodebug__))
-__set_vmsr(unsigned int vmsr) {
-    __asm__ __volatile__("vmsr fpexc, %[vmsr]\n" ::[vmsr] "r" (vmsr):);
+__set_fpexc(unsigned int fpexc) {
+    __asm__ __volatile__("vmsr fpexc, %[fpexc]\n" ::[fpexc] "r" (fpexc):);
 }
 
 static __inline__ ProcState __attribute__((__always_inline__, __nodebug__))
@@ -120,7 +122,8 @@ __name_proc_state(ProcState state) {
 #define __GET_PROC_CPSR()           __current_cpsr()
 #define __GET_PROC_SPSR()           __current_spsr()
 #define __SET_PROC_SPSR(val)        __set_spsr(val)
-#define __SET_PROC_VMSR(val)        __set_vmsr(val)
+#define __SET_PROC_FPEXC(val)       __set_fpexc(val)
+
 
 /*
  * Stack pointer/program counter
@@ -198,6 +201,7 @@ __MOV_REG_GEN(pc)
 #define SYSREG_SCTLR_BIT_SW    10
 #define SYSREG_SCTLR_BIT_Z     11
 #define SYSREG_SCTLR_BIT_I     12
+#define SYSREG_SCTLR_BIT_V     13
 
 // VBAR Register
 #define SYSREG_VBAR_CP         12
@@ -210,6 +214,10 @@ __MOV_REG_GEN(pc)
 #define SYSREG_CPACR_CP_OP      0
 #define SYSREG_CPACR_CPA        0
 #define SYSREG_CPACR_CPA_OP     2
+#define SYSREG_CPACR_MASK_NS    0x3
+#define SYSREG_CPACR_BIT_CP(x)  (2 * (x))
+#define SYSREG_CPACR_BIT_D32DIS 30
+#define SYSREG_CPACR_BIT_ASEDIS 31
 
 // Access macros
 //   Converts to MCR/MRC instructions

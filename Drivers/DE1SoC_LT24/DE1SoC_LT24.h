@@ -50,7 +50,7 @@ typedef struct {
     DrvCtx_t header;
     // Context Body
     volatile unsigned int* cntrl;
-    volatile unsigned int* data;
+    volatile unsigned short* data;
     bool hwOpt;
 } LT24Ctx_t, *PLT24Ctx_t;
 

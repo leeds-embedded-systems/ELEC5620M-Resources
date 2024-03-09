@@ -62,7 +62,7 @@ static void _HPS_GPIO_cleanup(PHPSGPIOCtx_t ctx) {
     if (ctx->base) {
         ctx->base[GPIO_INTR_EN  ] = 0x0;
         ctx->base[GPIO_DIRECTION] = ctx->initDir;
-        ctx->base[GPIO_OUTPUT   ] = ctx->initPort;
+        ctx->base[GPIO_OUTPUT   ] = ctx->initPort ^ ctx->polarity;
     }
 }
 

@@ -31,8 +31,9 @@ typedef struct {
     uint64_t readAddr;
     uint64_t writeAddr;
     uint64_t length;
-    bool isLast;
-} DmaChunk_t;
+    bool     isLast;
+    void*    params;  // Optional driver specific parameters
+} DmaChunk_t, *PDmaChunk_t;
 
 //Abort types
 typedef enum {
@@ -42,7 +43,7 @@ typedef enum {
 } DmaAbortType;
 
 // IO Function Templates
-typedef HpsErr_t (*DmaXferFunc_t)     (void* ctx, DmaChunk_t xfer, bool autoStart);
+typedef HpsErr_t (*DmaXferFunc_t)     (void* ctx, PDmaChunk_t xfer, bool autoStart);
 typedef HpsErr_t (*DmaXferStartFunc_t)(void* ctx);
 typedef HpsErr_t (*DmaXferSpaceFunc_t)(void* ctx, unsigned int* space);
 typedef HpsErr_t (*DmaAbortFunc_t)    (void* ctx, DmaAbortType abort);
@@ -81,7 +82,7 @@ static inline HpsErr_t DMA_transferSpace(PDmaCtx_t dma, unsigned int* space) {
 // Configure a DMA transfer from the DmaChunk structure
 // - Can optionally request the transfer be started immediately
 // - Returns ERR_BUSY if not enough space to start a new Xfer
-static inline HpsErr_t DMA_setupTransfer(PDmaCtx_t dma, DmaChunk_t xfer, bool autoStart) {
+static inline HpsErr_t DMA_setupTransfer(PDmaCtx_t dma, PDmaChunk_t xfer, bool autoStart) {
     if (!dma) return ERR_NULLPTR;
     if (!dma->setupTransfer) return ERR_NOSUPPORT;
     return dma->setupTransfer(dma->ctx, xfer, autoStart);

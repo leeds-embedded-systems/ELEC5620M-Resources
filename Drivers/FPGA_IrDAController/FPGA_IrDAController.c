@@ -46,13 +46,13 @@
  */
 
 // CSR Registers
-#define FPGAIRDA_REG_TXFIFO(base)     (*(((volatile uint16_t*)base) + (0x00 / sizeof(uint16_t))))
-#define FPGAIRDA_REG_RXFIFO(base)     (*(((volatile uint16_t*)base) + (0x00 / sizeof(uint16_t))))
-#define FPGAIRDA_REG_RXAVAIL(base)    (*(((volatile uint8_t *)base) + (0x02 / sizeof(uint8_t ))))
-#define FPGAIRDA_REG_IRQMASK(base)    (*(((volatile uint8_t *)base) + (0x04 / sizeof(uint8_t ))))
-#define FPGAIRDA_REG_IRQFLAGS(base)   (*(((volatile uint8_t *)base) + (0x05 / sizeof(uint8_t ))))
-#define FPGAIRDA_REG_TXSPACE(base)    (*(((volatile uint8_t *)base) + (0x06 / sizeof(uint8_t ))))
-#define FPGAIRDA_REG_CLEARFIFO(base)  (*(((volatile uint8_t *)base) + (0x07 / sizeof(uint8_t ))))
+#define FPGAIRDA_REG_TXFIFO(base)     (*(((volatile uint16_t*)(base)) + (0x00 / sizeof(uint16_t))))
+#define FPGAIRDA_REG_RXFIFO(base)     (*(((volatile uint16_t*)(base)) + (0x00 / sizeof(uint16_t))))
+#define FPGAIRDA_REG_RXAVAIL(base)    (*(((volatile uint8_t *)(base)) + (0x02 / sizeof(uint8_t ))))
+#define FPGAIRDA_REG_IRQMASK(base)    (*(((volatile uint8_t *)(base)) + (0x04 / sizeof(uint8_t ))))
+#define FPGAIRDA_REG_IRQFLAGS(base)   (*(((volatile uint8_t *)(base)) + (0x05 / sizeof(uint8_t ))))
+#define FPGAIRDA_REG_TXSPACE(base)    (*(((volatile uint8_t *)(base)) + (0x06 / sizeof(uint8_t ))))
+#define FPGAIRDA_REG_CLEARFIFO(base)  (*(((volatile uint8_t *)(base)) + (0x07 / sizeof(uint8_t ))))
 
 // Register bits
 #define FPGAIRDA_FIFO_DATA_MASK     0xFF // Both Tx and Rx FIFOs

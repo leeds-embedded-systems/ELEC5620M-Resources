@@ -200,7 +200,7 @@ HpsErrExt_t Mandelbrot_currentIteration( PMandelbrotCtx_t ctx ) {
     if (IS_ERROR(status)) return status;
     //Return current iteration
     unsigned int iteration = *((unsigned int*)&ctx->base[MANDELBROT_ITERATION]);
-    return (iteration & INT32_MIN); //Ensure the iteration value doesn't accidentally become error status code.
+    return (iteration & INT32_MAX); //Ensure the iteration value doesn't accidentally become error status code.
 }
 
 //Start new pattern

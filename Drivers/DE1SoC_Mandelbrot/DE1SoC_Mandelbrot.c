@@ -124,7 +124,7 @@ HpsErr_t Mandelbrot_initialise( void* base, PLT24Ctx_t lt24ctx, PMandelbrotCtx_t
     if (IS_ERROR(status)) return status;
     //Save base address pointers
     PMandelbrotCtx_t ctx = *pCtx;
-    ctx->base = (unsigned int*)base;
+    ctx->base = (unsigned char*)base;
     //Set default co-ordinates
     ctx->magnitude  =  2.00;
     ctx->radius     =  2.60;
@@ -133,6 +133,7 @@ HpsErr_t Mandelbrot_initialise( void* base, PLT24Ctx_t lt24ctx, PMandelbrotCtx_t
     //Start as float precision (will also write our initial co-ordinates)
     _Mandelbrot_setCalculationPrecision(ctx, MANDELBROT_FLOAT_PRECISION);
     //And done
+    DriverContextSetInit(ctx);
     return ERR_SUCCESS;
 }
 

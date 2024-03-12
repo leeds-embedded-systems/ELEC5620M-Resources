@@ -34,8 +34,8 @@ typedef struct {
     // Context Header
     DrvCtx_t header;
     // Context Body
-    volatile unsigned int* base;
-    // Keeps track of previous configurtion.
+    volatile unsigned char* base;
+    // Keeps track of previous configuration.
     MandelbrotPrecision precision;
     double magnitude;
     double radius;

@@ -88,7 +88,8 @@ HpsErr_t LT24_testPattern( PLT24Ctx_t ctx );
 
 //Copy frame buffer to display
 // - returns ERR_SUCCESS if successful
-HpsErr_t LT24_copyFrameBuffer( PLT24Ctx_t ctx, const unsigned short* framebuffer, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height);
+HpsErr_t LT24_copyFrameBuffer( PLT24Ctx_t ctx, const unsigned short* framebuffer,
+    unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height);
 
 //Plot a single pixel on the LT24 display
 // - returns ERR_SUCCESS if successful

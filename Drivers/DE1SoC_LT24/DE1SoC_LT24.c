@@ -160,7 +160,7 @@ static void _LT24_write( PLT24Ctx_t ctx, bool isData, unsigned short value ) {
         }
     } else {
         //PIO controls more than just LT24, so need to Read-Modify-Write
-        //First we have to output the value with the LT24_WRn bit low (first cycle of write)
+        //First we output the value with the LT24_WRn bit low (1st cycle of write)
         //Read
         unsigned int regVal = ctx->cntrl[LT24_PIO_DATA];
         //Modify
@@ -177,8 +177,8 @@ static void _LT24_write( PLT24Ctx_t ctx, bool isData, unsigned short value ) {
         }
         //Write
         ctx->cntrl[LT24_PIO_DATA] = regVal;
-        //Then we need to output the value again with LT24_WRn high (second cycle of write)
-        //Rest of regVal is unchanged, so we just or on the LT24_WRn bit
+        //Then we output the value again with LT24_WRn high (2nd cycle of write)
+        //Rest of regVal is unchanged, so we just OR the LT24_WRn bit
         regVal = regVal | (LT24_WRn); 
         //Write
         ctx->cntrl[LT24_PIO_DATA] = regVal;

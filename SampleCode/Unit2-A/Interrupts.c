@@ -29,12 +29,14 @@ __irq void __irq_isr (void) { //Handler for the IRQ Exception
 }  
 
 
-bool was_masked;
-//Globally (and Temporarily) disable the IRQ (set I bit in CPSR)
-wasMasked = __disable_irq(); //wasMasked = true if IRQ was previously disabled
-//Perform atomic operations in here
-...
-//Check if interrupts need to be re-enabled
-if (!was_masked) {
-    __enable_irq(); //Globally re-enable the IRQ (clear the I bit in CPSR)
+//Check if any keys were pressed. We temporarily disable
+//interrupts while we are reading the shared data value
+HpsErr_t wasDisabled = HPS_IRQ_globalEnable(false);
+unsigned int keyPressed = drivers.keyPressed; // Read bit map of pressed keys
+drivers.keyPressed = 0;                       // Clear list for next time.
+HPS_IRQ_globalEnable(wasDisabled != ERR_SKIPPED);
+//Now do something to handle the key presses
+if (keyPressed) {
+    //Now perform the operation as IRQs are re-enabled.
+    ...
 }

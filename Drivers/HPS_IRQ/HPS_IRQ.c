@@ -176,16 +176,19 @@ __irq void __irq_isr (void) {
     for (handler = 0; handler < __isr_handler_count; handler++) {
         if (int_ID == __isr_handlers[handler].interruptID) {
             //If we have found a handler for this ID
-            //Backup our CPSR to the SPSR as the handler will clobber CPSR and restore from SPSR afterwards
+            //Backup our CPSR to the SPSR as the handler will clobber CPSR
+            //and restore from SPSR afterwards
             __SET_PROC_SPSR(__GET_PROC_CPSR());
             //Call it and check status
-            __isr_handlers[handler].handler(int_ID, __isr_handlers[handler].param, &isr_handled);
+            __isr_handlers[handler].handler(
+                int_ID, __isr_handlers[handler].param, &isr_handled);
             break;
         }
     }
     //Check if we have an unhandled interrupt
     if (!isr_handled) {
-        //Backup our CPSR to the SPSR as the handler will clobber CPSR and restore from SPSR afterwards
+        //Backup our CPSR to the SPSR as the handler will clobber CPSR
+        //and restore from SPSR afterwards
         __SET_PROC_SPSR(__GET_PROC_CPSR());
         //Call the unhandled IRQ callback.
         __isr_unhandledIRQCallback(int_ID, NULL, NULL);

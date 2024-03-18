@@ -162,18 +162,22 @@ HpsErr_t HPS_IRQ_globalEnable(bool enable);
 
 //Register a new interrupt ID handler
 // - interruptID is the number between 0 and 255 of the interrupt being configured
-// - handlerFunction is a function pointer to the function that will be called when IRQ with ID occurs
-// - if a handler already exists for the specified ID, it will be replaced by the new one.
+// - handlerFunction is a function pointer to the function that will be called when IRQ with 
+// - ID occurs if a handler already exists for the specified ID, it will be replaced by the
+// - new one.
 // - the interrupt ID will be enabled in the GIC
 // - returns ERR_SUCCESS on success.
 // - returns ERR_ALLOCFAIL if failed to reallocated handler array.
-HpsErr_t HPS_IRQ_registerHandler(HPSIRQSource interruptID, IsrHandlerFunc_t handlerFunction, void* handlerParam);
+HpsErr_t HPS_IRQ_registerHandler(
+    HPSIRQSource interruptID, IsrHandlerFunc_t handlerFunction, void* handlerParam);
 //Register multiple interrupt ID handlers
 // - same as above but allows registering multiple IDs and functions in a single call
 // - interruptIDs, handlerFunctions, and optionally handlerParams should be arrays of length 'count'
 //   with one entry per interrupt.
 // - handlerParams may be NULL if no handlers require parameters.
-HpsErr_t HPS_IRQ_registerHandlers(HPSIRQSource* interruptIDs, IsrHandlerFunc_t* handlerFunctions, void** handlerParams, unsigned int count);
+HpsErr_t HPS_IRQ_registerHandlers(
+    HPSIRQSource* interruptIDs, IsrHandlerFunc_t* handlerFunctions, void** handlerParams,
+    unsigned int count);
 
 //Unregister interrupt ID handler
 // - interruptID is the number between 0 and 255 of the interrupt being configured

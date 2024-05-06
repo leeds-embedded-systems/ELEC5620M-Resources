@@ -25,6 +25,7 @@
 
 #include "Util/driver_ctx.h"
 #include "Util/ct_assert.h"
+#include "Util/macros.h"
 
 enum {
     UART_BAUD_MIN     = 1      ,
@@ -45,13 +46,13 @@ enum {
     UART_BAUD_MAX     = -1
 };
 
-typedef enum __attribute__ ((packed)) {
+typedef enum PACKED {
     UART_NOPARITY   = 0,
     UART_EVENPARITY = 1,
     UART_ODDPARITY  = 3
 } UartParity;
 
-typedef enum __attribute__ ((packed)) {
+typedef enum PACKED {
     UART_FULL_DUPLEX = 0,
     UART_HALF_DUPLEX = 1
 } UartDuplexMode;

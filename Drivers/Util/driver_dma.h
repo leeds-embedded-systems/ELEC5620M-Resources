@@ -28,11 +28,12 @@
 
 //Transfer description
 typedef struct {
-    uint64_t readAddr;
-    uint64_t writeAddr;
-    uint64_t length;
-    bool     isLast;
-    void*    params;  // Optional driver specific parameters
+    uint64_t     readAddr;
+    uint64_t     writeAddr;
+    uint64_t     length;
+    bool         isLast;
+    unsigned int index;   // Optional index of chunk if chaining multiple chunks.
+    void*        params;  // Optional driver specific parameters
 } DmaChunk_t, *PDmaChunk_t;
 
 //Abort types
@@ -43,6 +44,7 @@ typedef enum {
 } DmaAbortType;
 
 // IO Function Templates
+typedef HpsErr_t (*DmaXferParamFunc_t)(void* ctx, PDmaChunk_t xfer);
 typedef HpsErr_t (*DmaXferFunc_t)     (void* ctx, PDmaChunk_t xfer, bool autoStart);
 typedef HpsErr_t (*DmaXferStartFunc_t)(void* ctx);
 typedef HpsErr_t (*DmaXferSpaceFunc_t)(void* ctx, unsigned int* space);
@@ -54,10 +56,11 @@ typedef struct {
     // Driver Context
     void* ctx;
     // Perform a transfer
-    DmaXferSpaceFunc_t transferSpace;
-    DmaXferFunc_t      setupTransfer;
-    DmaXferStartFunc_t startTransfer;
-    DmaAbortFunc_t     abortTransfer;
+    DmaXferParamFunc_t  initXferParams;
+    DmaXferSpaceFunc_t  transferSpace;
+    DmaXferFunc_t       setupTransfer;
+    DmaXferStartFunc_t  startTransfer;
+    DmaAbortFunc_t      abortTransfer;
     // Status Functions
     DmaStatusFunc_t transferBusy;
     DmaStatusFunc_t transferDone;
@@ -77,6 +80,18 @@ static inline HpsErr_t DMA_transferSpace(PDmaCtx_t dma, unsigned int* space) {
     if (!dma) return ERR_NULLPTR;
     if (!dma->transferSpace) return ERR_NOSUPPORT;
     return dma->transferSpace(dma->ctx, space);
+}
+
+// Initialise the optional ->params argument in a DmaChunk structure
+// - This is optional and implementation defined. If no function is
+//   provided by driver, then this is a No-Op.
+static inline HpsErr_t DMA_initOptionalTransferParams(PDmaCtx_t dma, PDmaChunk_t xfer) {
+    if (!dma) return ERR_NULLPTR;
+    if (!dma->initXferParams) {
+        xfer->params = NULL;
+        return ERR_SUCCESS;
+    }
+    return dma->initXferParams(dma->ctx, xfer);
 }
 
 // Configure a DMA transfer from the DmaChunk structure

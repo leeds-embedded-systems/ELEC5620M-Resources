@@ -42,8 +42,7 @@ typedef struct {
 } HPSI2CCtx_t, *PHPSI2CCtx_t;
 
 //Initialise HPS I2C Controller
-// - base is the base address of the I2C controller
-// - speed is either standard or fastmode
+// - For base, DE1-SoC uses 0xFFC04000 for Accelerometer/VGA/Audio/ADC. 0xFFC05000 for LTC 14pin Hdr.
 // - Returns 0 if successful.
 HpsErr_t HPS_I2C_initialise(void* base, I2CSpeed speed, PHPSI2CCtx_t* pCtx);
 
@@ -62,10 +61,10 @@ HpsErr_t HPS_I2C_abort(PHPSI2CCtx_t ctx, bool isRead);
 //   - To check if complete, perform an array write with length 0.
 //   - Returns ERR_AGAIN if not yet finished.
 //   - Returns number of bytes written if successful.
-HpsErrExt_t HPS_I2C_write8b (PHPSI2CCtx_t ctx, unsigned short address, unsigned char data);
-HpsErrExt_t HPS_I2C_write16b(PHPSI2CCtx_t ctx, unsigned short address, unsigned short data);
-HpsErrExt_t HPS_I2C_write32b(PHPSI2CCtx_t ctx, unsigned short address, unsigned int data);
-HpsErrExt_t HPS_I2C_write   (PHPSI2CCtx_t ctx, unsigned short address, unsigned char data[], unsigned int length);
+HpsErr_t HPS_I2C_write8b (PHPSI2CCtx_t ctx, unsigned short address, unsigned char data);
+HpsErr_t HPS_I2C_write16b(PHPSI2CCtx_t ctx, unsigned short address, unsigned short data);
+HpsErr_t HPS_I2C_write32b(PHPSI2CCtx_t ctx, unsigned short address, unsigned int data);
+HpsErr_t HPS_I2C_write   (PHPSI2CCtx_t ctx, unsigned short address, unsigned char data[], unsigned int length);
 
 //Function to read data
 // - 7bit address is I2C slave device address

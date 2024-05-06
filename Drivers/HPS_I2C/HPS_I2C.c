@@ -83,7 +83,7 @@ enum {
  */
 
 //Check if write complete
-static HpsErrExt_t _HPS_I2C_writeCheckResult(PHPSI2CCtx_t ctx) {
+static HpsErr_t _HPS_I2C_writeCheckResult(PHPSI2CCtx_t ctx) {
     //Check if there is a write queued
     if (!ctx->writeQueued) {
         return ERR_NOTFOUND; //Nothing running
@@ -103,7 +103,7 @@ static HpsErrExt_t _HPS_I2C_writeCheckResult(PHPSI2CCtx_t ctx) {
     return ctx->writeLength;
 }
 
-static HpsErrExt_t _HPS_I2C_readCheckResult(PHPSI2CCtx_t ctx, unsigned char data[]) {
+static HpsErr_t _HPS_I2C_readCheckResult(PHPSI2CCtx_t ctx, unsigned char data[]) {
     //Check if there is a read queued
     if (!ctx->readQueued) {
         return ERR_NOTFOUND; //Nothing running
@@ -119,7 +119,7 @@ static HpsErrExt_t _HPS_I2C_readCheckResult(PHPSI2CCtx_t ctx, unsigned char data
         return ERR_AGAIN;
     }
     //Read from the RX FIFO
-    HpsErrExt_t fifoFill = ctx->base[HPS_I2C_RXFILL];
+    HpsErr_t fifoFill = ctx->base[HPS_I2C_RXFILL];
     unsigned int readLen = ctx->readLength;
     for (unsigned int rxIdx = 0; rxIdx < fifoFill; rxIdx++) {
         //Read the word
@@ -148,8 +148,7 @@ static void _HPS_I2C_cleanup(PHPSI2CCtx_t ctx) {
  */
 
 //Initialise HPS I2C Controller
-// - base is the base address of the I2C controller
-// - speed is either standard or fastmode
+// - For base, DE1-SoC uses 0xFFC04000 for Accelerometer/VGA/Audio/ADC. 0xFFC05000 for LTC 14pin Hdr.
 // - Returns 0 if successful.
 HpsErr_t HPS_I2C_initialise(void* base, I2CSpeed speed, PHPSI2CCtx_t* pCtx) {
     //Ensure user pointers valid
@@ -157,7 +156,7 @@ HpsErr_t HPS_I2C_initialise(void* base, I2CSpeed speed, PHPSI2CCtx_t* pCtx) {
     if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
     //Allocate the driver context, validating return value.
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_HPS_I2C_cleanup);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
     PHPSI2CCtx_t ctx = *pCtx;
     ctx->base = (unsigned int*)base;
@@ -180,7 +179,7 @@ HpsErr_t HPS_I2C_initialise(void* base, I2CSpeed speed, PHPSI2CCtx_t* pCtx) {
         ctx->base[HPS_I2C_SSLCNT] = 0x1D6; //I2C clock low parameter for 100kHz
     }
     //Enable the I2C peripheral
-    ctx->base[HPS_I2C_ENABLE] = _BV(HPS_I2C_ENABLE_I2CEN);
+    ctx->base[HPS_I2C_ENABLE] = _BV(HPS_I2C_ENABLE_I2CEN);    //I2C enabled
     //And initialised
     DriverContextSetInit(ctx);
     return ERR_SUCCESS;
@@ -197,7 +196,7 @@ bool HPS_I2C_isInitialised(PHPSI2CCtx_t ctx){
 HpsErr_t HPS_I2C_abort(PHPSI2CCtx_t ctx, bool isRead) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Check if anything to abort
     if (isRead && !ctx->readQueued) return ctx->writeQueued ? ERR_BUSY : ERR_NOTFOUND;
     else if (!isRead && !ctx->writeQueued) return ctx->readQueued ? ERR_BUSY : ERR_NOTFOUND;
@@ -236,7 +235,7 @@ HpsErr_t HPS_I2C_write32b(PHPSI2CCtx_t ctx, unsigned short address, unsigned int
 HpsErr_t HPS_I2C_write(PHPSI2CCtx_t ctx, unsigned short address, unsigned char data[], unsigned int length) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Length of 0 means check status
     if (!length) {
         return _HPS_I2C_writeCheckResult(ctx);
@@ -279,7 +278,7 @@ HpsErr_t HPS_I2C_write(PHPSI2CCtx_t ctx, unsigned short address, unsigned char d
 HpsErr_t HPS_I2C_read(PHPSI2CCtx_t ctx, unsigned short address, unsigned char writeData[], unsigned int writeLen, unsigned char readData[], unsigned int readLen) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Length of 0 means check status
     if (!writeLen) {
         return _HPS_I2C_readCheckResult(ctx, readData);

@@ -193,7 +193,7 @@ static HpsErr_t _LT24_redGreen( PLT24Ctx_t ctx, unsigned int xleft, unsigned int
     HPS_ResetWatchdog();
     //Define Window
     status = LT24_setWindow(ctx, xleft,ytop,width,height);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Create test pattern
     for (j = 0;j < height;j++){
         for (i = 0;i < width;i++){
@@ -213,7 +213,7 @@ static HpsErr_t _LT24_greenBlue( PLT24Ctx_t ctx, unsigned int xleft, unsigned in
     HPS_ResetWatchdog();
     //Define Window
     status = LT24_setWindow(ctx, xleft,ytop,width,height);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Create test pattern
     for (j = 0;j < height;j++){
         for (i = 0;i < width;i++){
@@ -233,7 +233,7 @@ static HpsErr_t _LT24_blueRed( PLT24Ctx_t ctx, unsigned int xleft, unsigned int 
     HPS_ResetWatchdog();
     //Define Window
     status = LT24_setWindow(ctx, xleft,ytop,width,height);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Create test pattern
     for (j = 0;j < height;j++){
         for (i = 0;i < width;i++){
@@ -253,7 +253,7 @@ static HpsErr_t _LT24_colourBars( PLT24Ctx_t ctx, unsigned int xleft, unsigned i
     HPS_ResetWatchdog();
     //Define Window
     status = LT24_setWindow(ctx, xleft,ytop,width,height);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Generate Colour Bars
     for (j = 0;j < height/2;j++){
         for (i = 0;i < width;i++){
@@ -305,7 +305,7 @@ HpsErr_t LT24_initialise( void* cntrlBase, void* dataBase, PLT24Ctx_t* pCtx ) {
     if (!pointerIsAligned(dataBase, sizeof(unsigned int))) return ERR_ALIGNMENT;
     //Allocate the driver context, validating return value.
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_LT24_cleanup);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
     PLT24Ctx_t ctx = *pCtx;
     ctx->cntrl = (unsigned int*)cntrlBase;
@@ -354,7 +354,7 @@ bool LT24_isInitialised(PLT24Ctx_t ctx) {
 HpsErr_t LT24_write( PLT24Ctx_t ctx, bool isData, unsigned short value ) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Then perform write
     _LT24_write(ctx, isData, value);
     return ERR_SUCCESS;
@@ -365,7 +365,7 @@ HpsErr_t LT24_write( PLT24Ctx_t ctx, bool isData, unsigned short value ) {
 HpsErr_t LT24_powerConfig( PLT24Ctx_t ctx, bool isOn ) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Then configure
     _LT24_powerConfig(ctx, isOn);
     return ERR_SUCCESS;
@@ -377,7 +377,7 @@ HpsErr_t LT24_clearDisplay( PLT24Ctx_t ctx, unsigned short colour) {
     HPS_ResetWatchdog();
     //Define window as entire display (LT24_setWindow will check if we are initialised).
     HpsErr_t status = LT24_setWindow(ctx, 0, 0, LT24_WIDTH, LT24_HEIGHT);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Loop through each pixel in the window writing the required colour
     for(unsigned int idx=0; idx<(LT24_WIDTH*LT24_HEIGHT); idx++) {
         _LT24_write(ctx, true, colour);
@@ -402,7 +402,7 @@ unsigned short LT24_makeColour( unsigned int R, unsigned int G, unsigned int B )
 HpsErr_t LT24_setWindow( PLT24Ctx_t ctx, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Calculate bottom right corner location
     unsigned int xright = xleft + width - 1;
     unsigned int ybottom = ytop + height - 1;
@@ -435,11 +435,11 @@ HpsErr_t LT24_testPattern( PLT24Ctx_t ctx ) {
     //Generate different test pattern for each corner of the display (test pattern funtion will validate ctx)
     HpsErr_t status;
     status = _LT24_redGreen  ( ctx,            0,            0,LT24_WIDTH/2,LT24_HEIGHT/2 );
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     status = _LT24_greenBlue ( ctx,            0,LT24_HEIGHT/2,LT24_WIDTH/2,LT24_HEIGHT/2 );
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     status = _LT24_blueRed   ( ctx, LT24_WIDTH/2,            0,LT24_WIDTH/2,LT24_HEIGHT/2 );
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     status = _LT24_colourBars( ctx, LT24_WIDTH/2,LT24_HEIGHT/2,LT24_WIDTH/2,LT24_HEIGHT/2 );
     return status;
 }
@@ -449,7 +449,7 @@ HpsErr_t LT24_testPattern( PLT24Ctx_t ctx ) {
 HpsErr_t LT24_copyFrameBuffer( PLT24Ctx_t ctx, const unsigned short* framebuffer, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height ) {
     //Define Window (setWindow validates context for us)
     HpsErr_t status = LT24_setWindow(ctx, xleft, ytop, width, height);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //And copy the required number of pixels
     unsigned int cnt = (height * width);
     while (cnt--) {
@@ -463,7 +463,7 @@ HpsErr_t LT24_copyFrameBuffer( PLT24Ctx_t ctx, const unsigned short* framebuffer
 HpsErr_t LT24_drawPixel( PLT24Ctx_t ctx, unsigned short colour, unsigned int x, unsigned int y ) {
     //Define single pixel window (setWindow validates context for us)
     HpsErr_t status = LT24_setWindow(ctx, x, y, 1, 1);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Write one pixel of colour data
     _LT24_write(ctx, true, colour);
     return ERR_SUCCESS; 

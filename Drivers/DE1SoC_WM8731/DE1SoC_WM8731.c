@@ -72,7 +72,7 @@ HpsErr_t WM8731_initialise( void* base, PHPSI2CCtx_t i2c, PWM8731Ctx_t* pCtx ) {
     if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
     //Allocate the driver context, validating return value.
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_WM8731_cleanup);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
     PWM8731Ctx_t ctx = *pCtx;
     ctx->base = (unsigned int*)base;
@@ -84,38 +84,38 @@ HpsErr_t WM8731_initialise( void* base, PHPSI2CCtx_t i2c, PWM8731Ctx_t* pCtx ) {
     //I2C write is non-blocking & returns before complete.
     //Retry until complete by writing zero length data until successful.
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_POWERCNTRL   <<9) | 0x12); //Power-up chip. Leave mic off as not used.
-    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); } //Retry until write successful.
-    if (IS_ERROR_EXT(status)) return status; //Return if status is indicates an error.
+    while(ERR_IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); } //Retry until write successful.
+    if (ERR_IS_ERROR(status)) return status; //Return if status is indicates an error.
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_LEFTINCNTRL  <<9) | 0x17); //+4.5dB Volume. Unmute.
-    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
-    if (IS_ERROR_EXT(status)) return status;
+    while(ERR_IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (ERR_IS_ERROR(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_RIGHTINCNTRL <<9) | 0x17); //+4.5dB Volume. Unmute.
-    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
-    if (IS_ERROR_EXT(status)) return status;
+    while(ERR_IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (ERR_IS_ERROR(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_LEFTOUTCNTRL <<9) | 0x70); //-24dB Volume. Unmute.
-    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
-    if (IS_ERROR_EXT(status)) return status;
+    while(ERR_IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (ERR_IS_ERROR(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_RIGHTOUTCNTRL<<9) | 0x70); //-24dB Volume. Unmute.
-    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
-    if (IS_ERROR_EXT(status)) return status;
+    while(ERR_IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (ERR_IS_ERROR(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_ANLGPATHCNTRL<<9) | 0x12); //Use Line In. Disable Bypass. Use DAC
-    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
-    if (IS_ERROR_EXT(status)) return status;
+    while(ERR_IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (ERR_IS_ERROR(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_DGTLPATHCNTRL<<9) | 0x06); //Enable High-Pass filter. 48kHz sample rate.
-    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
-    if (IS_ERROR_EXT(status)) return status;
+    while(ERR_IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (ERR_IS_ERROR(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_DATAFMTCNTRL <<9) | 0x4E); //I2S Mode, 24bit, Master Mode (do not change this!)
-    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
-    if (IS_ERROR_EXT(status)) return status;
+    while(ERR_IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (ERR_IS_ERROR(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_SMPLINGCNTRL <<9) | 0x00); //Normal Mode, 48kHz sample rate
-    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
-    if (IS_ERROR_EXT(status)) return status;
+    while(ERR_IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (ERR_IS_ERROR(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_ACTIVECNTRL  <<9) | 0x01); //Enable Codec
-    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
-    if (IS_ERROR_EXT(status)) return status;
+    while(ERR_IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (ERR_IS_ERROR(status)) return status;
     status = HPS_I2C_write16b(ctx->i2c, 0x1A, (WM8731_I2C_POWERCNTRL   <<9) | 0x02); //Power-up output.
-    while(IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
-    if (IS_ERROR_EXT(status)) return status;
+    while(ERR_IS_RETRY(status)){ status = HPS_I2C_write(ctx->i2c,0x1A,NULL,0); }
+    if (ERR_IS_ERROR(status)) return status;
     //Initialised
     DriverContextSetInit(ctx);
     return WM8731_clearFIFO(ctx,true,true);
@@ -133,7 +133,7 @@ HpsErr_t WM8731_getSampleRate( PWM8731Ctx_t ctx, unsigned int* sampleRate ) {
 	if (!sampleRate) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Return the sample rate.
 	*sampleRate = ctx->sampleRate;
 	return ERR_SUCCESS;
@@ -144,7 +144,7 @@ HpsErr_t WM8731_getSampleRate( PWM8731Ctx_t ctx, unsigned int* sampleRate ) {
 HpsErr_t WM8731_clearFIFO( PWM8731Ctx_t ctx, bool adc, bool dac) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Assert reset flags by setting corresponding bits for clearing adc and/or dac FIFOs
     ctx->base[WM8731_CONTROL] |=  ((adc<<WM8731_FIFO_RESET_ADC) | (dac<<WM8731_FIFO_RESET_DAC));
     //Deassert again
@@ -157,7 +157,7 @@ HpsErr_t WM8731_getFIFOSpace( PWM8731Ctx_t ctx, unsigned int* fifoSpace ) {
 	if (!fifoSpace) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Get the FIFO fill register value
     unsigned int fill = ctx->base[WM8731_FIFOSPACE];
     //Space is the minimum space from either FIFO
@@ -170,7 +170,7 @@ HpsErr_t WM8731_getFIFOFill( PWM8731Ctx_t ctx, unsigned int* fifoFill ) {
 	if (!fifoFill) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Get the FIFO fill register value
     unsigned int fill = ctx->base[WM8731_FIFOSPACE];
     //Space is the minimum space from either FIFO
@@ -184,7 +184,7 @@ HpsErr_t WM8731_getFIFOFill( PWM8731Ctx_t ctx, unsigned int* fifoFill ) {
 HpsErr_t WM8731_writeSample( PWM8731Ctx_t ctx, unsigned int left, unsigned int right) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
 	//Write the sample
     ctx->base[WM8731_LEFTFIFO] = left;
     ctx->base[WM8731_RIGHTFIFO] = right;
@@ -198,7 +198,7 @@ HpsErr_t WM8731_readSample( PWM8731Ctx_t ctx, unsigned int* left, unsigned int* 
 	if (!left || !right) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
 	//Write the sample
     *left = ctx->base[WM8731_LEFTFIFO];
     *right = ctx->base[WM8731_RIGHTFIFO];

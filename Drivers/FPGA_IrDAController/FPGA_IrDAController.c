@@ -75,7 +75,7 @@
 // Check interrupt flags
 // - Returns whether each of the the selected interrupt flags is asserted
 // - If clear is true, will also clear the flags.
-static HpsErrExt_t _FPGA_IrDA_getInterruptFlags(PFPGAIrDACtx_t ctx, FPGAIrDAIrqSources mask, bool clear) {
+static HpsErr_t _FPGA_IrDA_getInterruptFlags(PFPGAIrDACtx_t ctx, FPGAIrDAIrqSources mask, bool clear) {
     // Read in the flags
     FPGAIrDAIrqSources flags = MaskExtract(FPGAIRDA_REG_IRQFLAGS(ctx->base), FPGAIRDA_FLAGS_IRQ_MASK, FPGAIRDA_FLAGS_IRQ_OFFS);
     // Check if tx is finished whenever flags are read
@@ -87,14 +87,14 @@ static HpsErrExt_t _FPGA_IrDA_getInterruptFlags(PFPGAIrDACtx_t ctx, FPGAIrDAIrqS
     // Clear if required
     if (clear) FPGAIRDA_REG_IRQFLAGS(ctx->base) = MaskCreate(flags, FPGAIRDA_FLAGS_IRQ_OFFS);
     // Return the flags
-    return (HpsErrExt_t)flags;
+    return (HpsErr_t)flags;
 }
 
 static unsigned int _FPGA_IrDA_writeSpace(PFPGAIrDACtx_t ctx) {
     return FPGAIRDA_REG_TXSPACE(ctx->base);
 }
 
-static HpsErrExt_t _FPGA_IrDA_write(PFPGAIrDACtx_t ctx, uint8_t* data, uint8_t length) {
+static HpsErr_t _FPGA_IrDA_write(PFPGAIrDACtx_t ctx, const uint8_t* data, uint8_t length) {
     int written = 0;
     if (!length) return 0;
     // Ensure the TX empty flag if clear so we can detect end of run
@@ -134,10 +134,10 @@ static void _FPGA_IrDA_readWord(PFPGAIrDACtx_t ctx, UartRxData_t* data) {
     data->rxData       = MaskExtract(rxReg, FPGAIRDA_FIFO_DATA_MASK, FPGAIRDA_FIFO_DATA_OFFS);
 }
 
-static HpsErrExt_t _FPGA_IrDA_read(PFPGAIrDACtx_t ctx, uint8_t* data, uint8_t length) {
+static HpsErr_t _FPGA_IrDA_read(PFPGAIrDACtx_t ctx, uint8_t* data, uint8_t length) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     // Try to read length worth of data
     int numRead = 0;
     bool parityErr = false;
@@ -174,36 +174,36 @@ static void _FPGA_IrDA_cleanup(PFPGAIrDACtx_t ctx) {
 }
 
 // APIs used for generic IrDA interface
-static HpsErrExt_t _FPGA_IrDA_txFifoSpace(PFPGAIrDACtx_t ctx) {
+static HpsErr_t _FPGA_IrDA_txFifoSpace(PFPGAIrDACtx_t ctx) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     // Return FIFO space
-    return (HpsErrExt_t)_FPGA_IrDA_writeSpace(ctx);
+    return (HpsErr_t)_FPGA_IrDA_writeSpace(ctx);
 }
 
-static HpsErrExt_t _FPGA_IrDA_rxFifoAvailable(PFPGAIrDACtx_t ctx) {
+static HpsErr_t _FPGA_IrDA_rxFifoAvailable(PFPGAIrDACtx_t ctx) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     // Return FIFO availability
-    return (HpsErrExt_t)_FPGA_IrDA_available(ctx);
+    return (HpsErr_t)_FPGA_IrDA_available(ctx);
 }
 
-static HpsErrExt_t _FPGA_IrDA_txIdle(PFPGAIrDACtx_t ctx, bool clearFlag) {
+static HpsErr_t _FPGA_IrDA_txIdle(PFPGAIrDACtx_t ctx, bool clearFlag) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     // Check the Tx empty IRQ (clearing flag if requested). This will also update txRunning flag
     _FPGA_IrDA_getInterruptFlags(ctx, FPGA_IrDA_IRQ_TXEMPTY, clearFlag);
     // Return whether TX is running
     return !ctx->txRunning;
 }
 
-static HpsErrExt_t _FPGA_IrDA_rxReady(PFPGAIrDACtx_t ctx, bool clearFlag) {
+static HpsErr_t _FPGA_IrDA_rxReady(PFPGAIrDACtx_t ctx, bool clearFlag) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     // Ready whenever there is data available
     return _FPGA_IrDA_available(ctx) > 0;
 }
@@ -223,15 +223,15 @@ HpsErr_t FPGA_IrDA_initialise(void* csr, PFPGAIrDACtx_t* pCtx) {
     if (!pointerIsAligned(csr, sizeof(unsigned int))) return ERR_ALIGNMENT;
     //Allocate the driver context, validating return value.
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_FPGA_IrDA_cleanup);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
     PFPGAIrDACtx_t ctx = *pCtx;
     ctx->base = (unsigned int*)csr;
     //Setup IrDA driver
     ctx->uart.ctx = ctx;
     ctx->uart.is9bit = false;
-    ctx->uart.transmit        = (UartTxRxFunc_t     )FPGA_IrDA_write;
-    ctx->uart.receive         = (UartTxRxFunc_t     )FPGA_IrDA_read;
+    ctx->uart.transmit        = (UartTxFunc_t       )FPGA_IrDA_write;
+    ctx->uart.receive         = (UartRxFunc_t       )FPGA_IrDA_read;
     ctx->uart.txIdle          = (UartStatusFunc_t   )_FPGA_IrDA_txIdle;
     ctx->uart.rxReady         = (UartStatusFunc_t   )_FPGA_IrDA_rxReady;
     ctx->uart.txFifoSpace     = (UartFifoSpaceFunc_t)_FPGA_IrDA_txFifoSpace;
@@ -259,7 +259,7 @@ bool FPGA_IrDA_isInitialised(PFPGAIrDACtx_t ctx) {
 HpsErr_t FPGA_IrDA_setInterruptEnable(PFPGAIrDACtx_t ctx, FPGAIrDAIrqSources enable, FPGAIrDAIrqSources mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     // Clear any flags for IRQs we are changing
     FPGAIRDA_REG_IRQFLAGS(ctx->base) = MaskInsert(mask, FPGAIRDA_FLAGS_IRQ_MASK, FPGAIRDA_FLAGS_IRQ_OFFS);
     // And modify the enable mask
@@ -271,10 +271,10 @@ HpsErr_t FPGA_IrDA_setInterruptEnable(PFPGAIrDACtx_t ctx, FPGAIrDAIrqSources ena
 // Check interrupt flags
 // - Returns whether each of the the selected interrupt flags is asserted
 // - If clear is true, will also clear the flags.
-HpsErrExt_t FPGA_IrDA_getInterruptFlags(PFPGAIrDACtx_t ctx, FPGAIrDAIrqSources mask, bool clear) {
+HpsErr_t FPGA_IrDA_getInterruptFlags(PFPGAIrDACtx_t ctx, FPGAIrDAIrqSources mask, bool clear) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     // Access the flags
     return _FPGA_IrDA_getInterruptFlags(ctx, mask, clear);
 }
@@ -285,7 +285,7 @@ HpsErrExt_t FPGA_IrDA_getInterruptFlags(PFPGAIrDACtx_t ctx, FPGAIrDAIrqSources m
 HpsErr_t FPGA_IrDA_clearDataFifos(PFPGAIrDACtx_t ctx, bool clearTx, bool clearRx) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     // Assert the FIFO reset flags
     FPGAIRDA_REG_CLEARFIFO(ctx->base) = MaskInsert(clearTx, FPGAIRDA_CLEARFIFO_TX_MASK, FPGAIRDA_CLEARFIFO_TX_OFFS) |
                                         MaskInsert(clearRx, FPGAIRDA_CLEARFIFO_RX_MASK, FPGAIRDA_CLEARFIFO_RX_OFFS);
@@ -300,7 +300,7 @@ HpsErr_t FPGA_IrDA_clearDataFifos(PFPGAIrDACtx_t ctx, bool clearTx, bool clearRx
 HpsErr_t FPGA_IrDA_writeSpace(PFPGAIrDACtx_t ctx, unsigned int* space) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     // Check the space
     unsigned int _space = _FPGA_IrDA_writeSpace(ctx);
     if (space) *space = _space;
@@ -315,10 +315,10 @@ HpsErr_t FPGA_IrDA_writeSpace(PFPGAIrDACtx_t ctx, unsigned int* space) {
 //  - If the length of the data is not 0<=length<=16, the function will return -1 and write is not performed
 //  - If there is not enough space in the FIFO, as many bytes as possible are sent.
 //  - The return value indicates number sent.
-HpsErrExt_t FPGA_IrDA_write(PFPGAIrDACtx_t ctx, uint8_t data[], uint8_t length) {
+HpsErr_t FPGA_IrDA_write(PFPGAIrDACtx_t ctx, const uint8_t data[], uint8_t length) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     // And read
     return _FPGA_IrDA_write(ctx, data, length);
 }
@@ -329,7 +329,7 @@ HpsErrExt_t FPGA_IrDA_write(PFPGAIrDACtx_t ctx, uint8_t data[], uint8_t length) 
 HpsErr_t FPGA_IrDA_available(PFPGAIrDACtx_t ctx, unsigned int* available) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     // Read the FIFO available level
     unsigned int _available = _FPGA_IrDA_available(ctx);
     if (available) *available = _available;
@@ -343,7 +343,7 @@ UartRxData_t FPGA_IrDA_readWord(PFPGAIrDACtx_t ctx) {
     UartRxData_t data = {0};
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_SUCCESS(status)) {
+    if (ERR_IS_SUCCESS(status)) {
         // And read
         _FPGA_IrDA_readWord(ctx, &data);
     }
@@ -357,10 +357,10 @@ UartRxData_t FPGA_IrDA_readWord(PFPGAIrDACtx_t ctx) {
 //  - The data[] parameter must be an array of at least 'length' words.
 //  - If successful, will return number of bytes read
 //  - If the return value is negative, an error occurred in one of the words
-HpsErrExt_t FPGA_IrDA_read(PFPGAIrDACtx_t ctx, uint8_t data[], uint8_t length) {
+HpsErr_t FPGA_IrDA_read(PFPGAIrDACtx_t ctx, uint8_t data[], uint8_t length) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     // And read
     return _FPGA_IrDA_read(ctx, data, length);
 }

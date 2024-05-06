@@ -44,7 +44,7 @@ HpsErr_t CRC_calculate(PCRCCtx_t crcCtx, bool init, const uint8_t * data, unsign
             //ERR_NOSUPPORT from init is acceptable, it just means that the init value is fixed.
             if (crcCtx->split.initialise) {
                 status = crcCtx->split.initialise(crcCtx->ctx, *crc);
-                if ((status != ERR_NOSUPPORT) && IS_ERROR(status)) return status;
+                if ((status != ERR_NOSUPPORT) && ERR_IS_ERROR(status)) return status;
             }
         }
         // Ensure we have required function handles for calculation
@@ -52,14 +52,14 @@ HpsErr_t CRC_calculate(PCRCCtx_t crcCtx, bool init, const uint8_t * data, unsign
         if (!crcCtx->split.getResult) return ERR_NOSUPPORT;
         // And execute
         status = crcCtx->split.calculate(crcCtx->ctx, data, length, init);
-        if (IS_ERROR(status)) return status;
+        if (ERR_IS_ERROR(status)) return status;
         return crcCtx->split.getResult(crcCtx->ctx, crc);
     }
 }
 
 // Get the width of the CRC result in bits
 //  - Maximum width is 32 for the generic CRC driver.
-HpsErrExt_t CRC_getWidth(PCRCCtx_t crcCtx) {
+HpsErr_t CRC_getWidth(PCRCCtx_t crcCtx) {
     if (!crcCtx->getWidth) return ERR_NOSUPPORT;
     return crcCtx->getWidth(crcCtx->ctx);
 }
@@ -79,8 +79,8 @@ HpsErr_t crc16_setCtx(PCRCCtx_t crcCtx) {
     _crc16Proc = NULL;
     if (!crcCtx) return ERR_SUCCESS;
     // Must be 16bit CRC
-    HpsErrExt_t width = CRC_getWidth(crcCtx);
-    if (width != 16) return IS_ERROR_EXT(width) ? (HpsErr_t)width : ERR_MISMATCH;
+    HpsErr_t width = CRC_getWidth(crcCtx);
+    if (width != 16) return ERR_IS_ERROR(width) ? (HpsErr_t)width : ERR_MISMATCH;
     // Save context and return status
     _crc16Proc = crcCtx;
     return ERR_SUCCESS;
@@ -91,7 +91,7 @@ HpsErr_t crc16_setCtx(PCRCCtx_t crcCtx) {
 uint16_t crc16_compute(const uint32_t * data, uint32_t length) {
     uint32_t crc = 0;
     HpsErr_t status = CRC_calculate(_crc16Proc, true, (const uint8_t*)data, length, &crc);
-    return (uint16_t)(IS_ERROR(status) ? -1 : crc);
+    return (uint16_t)(ERR_IS_ERROR(status) ? -1 : crc);
 }
 
 /*
@@ -114,11 +114,11 @@ HpsErr_t crc32_setCtx(PCRCCtx_t crcCtx) {
     if (crcCtx->mode != CRC_FUNC_COMBINED) {
         if (!crcCtx->split.initialise) return ERR_NOSUPPORT;
         HpsErr_t status = crcCtx->split.initialise(crcCtx->ctx, 0);
-        if (IS_ERROR(status)) return status;
+        if (ERR_IS_ERROR(status)) return status;
     }
     // Must be 32bit CRC
-    HpsErrExt_t width = CRC_getWidth(crcCtx);
-    if (width != 32) return IS_ERROR_EXT(width) ? (HpsErr_t)width : ERR_MISMATCH;
+    HpsErr_t width = CRC_getWidth(crcCtx);
+    if (width != 32) return ERR_IS_ERROR(width) ? (HpsErr_t)width : ERR_MISMATCH;
     // Save context and return status
     _crc32Proc = crcCtx;
     return ERR_SUCCESS;
@@ -127,7 +127,7 @@ HpsErr_t crc32_setCtx(PCRCCtx_t crcCtx) {
 // Base CRC32 function
 uint32_t crc32_base(uint32_t crc, const uint8_t *p, uint32_t len) {
     HpsErr_t status = CRC_calculate(_crc32Proc, true, p, len, &crc);
-    return IS_ERROR(status) ? (uint32_t)-1 : crc;
+    return ERR_IS_ERROR(status) ? (uint32_t)-1 : crc;
 }
 
 // CRC32 calculation for small buffers

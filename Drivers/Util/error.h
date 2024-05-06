@@ -66,28 +66,45 @@
 
 #include "enum_lookup.h"
 
-// Default error check scheme:
+// Signed error type
+//  - Success if ERR_SUCCESS or positive
+//  - Error if negative
+//  - Error may encode value as sign-magnitude (see ERR_IS_SIGNMAGERR)
 typedef signed int HpsErr_t;
-// Success only if ERR_SUCCESS, error otherwise
-#define IS_SUCCESS(code)   ((code) == ERR_SUCCESS)
-#define IS_ERROR(code)     !IS_SUCCESS(code)
-#define IS_BUSY(code)      ((code) == ERR_BUSY)
-#define IS_RETRY(code)     ((code) == ERR_AGAIN)
-#define IS_SKIPPED(code)   ((code) == ERR_SKIPPED)
-#define IS_TIMEOUT(code)   ((code) == ERR_TIMEOUT)
-#define IS_NOSUPPORT(code) ((code) == ERR_NOSUPPORT)
 
-// Extended error check scheme:
-typedef signed int HpsErrExt_t;
-// Success if >= ERR_SUCCESS, error otherwise
-#define IS_SUCCESS_EXT(code) ((code) >= ERR_SUCCESS)
-#define IS_ERROR_EXT(code) !IS_SUCCESS_EXT(code)
-#define IS_TRUE_EXT(code) ((code) > ERR_SUCCESS) // Check if HpsErrExt_t is boolean true
+// Macros for checking for success/error, and common errors.
+#define ERR_IS_SUCCESS(code)   ((HpsErr_t)(code) >= ERR_SUCCESS)
+#define ERR_IS_TRUE(code)      ((HpsErr_t)(code) >  ERR_SUCCESS)   // Check if HpsErr_t is boolean true
+#define ERR_IS_ERROR(code)     ((HpsErr_t)(code) <  ERR_SUCCESS)
+#define ERR_IS_BUSY(code)      ((HpsErr_t)(code) == ERR_BUSY)
+#define ERR_IS_RETRY(code)     ((HpsErr_t)(code) == ERR_AGAIN)
+#define ERR_IS_NOTREADY(code)  ((HpsErr_t)(code) == ERR_NOTREADY)
+#define ERR_IS_NOTFOUND(code)  ((HpsErr_t)(code) == ERR_NOTFOUND)
+#define ERR_IS_SKIPPED(code)   ((HpsErr_t)(code) == ERR_SKIPPED)
+#define ERR_IS_ABORTED(code)   ((HpsErr_t)(code) == ERR_ABORTED)
+#define ERR_IS_TIMEOUT(code)   ((HpsErr_t)(code) == ERR_TIMEOUT)
+#define ERR_IS_NOSUPPORT(code) ((HpsErr_t)(code) == ERR_NOSUPPORT)
+
+// Return a successful unsigned value via HpsErr_t
+//  - The value must be <= INT32_MAX to avoid being interpreted as a negative value.
+//  - Mask using the following macro if this cannot be guaranteed.
+#define UNS_TO_SUCCESS(val)   (HpsErr_t)((val) & INT32_MAX)
+
+// Signed-magnitude HpsErr_t value van be used to return positive value as negative error code
+//  - The maximum value allowed is 0x3FFFFFFF (2^30 - 1)
+#define ERR_SIGNMAG_MASK (0x3FFFFFFFU)
+// Check if error code is sign-magnitude value.
+#define ERR_IS_SIGNMAGERR(code)             ((((unsigned int)(code)) & ~ERR_SIGNMAG_MASK) == ~ERR_SIGNMAG_MASK)
+// Encode a positive value as a sign-magnitude error code.
+#define TO_SIGNMAG_ERR(val)   (HpsErr_t)((((unsigned int)( val)) &  ERR_SIGNMAG_MASK) |   INT32_MIN       )
+// Extract value from sign-magnitude error code.
+#define FROM_SIGNMAG_ERR(code)          (( (unsigned int)(code)                     ) &   ERR_SIGNMAG_MASK)
 
 // Error Codes
 // This uses a special macro to generate the enum values to enable providing
 // a string lookup of error codes for debug or display purposes.
 // Ensure all lines end with a backslash (\)
+// The maximum error code allowed is -0x3FFFFFFF to allow differentiating between error and sign-mag value.
 #define ERROR_CODES_LIST(m, type)                                                                      \
     /* Default success status. */                                                                      \
     m(,ERR_SUCCESS   ,,=  0)                                                                           \

@@ -54,8 +54,9 @@ typedef enum {
 typedef HpsErr_t    (*SpiWriteFunc_t)    (void* ctx, uint32_t laneMask, uint32_t* data, SpiTransferType type);
 typedef HpsErr_t    (*SpiReadFunc_t)     (void* ctx, uint32_t laneMask, uint32_t* data);
 typedef HpsErr_t    (*SpiSlaveSelFunc_t) (void* ctx, bool autoSlaveSel, uint32_t slaveMask);
-typedef HpsErrExt_t (*SpiStatusFunc_t)   (void* ctx, uint32_t laneMask);
+typedef HpsErr_t (*SpiStatusFunc_t)   (void* ctx, uint32_t laneMask);
 typedef HpsErr_t    (*SpiDirectionFunc_t)(void* ctx, SpiMISODirection dir);
+typedef HpsErr_t    (*SpiClockModeFunc_t)(void* ctx, SpiSCLKPolarity polarity, SpiSCLKPhase phase);
 typedef HpsErr_t    (*SpiDataWidthFunc_t)(void* ctx, unsigned int dataWidth);
 typedef HpsErr_t    (*SpiAbortFunc_t)    (void* ctx);
 
@@ -76,6 +77,7 @@ typedef struct {
     // Config Functions
     SpiDirectionFunc_t setDirection;
     SpiDataWidthFunc_t setDataWidth;
+    SpiClockModeFunc_t setClockMode;
 } SpiCtx_t, *PSpiCtx_t;
 
 // Check if driver initialised
@@ -92,6 +94,15 @@ static inline HpsErr_t SPI_setDirection(PSpiCtx_t spi, SpiMISODirection dir) {
     if (!spi) return ERR_NULLPTR;
     if (!spi->setDirection) return (dir == SPI_MISO_OUT) ? ERR_NOSUPPORT : ERR_SUCCESS;
     return spi->setDirection(spi->ctx, dir);
+}
+
+// Set the SPI clock parameters
+// - If supported, allows changing of the polarity and phase of the SPI
+// - Negative indicates error
+static inline HpsErr_t SPI_setClockMode(PSpiCtx_t spi, SpiSCLKPolarity polarity, SpiSCLKPhase phase) {
+    if (!spi) return ERR_NULLPTR;
+    if (!spi->setClockMode) return ERR_NOSUPPORT;
+    return spi->setClockMode(spi->ctx, polarity, phase);
 }
 
 // Set the SPI data width
@@ -119,7 +130,7 @@ static inline HpsErr_t SPI_slaveSelect(PSpiCtx_t spi, bool autoSlaveSel, uint32_
 // - Otherwise return ERR_SUCCESS or optionally available transmit space
 // - Lane mask indicates which lanes to check. Max 31 lanes - MSB is ignored.
 // - Negative indicates error
-static inline HpsErrExt_t SPI_writeReady(PSpiCtx_t spi, uint32_t laneMask) {
+static inline HpsErr_t SPI_writeReady(PSpiCtx_t spi, uint32_t laneMask) {
     if (!spi) return ERR_NULLPTR;
     if (!spi->writeReady) return ERR_NOSUPPORT;
     laneMask &= INT32_MAX;
@@ -144,7 +155,7 @@ static inline HpsErr_t SPI_write(PSpiCtx_t spi, uint32_t laneMask, uint32_t* dat
 }
 
 // Abort any running transfer immediately
-static inline HpsErrExt_t SPI_abort(PSpiCtx_t spi) {
+static inline HpsErr_t SPI_abort(PSpiCtx_t spi) {
     if (!spi) return ERR_NULLPTR;
     if (!spi->abort) return ERR_NOSUPPORT;
     return spi->abort(spi->ctx);
@@ -155,7 +166,7 @@ static inline HpsErrExt_t SPI_abort(PSpiCtx_t spi) {
 // - Lane mask indicates which lanes to check. Max 31 lanes - MSB is ignored.
 // - If clearFlag is true, the status flag should be cleared
 // - Negative indicates error
-static inline HpsErrExt_t SPI_readReady(PSpiCtx_t spi, uint32_t laneMask) {
+static inline HpsErr_t SPI_readReady(PSpiCtx_t spi, uint32_t laneMask) {
     if (!spi) return ERR_NULLPTR;
     if (!spi->readReady) return ERR_NOSUPPORT;
     laneMask &= INT32_MAX;

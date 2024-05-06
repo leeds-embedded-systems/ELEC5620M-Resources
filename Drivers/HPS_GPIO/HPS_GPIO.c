@@ -81,7 +81,7 @@ HpsErr_t HPS_GPIO_initialise(void* base, unsigned int dir, unsigned int port, un
     if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
     //Allocate the driver context, validating return value.
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_HPS_GPIO_cleanup);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
     PHPSGPIOCtx_t ctx = *pCtx;
     ctx->base = (unsigned int*)base;
@@ -120,7 +120,7 @@ bool HPS_GPIO_isInitialised(PHPSGPIOCtx_t ctx) {
 HpsErr_t HPS_GPIO_setDirection(PHPSGPIOCtx_t ctx, unsigned int dir, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //R-M-W direction
     unsigned int curVal = ctx->base[GPIO_DIRECTION];
     ctx->base[GPIO_DIRECTION] = ((dir & mask) | (curVal & ~mask));
@@ -133,7 +133,7 @@ HpsErr_t HPS_GPIO_getDirection(PHPSGPIOCtx_t ctx, unsigned int* dir, unsigned in
     if (!dir) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Get direction
     *dir = ctx->base[GPIO_DIRECTION];
     return ERR_SUCCESS;
@@ -147,7 +147,7 @@ HpsErr_t HPS_GPIO_getDirection(PHPSGPIOCtx_t ctx, unsigned int* dir, unsigned in
 HpsErr_t HPS_GPIO_setOutput(PHPSGPIOCtx_t ctx, unsigned int port, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //R-M-W output
     port ^= ctx->polarity;
     unsigned int curVal = ctx->base[GPIO_OUTPUT];
@@ -163,7 +163,7 @@ HpsErr_t HPS_GPIO_setOutput(PHPSGPIOCtx_t ctx, unsigned int port, unsigned int m
 HpsErr_t HPS_GPIO_toggleOutput(PHPSGPIOCtx_t ctx, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Toggle outputs
     ctx->base[GPIO_OUTPUT] = (ctx->base[GPIO_OUTPUT] ^ mask);
     return ERR_SUCCESS;
@@ -175,7 +175,7 @@ HpsErr_t HPS_GPIO_getOutput(PHPSGPIOCtx_t ctx, unsigned int* port, unsigned int 
     if (!port) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Get output
     unsigned int _port = ctx->base[GPIO_OUTPUT];
     *port = _port ^ ctx->polarity;
@@ -188,7 +188,7 @@ HpsErr_t HPS_GPIO_getInput(PHPSGPIOCtx_t ctx,  unsigned int* in, unsigned int ma
     if (!in) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Get input
     unsigned int _in = ctx->base[GPIO_INPUT];
     *in = _in ^ ctx->polarity;
@@ -198,7 +198,7 @@ HpsErr_t HPS_GPIO_getInput(PHPSGPIOCtx_t ctx,  unsigned int* in, unsigned int ma
 HpsErr_t HPS_GPIO_setInterruptConfig(PHPSGPIOCtx_t ctx, GPIOIRQPolarity config, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Before changing anything we need to mask global interrupts temporarily
     HpsErr_t irqStatus = HPS_IRQ_globalEnable(false);
     //Disable individual interrupts while we make changes
@@ -210,20 +210,20 @@ HpsErr_t HPS_GPIO_setInterruptConfig(PHPSGPIOCtx_t ctx, GPIOIRQPolarity config, 
     //Configure which are enabled
     ctx->base[GPIO_INTR_EN] = _HPS_GPIO_setConfigFlag(enBits, mask, config & GPIO_IRQ_ENBL_FLAG);
     //Re-enable interrupts if they were enabled
-    HPS_IRQ_globalEnable(IS_SUCCESS(irqStatus));
+    HPS_IRQ_globalEnable(ERR_IS_SUCCESS(irqStatus));
     return ERR_SUCCESS;
 }
 
 //Get interrupt config
 // - Returns the current interrupt configuration for the specified pin
-HpsErrExt_t HPS_GPIO_getInterruptConfig(PHPSGPIOCtx_t ctx, unsigned int pin) {
+HpsErr_t HPS_GPIO_getInterruptConfig(PHPSGPIOCtx_t ctx, unsigned int pin) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Read the various config registers
     unsigned int mask = _BV(pin);
     if (ctx->base[GPIO_INTR_EN] & mask) {
-        HpsErrExt_t config = GPIO_IRQ_ENBL_FLAG;
+        HpsErr_t config = GPIO_IRQ_ENBL_FLAG;
         if (ctx->base[GPIO_INTR_LEVEL] & mask) config |= GPIO_IRQ_EDGE_FLAG;
         if (ctx->base[GPIO_INTR_POL  ] & mask) config |= GPIO_IRQ_POLR_FLAG;
         return config;
@@ -237,7 +237,7 @@ HpsErr_t HPS_GPIO_getInterruptFlags(PHPSGPIOCtx_t ctx,  unsigned int* flags) {
     if (!flags) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Read the flags
     *flags = ctx->base[GPIO_INTR_FLAGS];
     return ERR_SUCCESS;
@@ -248,7 +248,7 @@ HpsErr_t HPS_GPIO_getInterruptFlags(PHPSGPIOCtx_t ctx,  unsigned int* flags) {
 HpsErr_t HPS_GPIO_clearInterruptFlags(PHPSGPIOCtx_t ctx, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Clear the flags
     ctx->base[GPIO_INTR_CLEAR] = mask;
     return ERR_SUCCESS;
@@ -261,7 +261,7 @@ HpsErr_t HPS_GPIO_clearInterruptFlags(PHPSGPIOCtx_t ctx, unsigned int mask) {
 HpsErr_t HPS_GPIO_setDebounce(PHPSGPIOCtx_t ctx, unsigned int bounce, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //R-M-W debounce
     unsigned int curVal = ctx->base[GPIO_DEBOUNCE];
     ctx->base[GPIO_DEBOUNCE] = ((bounce & mask) | (curVal & ~mask));

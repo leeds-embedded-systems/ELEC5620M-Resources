@@ -54,7 +54,7 @@ bool Mandelbrot_isInitialised( PMandelbrotCtx_t ctx );
 
 //Get Precision
 // - returns MandelbrotPrecision value.
-HpsErrExt_t Mandelbrot_getCalculationPrecision( PMandelbrotCtx_t ctx );
+HpsErr_t Mandelbrot_getCalculationPrecision( PMandelbrotCtx_t ctx );
 
 //Set Precision
 // - Default to FLOAT
@@ -77,7 +77,7 @@ HpsErr_t Mandelbrot_setCoordinates( PMandelbrotCtx_t ctx, double radius, double 
 // - Returns how many iterations have been made on the current pattern.
 // - If >=0 is current iteration of this pattern
 // - If <0 is error code
-HpsErrExt_t Mandelbrot_currentIteration( PMandelbrotCtx_t ctx );
+HpsErr_t Mandelbrot_currentIteration( PMandelbrotCtx_t ctx );
 
 //Start new pattern
 // - Resets the Mandelbrot generator and starts a new pattern.

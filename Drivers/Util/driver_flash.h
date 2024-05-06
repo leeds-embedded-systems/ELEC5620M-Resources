@@ -117,6 +117,7 @@ static inline HpsErr_t FLASH_read(PFlashCtx_t flash, unsigned int address, unsig
 }
 
 // Erase a flash region
+//  - On verify error, may return address of failed erase as error (if ERR_IS_SIGNMAGERR use FROM_SIGNMAG_ERR to extract)
 static inline HpsErr_t FLASH_erase(PFlashCtx_t flash, unsigned int address, unsigned int length) {
     if (!flash) return ERR_NULLPTR;
     if (!flash->erase) return ERR_NOSUPPORT;
@@ -131,6 +132,7 @@ static inline HpsErr_t FLASH_write(PFlashCtx_t flash, unsigned int address, unsi
 }
 
 // Verify a flash region
+//  - On verify error, may return address of failed verification as error (if ERR_IS_SIGNMAGERR use FROM_SIGNMAG_ERR to extract)
 static inline HpsErr_t FLASH_verify(PFlashCtx_t flash, unsigned int address, unsigned int length, const uint8_t* src) {
     if (!flash) return ERR_NULLPTR;
     if (!flash->verify) return ERR_NOSUPPORT;

@@ -27,7 +27,7 @@
 #include "Util/error.h"
 
 // IO Function Templates.
-typedef HpsErrExt_t (*CRCGetWidth_t)(void* ctx);
+typedef HpsErr_t (*CRCGetWidth_t)(void* ctx);
 // There are two modes:
 //  - Mode 1 - Combined:
 //      - A single function initialises with (*crc), calculates, then returns the result into (*crc)
@@ -81,7 +81,7 @@ HpsErr_t CRC_calculate(PCRCCtx_t crcCtx, bool init, const uint8_t * data, unsign
 
 // Get the width of the CRC result in bits
 //  - Maximum width is 32 for the generic CRC driver.
-HpsErrExt_t CRC_getWidth(PCRCCtx_t crcCtx);
+HpsErr_t CRC_getWidth(PCRCCtx_t crcCtx);
 
 /*
  * crc16_compute() Compatibility for ICE Handle Comms

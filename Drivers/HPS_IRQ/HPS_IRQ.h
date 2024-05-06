@@ -198,7 +198,7 @@ bool HPS_IRQ_isInitialised(void);
 //
 //       HpsErr_t irqStatus = HPS_IRQ_globalEnable(false); // Temporarily disable
 //       ... Do as little as possible while IRQs are disabled ...
-//       HPS_IRQ_globalEnable(IS_SUCCESS(irqStatus));      // Re-enable only if it was previously enabled.
+//       HPS_IRQ_globalEnable(ERR_IS_SUCCESS(irqStatus));      // Re-enable only if it was previously enabled.
 //
 HpsErr_t HPS_IRQ_globalEnable(bool enable);
 

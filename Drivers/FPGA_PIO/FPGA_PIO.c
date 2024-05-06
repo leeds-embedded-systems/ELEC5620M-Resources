@@ -156,7 +156,7 @@ HpsErr_t FPGA_PIO_initialise(void* base, FPGAPIODirectionType pioType, bool spli
     if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
     //Allocate the driver context, validating return value.
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_FPGA_PIO_cleanup);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
     PFPGAPIOCtx_t ctx = *pCtx;
     ctx->base = (unsigned int*)base;
@@ -175,6 +175,11 @@ HpsErr_t FPGA_PIO_initialise(void* base, FPGAPIODirectionType pioType, bool spli
     if (pioType == FPGA_PIO_DIRECTION_BIDIR) {
         ctx->gpio.getDirection = (GpioReadFunc_t)&_FPGA_PIO_getDirection;
         ctx->gpio.setDirection = (GpioWriteFunc_t)&_FPGA_PIO_setDirection;
+        if (!hasBitset) {
+            // Note: for bidir, can get output only if direction is output, else result is input value.
+            // so we only enable this if we don't have the bitset feature (which is more reliable in this mode).
+            ctx->gpio.getOutput    = (GpioReadFunc_t)&_FPGA_PIO_getOutput;
+        }
         ctx->base[GPIO_DIRECTION] = dir;
     }
     if (pioType & FPGA_PIO_DIRECTION_OUT) {
@@ -213,7 +218,7 @@ bool FPGA_PIO_isInitialised(PFPGAPIOCtx_t ctx) {
 HpsErr_t FPGA_PIO_setDirection(PFPGAPIOCtx_t ctx, unsigned int dir, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     if (ctx->pioType != FPGA_PIO_DIRECTION_BIDIR) return ERR_NOSUPPORT;
     //R-M-W direction
     return _FPGA_PIO_setDirection(ctx, dir, mask);
@@ -225,7 +230,7 @@ HpsErr_t FPGA_PIO_getDirection(PFPGAPIOCtx_t ctx, unsigned int* dir, unsigned in
     if (!dir) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     if (ctx->pioType != FPGA_PIO_DIRECTION_BIDIR) return ERR_NOSUPPORT;
     //Get direction
     return _FPGA_PIO_getDirection(ctx, dir, mask);
@@ -239,7 +244,7 @@ HpsErr_t FPGA_PIO_getDirection(PFPGAPIOCtx_t ctx, unsigned int* dir, unsigned in
 HpsErr_t FPGA_PIO_setOutput(PFPGAPIOCtx_t ctx, unsigned int port, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     if (!(ctx->pioType & FPGA_PIO_DIRECTION_OUT)) return ERR_NOSUPPORT;
     //Configure output
     return _FPGA_PIO_setOutput(ctx, port, mask);
@@ -250,7 +255,7 @@ HpsErr_t FPGA_PIO_setOutput(PFPGAPIOCtx_t ctx, unsigned int port, unsigned int m
 HpsErr_t FPGA_PIO_bitsetOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     if (!ctx->hasBitset) return ERR_NOSUPPORT;
     if (!(ctx->pioType & FPGA_PIO_DIRECTION_OUT)) return ERR_NOSUPPORT;
     //Configure output
@@ -262,7 +267,7 @@ HpsErr_t FPGA_PIO_bitsetOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
 HpsErr_t FPGA_PIO_bitclearOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     if (!ctx->hasBitset) return ERR_NOSUPPORT;
     if (!(ctx->pioType & FPGA_PIO_DIRECTION_OUT)) return ERR_NOSUPPORT;
     //Configure output
@@ -277,7 +282,7 @@ HpsErr_t FPGA_PIO_bitclearOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
 HpsErr_t FPGA_PIO_toggleOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     if (!ctx->gpio.toggleOutput) return ERR_NOSUPPORT;
     //Toggle outputs
     return _FPGA_PIO_toggleOutput(ctx, mask);
@@ -289,7 +294,7 @@ HpsErr_t FPGA_PIO_getOutput(PFPGAPIOCtx_t ctx, unsigned int* port, unsigned int 
     if (!port) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     if (!ctx->gpio.getOutput) return ERR_NOSUPPORT;
     //Get output
     return _FPGA_PIO_getOutput(ctx, port, mask);
@@ -301,7 +306,7 @@ HpsErr_t FPGA_PIO_getInput(PFPGAPIOCtx_t ctx, unsigned int* in, unsigned int mas
     if (!in) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     if (!ctx->gpio.getInput) return ERR_NOSUPPORT;
     //Get input
     return _FPGA_PIO_getInput(ctx, in, mask);
@@ -312,7 +317,7 @@ HpsErr_t FPGA_PIO_getInput(PFPGAPIOCtx_t ctx, unsigned int* in, unsigned int mas
 HpsErr_t FPGA_PIO_setInterruptEnable(PFPGAPIOCtx_t ctx, unsigned int flags, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     if (!ctx->hasIrq) return ERR_NOSUPPORT;
     return _FPGA_PIO_setInterruptEnable(ctx, flags, mask);
 }
@@ -324,7 +329,7 @@ HpsErr_t FPGA_PIO_setInterruptEnable(PFPGAPIOCtx_t ctx, unsigned int flags, unsi
 HpsErr_t FPGA_PIO_getInterruptFlags(PFPGAPIOCtx_t ctx, unsigned int* flags, unsigned int mask, bool autoClear) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     //Read the flags
     return _FPGA_PIO_getInterruptFlags(ctx, flags, mask, autoClear);
 }
@@ -334,7 +339,7 @@ HpsErr_t FPGA_PIO_getInterruptFlags(PFPGAPIOCtx_t ctx, unsigned int* flags, unsi
 HpsErr_t FPGA_PIO_clearInterruptFlags(PFPGAPIOCtx_t ctx, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
     if (!ctx->hasEdge) return ERR_NOSUPPORT;
     return _FPGA_PIO_clearInterruptFlags(ctx, mask);
 }

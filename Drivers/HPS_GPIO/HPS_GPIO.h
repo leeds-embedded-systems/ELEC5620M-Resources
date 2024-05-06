@@ -107,7 +107,7 @@ HpsErr_t HPS_GPIO_setInterruptConfig(PHPSGPIOCtx_t ctx, GPIOIRQPolarity config, 
 
 //Get interrupt config
 // - Returns the current interrupt configuration for the specified pin
-HpsErrExt_t HPS_GPIO_getInterruptConfig(PHPSGPIOCtx_t ctx, unsigned int pin);
+HpsErr_t HPS_GPIO_getInterruptConfig(PHPSGPIOCtx_t ctx, unsigned int pin);
 
 //Get interrupt flags
 // - Returns flags indicating which pins have generated an interrupt

@@ -409,7 +409,7 @@ HpsErr_t HPS_IRQ_registerHandler(HPSIRQSource interruptID, IsrHandlerFunc_t hand
     if (handler == __isr_handler_count) {
         //Grow the table by one
         HpsErr_t status = _HPS_IRQ_growTable(1);
-        if (IS_ERROR(status)) return status;
+        if (ERR_IS_ERROR(status)) return status;
     }
 
     //Add our new handler
@@ -450,7 +450,7 @@ HpsErr_t HPS_IRQ_registerHandlers(HPSIRQSource* interruptIDs, IsrHandlerFunc_t* 
 
     //Ensure the handler table is big enough
     HpsErr_t status = _HPS_IRQ_growTable(growBy);
-    if (IS_ERROR(status)) return status;
+    if (ERR_IS_ERROR(status)) return status;
 
     //Add our new handlers
     for (unsigned int idx = 0; idx < count; idx++) {

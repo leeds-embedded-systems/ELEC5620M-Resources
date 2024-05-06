@@ -66,7 +66,7 @@
         if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
         //Allocate the driver context, validating return value.
         HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_MY_cleanup);
-        if (IS_ERROR(status)) return status;
+        if (ERR_IS_ERROR(status)) return status;
         //Save base address pointers
         PMyDriverCtx_t ctx = *pCtx;
         ctx->base = (unsigned int*)base;
@@ -75,7 +75,7 @@
 
         ... Maybe something went wrong? If so init failure
         status = MyFunc(ctx);    
-        if (IS_ERROR(status)) return DriverContextInitFail(pCtx, status);
+        if (ERR_IS_ERROR(status)) return DriverContextInitFail(pCtx, status);
 
         //Initialised
         DriverContextSetInit(ctx);
@@ -96,7 +96,7 @@
         if (!val) return ERR_NULLPTR;
         //Ensure context valid and initialised
         HpsErr_t status = DriverContextValidate(ctx);
-        if (IS_ERROR(status)) return status;
+        if (ERR_IS_ERROR(status)) return status;
         //Read the value
         *val = ctx->base[MY_DATA_REG];
         return ERR_SUCCESS;
@@ -131,14 +131,12 @@ typedef struct {
  */
 // Allocate context
 // - Remember to set initialised flag once driver specific context is initialised
-// - Returns HPS_ErrorCode
-// - Can be cast to HpsErrExt_t.
+// - Returns success or error code
 HpsErr_t DRV_allocateContext(unsigned int drvSize, PDrvCtx_t* pCtx, ContextCleanupFunc_t destroy);
 
 // Cleanup a context
 // - Will set *pCtx to null once freed.
-// - Returns HPS_ErrorCode
-// - Can be cast to HpsErrExt_t.
+// - Returns success or error code
 HpsErr_t DRV_freeContext(PDrvCtx_t* pCtx);
 
 // Cleanum context with status
@@ -153,8 +151,7 @@ static inline HpsErr_t DRV_freeContextWithStatus(PDrvCtx_t* pCtx, HpsErr_t retVa
 bool DRV_isInitialised(PDrvCtx_t ctx);
 
 // Checks that a driver context is valid
-// - Returns HPS_ErrorCode
-// - Can be cast to HpsErrExt_t.
+// - Returns success or error code
 HpsErr_t DRV_checkContext(PDrvCtx_t ctx);
 
 
@@ -163,12 +160,12 @@ HpsErr_t DRV_checkContext(PDrvCtx_t ctx);
  */
 
 // Allocate a context pointer
-// - Returns HpsErr_t or HpsErrExt_t
+// - Returns HpsErr_t
 #define DriverContextAllocate(pCtx) \
     DRV_allocateContext(sizeof(**(pCtx)),(PDrvCtx_t*)(pCtx),NULL)
 
 // Allocate a context pointer with cleanup function
-// - Returns HpsErr_t or HpsErrExt_t
+// - Returns HpsErr_t
 #define DriverContextAllocateWithCleanup(pCtx, cleanupFunc) \
     DRV_allocateContext(sizeof(**(pCtx)),(PDrvCtx_t*)(pCtx),(ContextCleanupFunc_t)(cleanupFunc))
 
@@ -176,7 +173,7 @@ HpsErr_t DRV_checkContext(PDrvCtx_t ctx);
 // - Call during initialisation function if there is an
 //   error after the context has been allocated.
 // - Call when finished with a driver context to clean it up.
-// - Returns HpsErr_t or HpsErrExt_t
+// - Returns HpsErr_t
 #define DriverContextFree(pCtx) \
     DRV_freeContext((PDrvCtx_t*)(pCtx))
 
@@ -199,7 +196,7 @@ HpsErr_t DRV_checkContext(PDrvCtx_t ctx);
     DRV_isInitialised((PDrvCtx_t)(ctx))
 
 // Ensure driver context is valid
-// - Returns HpsErr_t or HpsErrExt_t
+// - Returns HpsErr_t
 #define DriverContextValidate(ctx) \
     DRV_checkContext((PDrvCtx_t)(ctx))
 

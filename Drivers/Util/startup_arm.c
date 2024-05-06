@@ -1,6 +1,10 @@
 /*
- * startup.c
- *
+ * ARMv7 HPS Startup Routines
+ * --------------------------
+ * 
+ * Provides startup code including vector table, interrupt
+ * stack initialisation, and various other initial routines
+ * for the ARMv7 processors on Altera HPS FPGA Devices.
  *
  * IRQ Stacks
  * ----------
@@ -34,6 +38,7 @@
  *
  * Date       | Changes
  * -----------+------------------------------------
+ * 31/03/2024 | Split out semi-hosting handler
  * 31/01/2024 | Correct ISR attributes
  * 14/01/2023 | Split startup routines from IRQ
  *
@@ -43,6 +48,7 @@
 
 #include "Util/lowlevel.h"
 #include "Util/macros.h"
+#include "Util/semihosting.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -58,41 +64,6 @@
 #if !defined(IRQ_STACK_LIMIT) && !defined(IRQ_STACK_SCATTER)
 #define IRQ_STACK_SCATTER IRQ_STACKS
 #endif
-
-/*
- * Semi-hosting Connected Check
- */
-
-// We initially assume that semi-hosting is and connected. Before this is used
-// we will trigger an SVC call to the semi-hosting ID. If the debugger is connected
-// this SVC will be caught by it and not us. If it's not connected, our __svc_isr will
-// be called which clears this flag. We can then return the flag value to show if
-// connected or not.
-
-#define SVC_ID_SEMIHOST_ARM   0x123456
-#define SVC_ID_SEMIHOST_THUMB 0xAB
-
-#define SVC_OP_SYS_ERRNO      0x13
-#define SVC_OP_SYS_TIME       0x11
-
-#define SVC_NO_DEBUGGER  0
-#define SVC_HAS_DEBUGGER 1
-
-__attribute__((used)) static volatile uint32_t __semihostingEnabled = SVC_HAS_DEBUGGER;
-
-// Function to check if semi-hosting is connected to a debugger.
-bool checkIfSemihostingConnected(void) {
-    __asm volatile (
-        "MOV  R1, SP       ;"
-        "MOVS R0, %[svcOp] ;"
-        "SVC  %[svcId]     ;"
-        :
-        : [svcId] "i" (SVC_ID_SEMIHOST_ARM),
-          [svcOp] "i" (SVC_OP_SYS_TIME)
-        : "r0", "r1"
-    );
-    return __semihostingEnabled;
-}
 
 /*
  * Add the default handler for unused ISRs.
@@ -142,7 +113,14 @@ __abort void __dataAb_isr(void) __attribute__ ((weak, alias("__default_isr")));
 __irq   void __irq_isr   (void) __attribute__ ((weak, alias("__default_isr")));
 __fiq   void __fiq_isr   (void) __attribute__ ((weak, alias("__default_isr")));
 // User software interrupt handler. Can be overridden
-void __svc_handler (unsigned int id, unsigned int* val) __attribute__ ((weak));
+HpsErr_t   __svc_handler (unsigned int id, unsigned int argc, unsigned int* argv) __attribute__ ((weak));
+// User semi-host handler.
+//  - Id is either SVC_ID_SEMIHOST_ARM or SVC_ID_SEMIHOST_THUMB.
+//  - val[0] is Op ID, and also status return value.
+//  - val[1-3] are operation specific arguments.
+signed int __svc_semihost(unsigned int id, unsigned int* val) __attribute__ ((weak));
+// Semihosting enabled global flag. "See Util/semihosting.c"
+extern volatile unsigned int __semihostingEnabled;
 
 /*
  * Here we create a vector table using an inline assembly function. This
@@ -227,6 +205,7 @@ void __init_stacks (void) {
         cpacr |= CPACR_REQSET_MASK;
         cpacr &= ~CPACR_REQCLR_MASK;
         __SET_SYSREG(SYSREG_COPROC, CPACR, cpacr); // Store new access permissions into CPACR
+        __ISB();  // Synchronise any branch prediction so that effects are now visible
     }
     // Reset the debugger check flag
     __semihostingEnabled = SVC_HAS_DEBUGGER;
@@ -246,7 +225,6 @@ void __init_stacks (void) {
     // enable the floating point unit to prevent run-time errors
     // in the C standard library.
 #if defined(__ARM_PCS_VFP) || defined(__TARGET_FPU_VFP)
-    __ISB();  // Synchronise any branch prediction so that effects are now visible
     __SET_PROC_FPEXC(1 << __PROC_FPEXC_BIT_EN);  // Enable VFP and SIMD extensions
 #endif
     // Launch the C entry point
@@ -266,11 +244,20 @@ void __init_stacks (void) {
  * other SVC calls by default, we can handle by simply returning.
  */
 
+// Argument remapping for custom SVC handler
+//  - maps args to argc/argv used by handler routine.
+HpsErr_t  __svc_handlerMap(unsigned int id, unsigned int* args) {
+    return __svc_handler(id, args[0], args+1);
+}
+
 __swi void __svc_isr(void) {
     // Store the four registers r0-r3 to the stack. These contain any parameters
-    // to be passed to the SVC handler. Also store r12 as we need something we
-    // can clobber, as well as the link register which will be popped back to
-    // the page counter on return.
+    // to be passed to the SVC handler. Also store r12 as we use that to hold the
+    // return value temporarily during context cleanup. We push the link register
+    // which will be popped back to the page counter on return.
+    // SVC may have up to four inputs, passed in via r0-r3 (could be used as pointers
+    // if more is required). They may return a value via r0 which should be considered
+    // clobbered by the caller.
     __asm volatile (
         "STMFD   SP!, {r12, LR}                ;"
         "PUSH    {r0-r3}                       ;"
@@ -292,10 +279,16 @@ __swi void __svc_isr(void) {
         "BICEQ    r0, r0, #0xFF000000          ;"
         "MOVWEQ   r3, %[SvcIdAL]               ;"
         "MOVTEQ   r3, %[SvcIdAH]               ;"
-        // If this was not a semi-hosting ID, call user handler (r0 is first parameter [ID], r1 is second parameter [SP])
+        // Check if this was the semihosting ID
         "CMP      r0, r3                       ;"
-        "BLNE     __svc_handler                ;"
-        // If this is a semi-hosting ID, and we are in this handler, the debugger is not connected, so clear connected flag
+        // If this was not a semi-hosting ID, call user handler (r0 is first parameter [ID], r1 is second parameter [SP])
+        "BLNE     __svc_handlerMap             ;"
+        // If this is a semi-hosting ID, and we are in this handler, the debugger is not connected, so call fake semi-hosting 
+        // handler (r0 is first parameter [ID], r1 is second parameter [SP])
+        "BLEQ     __svc_semihost               ;"
+        // Backup return value to r12 as r0 will get clobbered during stack cleanup.
+        "MOV     r12, r0                       ;"
+        // Clear the debugger connected flag if this was a semi-hosting ID.
         "MOVEQ    r1, %[NoDbggr]               ;"
         "LDREQ    r0, =__semihostingEnabled    ;"
         "STREQ    r1, [r0]                     ;"
@@ -304,8 +297,8 @@ __swi void __svc_isr(void) {
         "MSR     SPSR_cxsf, r0                 ;"
         // Remove pushed registers from stack
         "POP     {r0-r3}                       ;"
-        // For semi-hosting call, return success status (even though we have done nothing)
-        "EOREQ    r0, r0                       ;"
+        // Restore the return status value to r0.
+        "MOV      r0, r12                      ;"
         // Remove pushed registers from stack, and return, restoring SPSR to CPSR
         "LDMFD   SP!, {r12, PC}^               ;"
         ::
@@ -317,8 +310,14 @@ __swi void __svc_isr(void) {
     );
 }
 
-void __svc_handler (unsigned int id, unsigned int* val) {
+// Default SVC semi-host handler returns success
+signed int __svc_semihost(unsigned int id, unsigned int* val) {
+    return SEMIHOST_SUCCESS;
+}
 
+// Default user SVC handler is No-Op
+HpsErr_t __svc_handler(unsigned int id, unsigned int argc, unsigned int* argv) {
+    return ERR_SUCCESS;
 }
 
 #endif

@@ -9,6 +9,9 @@
  * The code makes use of function pointers to register
  * interrupt handlers for specific interrupt IDs.
  *
+ * The driver supports both Cyclone V devices (default) or
+ * Arria 10 devices (-D __ARRIA_10__).
+ * 
  * ISR Handlers
  * ------------
  *
@@ -38,18 +41,53 @@
  *    // Data Abort
  *    __abort void __dataAb_isr(void){   }
  *    // Fast IRQ
- *    __fiq void __fiq_isr   (void){   }
+ *    __fiq   void __fiq_isr   (void){   }
  *
+ * 
+ * Software Interrupts
+ * -------------------
+ * 
  * For software IRQs (SVC/SWI), the standard handler is always
  * used as it provides additional decoding and context handling.
  * This can be extended with your own functionality by providing
  * the following function implementation:
  *
- *    // Software IRQ
- *    void __svc_handler(unsigned int id, unsigned int param[4]){   }
- *
- * The driver supports both Cyclone V devices (default) or
- * Arria 10 devices (-D __ARRIA_10__).
+ *    // Software IRQ Handler
+ *    HpsErr_t __svc_handler(unsigned int id, unsigned int argc, unsigned int* argv){
+ *         // ... user code ...
+ *         return myStatus;
+ *    }
+ * 
+ * The software IRQ handler has three parameters:
+ *  - The first (id) is an ID hardcoded into the SVC instruction.
+ *  - The second (argc) is the size of the optional parameters array.
+ *  - The third (argv) is an array of argc entries for user parameters.
+ * The argv array can contain at most 3 values.
+ * A single integer return value is used. The return value will be passed
+ * back via r0 as is the standard convention.
+ * 
+ * To call a software interrupt, you must first declare your SVC callers.
+ * These are simply function prototypes that have no body. They use a special
+ * attribute "__svc(id)" to indicate that they should trigger a software
+ * interrupt when called. They must be declard as follows to be compatible
+ * with the implemented handler.
+ * 
+ *      __svc(id) HpsErr_t mySvcCall(unsigned int argc, unsigned int* argv);
+ * 
+ *  - You can change `mySvcCall` to be whatever name you wish the function to
+ *    be called.
+ *  - The `id` must be a constant integer and will be the number passed to the
+ *    __svc_handler functions first argument.
+ * 
+ * The following is an example of calling the SVC handler:
+ * 
+ *     unsigned int myArg;
+ *     HpsErr_t status = mySvcCall(1, &myArg);
+ * 
+ * This will result in `__svc_handler(id, 1, &myArg)` being called with the
+ * processor state in SVC mode. You can decode the id in the SVC handler to
+ * decide what operation to perform.
+ * 
  *
  * Company: University of Leeds
  * Author: T Carpenter
@@ -58,6 +96,7 @@
  *
  * Date       | Changes
  * -----------+----------------------------------
+ * 01/04/2024 | Add details about software interrupt calling convention.
  * 21/02/2024 | Fix software interrupt handler.
  * 31/01/2024 | Correct ISR attributes
  * 22/01/2024 | Split Vector table to Util/startup_arm.c
@@ -86,7 +125,6 @@
 __irq void HPS_IRQ_unhandledIRQ(HPSIRQSource interruptID, void* param, bool* handled) {
     while(1); //Crash - use the watchdog timer to reset us.
 }
-
 
 /*
  * Arm GIC Register Map

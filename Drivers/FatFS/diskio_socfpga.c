@@ -6,18 +6,18 @@
 
 // FatFs lower layer API Declarations
 #ifdef __ARRIA10__
-#include "hwlib/a10/socal/hps.h"
+#include "Util/hwlib/a10/socal/hps.h"
 #else
-#include "hwlib/cv/socal/hps.h"
+#include "Util/hwlib/cv/socal/hps.h"
 #endif
 #include "diskio.h"
 #include "ff.h"         /* Declarations of sector size */
 // Minimal Altera HWLib for SD-Card (hwlib/)
-#include "hwlib/alt_sdmmc.h"
+#include "Util/hwlib/alt_sdmmc.h"
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include "HPS_Watchdog/HPS_Watchdog.h"
+#include "Util/watchdog.h"
 
 
 #ifdef FF_DEBUG
@@ -119,12 +119,12 @@ DSTATUS disk_initialize (
         goto error;
     }
 
-    HPS_ResetWatchdog();
+    ResetWDT();
     if(alt_sdmmc_card_identify(&Card_Info) != ALT_E_SUCCESS) {
         stat = stat + STA_NODISK; //Set the no-disk flag if we failed to identify.
         goto error;
     }
-    HPS_ResetWatchdog();
+    ResetWDT();
 
     switch(Card_Info.card_type)
     {
@@ -255,7 +255,7 @@ DRESULT disk_read (
         // Move on to the next sector
         sector++;
         buff += Sdmmc_Sector_Size;
-        HPS_ResetWatchdog();
+        ResetWDT();
     }
     return RES_OK;
 }
@@ -329,7 +329,7 @@ DRESULT disk_write (
         if (buff) {
             buff += Sdmmc_Sector_Size;
         }
-        HPS_ResetWatchdog();
+        ResetWDT();
     }
     return RES_OK;
 }
@@ -396,7 +396,7 @@ verifyError:
         if (buff) {
             buff += Sdmmc_Sector_Size;
         }
-        HPS_ResetWatchdog();
+        ResetWDT();
     }
     return RES_OK;
 }

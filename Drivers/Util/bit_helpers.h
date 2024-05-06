@@ -56,7 +56,7 @@
 static inline unsigned int __popcount_failback(unsigned int x) {
     x = x - ((x >> 1) & 0x55555555U);
     x = (x & 0x33333333U) + ((x >> 2) & 0x33333333U);
-    return ((x + (x >> 4) & 0xF0F0F0FU) * 0x1010101U) >> 24; // count
+    return (((x + (x >> 4)) & 0xF0F0F0FU) * 0x1010101U) >> 24; // count
 }
 
 // Fail-back implementation of RBIT if not available.
@@ -85,22 +85,31 @@ static inline unsigned int __clz_failback(unsigned int x) {
 
 //Bit value
 #ifndef _BV
-#define _BV(a) (1 << (a))
+#define _BV(a) (1UL << (a))
 #endif
+
+//Max value for bit length. N must be <= 32
+#define INTN_MIN(n)  (-_BV((n)-1))
+#define INTN_MAX(n)  (_BV((n)-1) - 1)
+#define UINTN_MAX(n) (_BV(n) - 1)
 
 //Masked bit value helpers
 // - Mask and shift a value to the correct position
 #define MaskInsert(       val, mask, ofs) (((val) & (mask)) << (ofs))
-// - Shift and mask a field from a register value
+// - Shift and mask a field from a value
 #define MaskExtract(      val, mask, ofs) (((val) >> (ofs)) & (mask))
-// - Shift and mask a signed field from a register value
+// - Shift and mask a signed field from a value
 #define MaskExtractSigned(val, mask, ofs) ((MaskExtract(val, mask, ofs) ^ (((mask) + 1)/2)) - (((mask) + 1)/2))
-// - Mask a register value to perform logical checks
+// - Mask a value to perform logical checks
 #define MaskCheck(        val, mask, ofs) ((val) & ((mask) << (ofs)))
-// - Create a bitmask for direct AND/OR with a register value.
+// - Create a bitmask selecting only bits in a field.
 #define MaskCreate(            mask, ofs) ((mask) << (ofs))
-// - Read-Modify-Write value with new masked value.
+// - Read-Modify reg value with new masked value.
 #define MaskModify(  reg, val, mask, ofs) (((reg) & ~MaskCreate(mask, ofs)) | MaskInsert(val, mask, ofs))
+// - Read-Clear reg value with mask.
+#define MaskClear(   reg,      mask, ofs) (((reg) & ~MaskCreate(mask, ofs)))
+// - Read-Set reg value with mask.
+#define MaskSet(     reg,      mask, ofs) (((reg) |  MaskCreate(mask, ofs)))
 
 // Given a base address, calculate the maximum power of two span the address can access as a bitmask
 #define MaxAddressSpanOfBaseMask(base) (((base) & -(base)) - 1)

@@ -67,8 +67,4 @@ HPS_WDT_DECL unsigned int HPS_WatchdogValue() {
     return *((volatile unsigned int *) (HPS_WDT_L4WD_BASE + HPS_WDT_CCVR_OFF));
 }
 
-//#define for backwards compatibility
-#define ResetWDT() HPS_ResetWatchdog()
-
-
 #endif /* HPS_WATCHDOG_H_ */

@@ -27,7 +27,7 @@
 
 #include "FPGA_PIO.h"
 
-#include "HPS_IRQ/HPS_IRQ.h"
+#include "Util/irq.h"
 #include "Util/bit_helpers.h"
 
 #include "FPGA_PIORegs.h"
@@ -108,12 +108,12 @@ static HpsErr_t _FPGA_PIO_getInput(PFPGAPIOCtx_t ctx, unsigned int* in, unsigned
 
 static HpsErr_t _FPGA_PIO_setInterruptEnable(PFPGAPIOCtx_t ctx, unsigned int flags, unsigned int mask) {
     //Before changing anything we need to mask global interrupts temporarily
-    HpsErr_t irqStatus = HPS_IRQ_globalEnable(false);
+    HpsErr_t irqStatus = IRQ_globalEnable(false);
     //Modify the enable flags
     unsigned int enBits = ctx->base[GPIO_INTR_MASK];
     ctx->base[GPIO_INTR_MASK] = ((flags & mask) | (enBits & ~mask));
     //Re-enable interrupts if they were enabled
-    HPS_IRQ_globalEnable(IS_SUCCESS(irqStatus));
+    IRQ_globalEnable(ERR_IS_SUCCESS(irqStatus));
     return ERR_SUCCESS;
 }
 

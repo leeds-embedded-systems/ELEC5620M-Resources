@@ -18,7 +18,7 @@
 
 #include "driver_crc.h"
 
-#include "HPS_Watchdog/HPS_Watchdog.h"
+#include "Util/watchdog.h"
 
 /*
  * Main API
@@ -138,7 +138,7 @@ uint32_t crc32(uint32_t crc, const uint8_t *p, uint32_t len) {
 // CRC32 calculation for large buffers
 // - Breaks the calculation into chunks interspersed with watchdog resets
 uint32_t crc32_wd(uint32_t crc, const uint8_t *buf, uint32_t len, uint32_t chunk_sz) {
-    HPS_ResetWatchdog();
+    ResetWDT();
     // Loop through the whole length
     while (len) {
         // How long is this chunk - the smaller of length and chunk size
@@ -150,7 +150,7 @@ uint32_t crc32_wd(uint32_t crc, const uint8_t *buf, uint32_t len, uint32_t chunk
         buf += chunkLen;
         len -= chunkLen;
         // And pat the doggy
-        HPS_ResetWatchdog();
+        ResetWDT();
     }
     return crc;
 }

@@ -24,7 +24,7 @@
  * return value).
  * 
  * For Manual events, use Event_init to initialse an event struct
- * to work with this timer. Manual events are not tracked by the
+ * to work with given timer. Manual events are not tracked by the
  * polling function and have no callback. Instead you should use
  * Event_checkState to see if it has reached the timeout period.
  * Manual events are requeued only if the call to Event_checkState
@@ -54,18 +54,18 @@
 #include "Util/error.h"
 
 typedef enum {
-    EVENT_TYPE_MANUAL = -1,  // Event is handled manually by Event_checkState.
-    EVENT_TYPE_DISABLED = 0, // Event disabled
-    EVENT_TYPE_ONESHOT,      // Event triggers once then stops. HPS timers are stopped by getInterruptFlag().
-    EVENT_TYPE_REPEAT        // Event keeps triggering
+    EVENT_TYPE_MANUAL =   -1, // Event is handled manually by Event_checkState.
+    EVENT_TYPE_DISABLED =  0, // Event disabled
+    EVENT_TYPE_ONESHOT,       // Event triggers once then stops. HPS timers are stopped by getInterruptFlag().
+    EVENT_TYPE_REPEAT         // Event keeps triggering
 } EventType;
 
 enum {
-    EVENT_STATE_ERROR = ERR_UNKNOWN, // Event error occurred (e.g. timer API failed). Any HpsErr_t value is possible.
-    EVENT_STATE_INVALID = 0,         // Event invalid, do not use (was likely destroyed)
-    EVENT_STATE_DISABLED,            // Event disabled
-    EVENT_STATE_PENDING,             // Event is waiting for timeout to be reached
-    EVENT_STATE_OCCURRED             // Event occurred since last check
+    EVENT_STATE_ERROR =   ERR_UNKNOWN, // Event error occurred (e.g. timer API failed). Any HpsErr_t value is possible.
+    EVENT_STATE_INVALID = 0,           // Event invalid, do not use (was likely destroyed)
+    EVENT_STATE_DISABLED,              // Event disabled
+    EVENT_STATE_PENDING,               // Event is waiting for timeout to be reached
+    EVENT_STATE_OCCURRED               // Event occurred since last check
 };
 
 #define EVENT_STATE_ISDISABLED(x) ((x) <= EVENT_STATE_DISABLED)
@@ -149,7 +149,8 @@ HpsErr_t Event_state(PEvent_t evt, EventControl op, unsigned int interval);
 
 // Change mode for a timer event
 //  - Pass in a timer event context returned from createEvent.
-//  - Setting an interval of '0' means keep the previously set interval.
+//  - Setting an interval of EVENT_INTERVAL_UNCHANGED (0) means keep the
+//    previously set interval.
 HpsErr_t Event_setMode(PEvent_t evt, EventType type, unsigned int interval);
 
 // Event just occurred

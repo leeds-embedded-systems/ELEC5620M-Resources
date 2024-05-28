@@ -24,7 +24,7 @@
  * return value).
  * 
  * For Manual events, use Event_init to initialse an event struct
- * to work with this timer. Manual events are not tracked by the
+ * to work with given timer. Manual events are not tracked by the
  * polling function and have no callback. Instead you should use
  * Event_checkState to see if it has reached the timeout period.
  * Manual events are requeued only if the call to Event_checkState
@@ -218,7 +218,6 @@ HpsErr_t Event_create(PEventMgrCtx_t ctx, EventType type, unsigned int interval,
         //Save the new table
         ctx->events = newTable;
         ctx->count = count;
-        tableIdx = count;
     }
     //If we have no event context, allocate a new one and assign to table
     if (!evt) {
@@ -309,7 +308,9 @@ HpsErr_t Event_state(PEvent_t evt, EventControl op, unsigned int interval) {
             if (evt->type != EVENT_TYPE_DISABLED) {
                 // Set the event to pending if not disabled type
                 evt->lastTime = curTime;
-                if (interval) evt->interval = interval;
+                if (interval != EVENT_INTERVAL_UNCHANGED) {
+                    evt->interval = interval;
+                }
                 evt->state = EVENT_STATE_PENDING;
             }
             return curState;
@@ -333,7 +334,9 @@ HpsErr_t Event_state(PEvent_t evt, EventControl op, unsigned int interval) {
             if (op == EVENT_CNTRL_ENQUEUE) {
                 // Start if mode is to enqueue
                 evt->lastTime = curTime;
-                if (interval) evt->interval = interval;
+                if (interval != EVENT_INTERVAL_UNCHANGED) {
+                    evt->interval = interval;
+                }
                 evt->state = EVENT_STATE_PENDING;
             } else {
                 // Otherwise now in disabled state.
@@ -355,13 +358,14 @@ HpsErr_t Event_state(PEvent_t evt, EventControl op, unsigned int interval) {
 
 // Change mode for a timer event
 //  - Pass in a timer event context returned from createEvent.
-//  - Setting an interval of '0' means keep the previously set interval.
+//  - Setting an interval of EVENT_INTERVAL_UNCHANGED (0) means keep the
+//    previously set interval.
 HpsErr_t Event_setMode(PEvent_t evt, EventType type, unsigned int interval) {
     // Ensure event valid
     if (!Event_validate(evt)) return ERR_NOTFOUND;
     // Update the type and optionally the interval
     evt->type = type;
-    if (interval) {
+    if (interval != EVENT_INTERVAL_UNCHANGED) {
         evt->interval = interval;
     }
     return ERR_SUCCESS;

@@ -24,8 +24,6 @@
 #include "HPS_Watchdog/HPS_Watchdog.h"
 #include "Util/bit_helpers.h"
 
-#include <math.h>
-
 // Registers in I2C controller
 #define HPS_I2C_CON	    (0x00/sizeof(unsigned int))
 #define HPS_I2C_TAR     (0x04/sizeof(unsigned int))
@@ -61,7 +59,7 @@
 #define HPS_I2C_CONTROL_STOPIFADDR   7
 #define HPS_I2C_CONTROL_TXEMPTYIRQEN 8
 
-#define HPS_I2C_CONTROL_SPEED_MASK 0x3
+#define HPS_I2C_CONTROL_SPEED_MASK 0x3U
 
 // Control speed settings
 enum {

@@ -27,8 +27,10 @@
 #include "Util/error.h"
 
 typedef enum {
-    I2C_SPEED_STANDARD = 100, //kHz
-    I2C_SPEED_FASTMODE = 400  //kHz
+    I2C_SPEED_STANDARD     = 100,  //kHz
+    I2C_SPEED_FASTMODE     = 400,  //kHz
+    I2C_SPEED_FASTMODEPLUS = 1000, //kHz
+    I2C_SPEED_HIGHSPEED    = 3400  //kHz
 } I2CSpeed;
 
 

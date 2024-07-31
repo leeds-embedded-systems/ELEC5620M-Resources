@@ -83,33 +83,5 @@ HpsErr_t CRC_calculate(PCRCCtx_t crcCtx, bool init, const uint8_t * data, unsign
 //  - Maximum width is 32 for the generic CRC driver.
 HpsErr_t CRC_getWidth(PCRCCtx_t crcCtx);
 
-/*
- * crc16_compute() Compatibility for ICE Handle Comms
- */
-
-// Set the CRC processor context used by the CRC16 routines.
-// - If this returns an error code, the CRC16 functions will not work.
-HpsErr_t crc16_setCtx(PCRCCtx_t ctx);
-
-// CRC16 calculation for data buffer
-// - Length is in bytes
-uint16_t crc16_compute(const uint32_t * data, uint32_t length);
-
-/*
- * crc32() Compatibility for Image Header Decoding Function
- */
-
-
-// Set the CRC processor context used by the CRC32 routines.
-// - If this returns an error code, the CRC32 functions will not work.
-HpsErr_t crc32_setCtx(PCRCCtx_t ctx);
-
-// CRC32 calculation for small buffers
-uint32_t crc32(uint32_t crc, const uint8_t *p, uint32_t len);
-
-// CRC32 calculation for large buffers
-// - Breaks the calculation into chunks interspersed with watchdog resets
-uint32_t crc32_wd(uint32_t crc, const uint8_t *buf, uint32_t len, uint32_t chunk_sz);
-
 
 #endif /* DRIVER_CRC_H_ */

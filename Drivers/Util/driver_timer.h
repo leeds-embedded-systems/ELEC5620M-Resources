@@ -33,25 +33,27 @@ typedef enum {
 } TimerMode;
 
 // IO Function Templates
-typedef HpsErr_t (*TimerEnableFunc_t )(void* ctx, unsigned int fraction);
-typedef HpsErr_t (*TimerDisableFunc_t)(void* ctx);
-typedef HpsErr_t (*TimerGetTimeFunc_t)(void* ctx, unsigned int* time);
-typedef HpsErr_t (*TimerGetRateFunc_t)(void* ctx, unsigned int prescalar, unsigned int* rate);
-typedef HpsErr_t (*TimerGetMode_t    )(void* ctx, TimerMode* mode);
-typedef HpsErr_t (*TimerOverflowed_t )(void* ctx, bool autoClear);
+typedef HpsErr_t (*TimerEnableFunc_t    )(void* ctx, unsigned int fraction);
+typedef HpsErr_t (*TimerDisableFunc_t   )(void* ctx);
+typedef HpsErr_t (*TimerGetTimeFunc_t   )(void* ctx, unsigned int* time);
+typedef HpsErr_t (*TimerGetRateFunc_t   )(void* ctx, unsigned int prescalar, unsigned int* rate);
+typedef HpsErr_t (*TimerGetModeFunc_t   )(void* ctx, TimerMode* mode);
+typedef HpsErr_t (*TimerOverflowedFunc_t)(void* ctx, bool autoClear);
+typedef HpsErr_t (*TimerConfigureFunc_t )(void* ctx, TimerMode mode, unsigned int prescalar, unsigned int loadValue);
 
 // GPIO Context
 typedef struct {
     // Driver Context
     void* ctx;
     // Driver Function Pointers
-    TimerEnableFunc_t  enable;
-    TimerDisableFunc_t disable;
-    TimerGetTimeFunc_t getLoad;
-    TimerGetTimeFunc_t getTime;
-    TimerGetRateFunc_t getRate;
-    TimerGetMode_t     getMode;
-    TimerOverflowed_t  checkOverflow;    
+    TimerEnableFunc_t     enable;
+    TimerDisableFunc_t    disable;
+    TimerGetTimeFunc_t    getLoad;
+    TimerGetTimeFunc_t    getTime;
+    TimerGetRateFunc_t    getRate;
+    TimerGetModeFunc_t    getMode;
+    TimerOverflowedFunc_t checkOverflow;    
+    TimerConfigureFunc_t  configure;    
 } TimerCtx_t, *PTimerCtx_t;
 
 // Check if driver initialised
@@ -62,7 +64,7 @@ static inline bool Timer_isInitialised(PTimerCtx_t timer) {
 
 // Get the rounded timer clock rate
 //  - Returns via *clockRate the current timer clock rate based on configured prescaler settings
-//  - If prescaler is -1, will return based on previously configured.
+//  - If prescaler is UINT32_MAX, will return based on previously configured.
 //    prescaler settings, otherwise will calculate for specified value
 static inline HpsErr_t Timer_getRate(PTimerCtx_t timer, unsigned int prescaler, unsigned int* rate) {
     if (!timer || !rate) return ERR_NULLPTR;
@@ -75,6 +77,29 @@ static inline HpsErr_t Timer_getMode(PTimerCtx_t timer, TimerMode* mode) {
     if (!timer || !mode) return ERR_NULLPTR;
     if (!timer->getMode) return ERR_NOSUPPORT;
     return timer->getMode(timer->ctx,mode);
+}
+
+// Get the top/initial/load value of the timer
+static inline HpsErr_t Timer_getLoad(PTimerCtx_t timer, unsigned int* loadTime) {
+    if (!timer || !loadTime) return ERR_NULLPTR;
+    if (!timer->getLoad) return ERR_NOSUPPORT;
+    return timer->getLoad(timer->ctx,loadTime);
+}
+
+// Get current timer value
+static inline HpsErr_t Timer_getTime(PTimerCtx_t timer, unsigned int* curTime) {
+    if (!timer || !curTime) return ERR_NULLPTR;
+    if (!timer->getTime) return ERR_NOSUPPORT;
+    return timer->getTime(timer->ctx,curTime);
+}
+
+// Configure timer
+//  - For one-shot mode, will disable the timer. Call NIOS_Timer_enable() to start one-shot.
+//  - For other modes, timer will remain in current state (running or stopped)
+static inline HpsErr_t Timer_configure(PTimerCtx_t timer, TimerMode mode, unsigned int prescalar, unsigned int loadValue) {
+    if (!timer) return ERR_NULLPTR;
+    if (!timer->configure) return ERR_NOSUPPORT;
+    return timer->configure(timer->ctx, mode, prescalar, loadValue);
 }
 
 // Enable timer
@@ -93,20 +118,6 @@ static inline HpsErr_t Timer_disable(PTimerCtx_t timer) {
     if (!timer) return ERR_NULLPTR;
     if (!timer->disable) return ERR_NOSUPPORT;
     return timer->disable(timer->ctx);
-}
-
-// Get the top/initial/load value of the timer
-static inline HpsErr_t Timer_getLoad(PTimerCtx_t timer, unsigned int* loadTime) {
-    if (!timer || !loadTime) return ERR_NULLPTR;
-    if (!timer->getLoad) return ERR_NOSUPPORT;
-    return timer->getLoad(timer->ctx,loadTime);
-}
-
-// Get current timer value
-static inline HpsErr_t Timer_getTime(PTimerCtx_t timer, unsigned int* curTime) {
-    if (!timer || !curTime) return ERR_NULLPTR;
-    if (!timer->getTime) return ERR_NOSUPPORT;
-    return timer->getTime(timer->ctx,curTime);
 }
 
 // Check and clear overflow/interrupt flag

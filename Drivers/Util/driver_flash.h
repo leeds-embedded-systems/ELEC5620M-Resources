@@ -77,7 +77,7 @@ bool FLASH_rangeInRegion(PFlashRegion_t region, unsigned int address, unsigned i
 // Check if an address or length is aligned to the flash word size
 static inline HpsErr_t FLASH_checkAlignment(PFlashCtx_t flash, unsigned int val) {
     if (!flash) return ERR_NULLPTR;
-    return pointerIsAligned((void*)val, flash->wordSize) ? ERR_SUCCESS : ERR_ALIGNMENT;
+    return addressIsAligned(val, flash->wordSize) ? ERR_SUCCESS : ERR_ALIGNMENT;
 }
 
 // Align address or length to the flash word size

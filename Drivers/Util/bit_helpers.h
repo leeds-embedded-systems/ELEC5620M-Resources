@@ -20,6 +20,8 @@
 #define BIT_HELPERS_H_
 
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
 //Ensure we have __rbit and __clz used by some bit routines
 #ifdef __arm__
@@ -129,8 +131,14 @@ static inline __attribute__((always_inline)) unsigned short reverseShort(unsigne
 }
 
 // Check if address alignment is correct
-static inline bool pointerIsAligned(const void* ptr, unsigned int size) {
-    return !(((unsigned int)ptr) & (size - 1));
+static inline bool addressIsAligned64b(uint64_t addr, uint64_t size) {
+    return !(addr & (size - 1ULL));
+}
+static inline bool addressIsAligned(size_t addr, size_t size) {
+    return !(addr & (size - (size_t)1U));
+}
+static inline bool pointerIsAligned(const void* ptr, size_t size) {
+    return addressIsAligned((size_t)ptr, size);
 }
 
 // Align an address or length to a size boundary

@@ -84,6 +84,13 @@ typedef enum {
     current_spsr;                                                              \
   })
 
+#define __current_fpexc()                                                      \
+  __extension__({                                                              \
+    register unsigned int current_fpexc;                                       \
+    __asm__ __volatile__("vmrs %0, fpexc" : "=r"(current_fpexc) : : );         \
+    current_fpexc;                                                             \
+  })
+
 static __inline__ void __attribute__((__always_inline__, __nodebug__))
 __set_spsr(unsigned int spsr) {
     __asm__ __volatile__("msr spsr_cxsf, %[spsr]\n" ::[spsr] "r" (spsr):);
@@ -122,6 +129,7 @@ __name_proc_state(ProcState state) {
 #define __GET_PROC_CPSR()           __current_cpsr()
 #define __GET_PROC_SPSR()           __current_spsr()
 #define __SET_PROC_SPSR(val)        __set_spsr(val)
+#define __GET_PROC_FPEXC()          __current_fpexc()
 #define __SET_PROC_FPEXC(val)       __set_fpexc(val)
 
 
@@ -161,6 +169,9 @@ __MOV_REG_GEN(pc)
 
 // Instruction barrier
 #define __ISB()       __isb(15)
+// Data barrier
+
+#define __DSB()       __dsb(15)
 
 // Stack Init Functions
 #define __INIT_SP_SYS(top) __asm__ __volatile__("MOV SP, %[sp]\n" ::[sp] "r" (top):)
@@ -189,7 +200,7 @@ __MOV_REG_GEN(pc)
 //    __GET_SYSREG(SYSREG_COPROC, <reg name>)
 //
 
-// SCTLR Register
+// SCTLR - System Control Register
 #define SYSREG_SCTLR_CP        1
 #define SYSREG_SCTLR_CP_OP     0
 #define SYSREG_SCTLR_CPA       0
@@ -203,13 +214,28 @@ __MOV_REG_GEN(pc)
 #define SYSREG_SCTLR_BIT_I     12
 #define SYSREG_SCTLR_BIT_V     13
 
-// VBAR Register
+// ACTLR - Auxiliary Control Register
+#define SYSREG_ACTLR_CP        1
+#define SYSREG_ACTLR_CP_OP     0
+#define SYSREG_ACTLR_CPA       0
+#define SYSREG_ACTLR_CPA_OP    1
+
+#define SYSREG_ACTLR_BIT_PARITYON           9
+#define SYSREG_ACTLR_BIT_ALLOCINONEWAY      8
+#define SYSREG_ACTLR_BIT_EXCL               7
+#define SYSREG_ACTLR_BIT_SMP                6
+#define SYSREG_ACTLR_BIT_WRITEFULLLINEZEROS 3
+#define SYSREG_ACTLR_BIT_L1PREFETCHEN       2
+#define SYSREG_ACTLR_BIT_L2PREFETCHEN       1
+#define SYSREG_ACTLR_BIT_FW                 0
+
+// VBAR - Vector Base Address Register
 #define SYSREG_VBAR_CP         12
 #define SYSREG_VBAR_CP_OP      0
 #define SYSREG_VBAR_CPA        0
 #define SYSREG_VBAR_CPA_OP     0
 
-// CPACR Register
+// CPACR - Cache Parity Register
 #define SYSREG_CPACR_CP         1
 #define SYSREG_CPACR_CP_OP      0
 #define SYSREG_CPACR_CPA        0
@@ -219,10 +245,24 @@ __MOV_REG_GEN(pc)
 #define SYSREG_CPACR_BIT_D32DIS 30
 #define SYSREG_CPACR_BIT_ASEDIS 31
 
+// ICIALLU - Instruction Cache Invalidate Register
+#define SYSREG_ICIALLU_CP        7
+#define SYSREG_ICIALLU_CP_OP     0
+#define SYSREG_ICIALLU_CPA       5
+#define SYSREG_ICIALLU_CPA_OP    0
+#define SYSREG_ICIALLU_CLEAR     0
+
+// BPIALL - Branch Prediction Invalidate Register
+#define SYSREG_BPIALL_CP        7
+#define SYSREG_BPIALL_CP_OP     0
+#define SYSREG_BPIALL_CPA       5
+#define SYSREG_BPIALL_CPA_OP    6
+#define SYSREG_BPIALL_CLEAR     0
+
 // Access macros
 //   Converts to MCR/MRC instructions
 #define __SET_SYSREG(coProc, regName, val) __arm_mcr(coProc, SYSREG_##regName##_CP_OP, (val), SYSREG_##regName##_CP, SYSREG_##regName##_CPA, SYSREG_##regName##_CPA_OP)
-#define __GET_SYSREG(coProc, regName) __arm_mrc(coProc, SYSREG_##regName##_CP_OP, SYSREG_##regName##_CP, SYSREG_##regName##_CPA, SYSREG_##regName##_CPA_OP)
+#define __GET_SYSREG(coProc, regName)      __arm_mrc(coProc, SYSREG_##regName##_CP_OP, SYSREG_##regName##_CP, SYSREG_##regName##_CPA, SYSREG_##regName##_CPA_OP)
 
 
 #endif /* LOWLEVEL_H_ */

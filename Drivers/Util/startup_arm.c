@@ -48,7 +48,9 @@
 
 #include "Util/lowlevel.h"
 #include "Util/macros.h"
+#include "Util/bit_helpers.h"
 #include "Util/semihosting.h"
+#include "Util/watchdog.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -144,20 +146,14 @@ __attribute__((naked, section("vector_table"))) void __vector_table(void) {
 
 #if defined(IRQ_STACK_SCATTER)
 
-#define __IRQ_STACK_TOP(x) Image$$##x##$$ZI$$Limit
-#define _IRQ_STACK_TOP(x) __IRQ_STACK_TOP(x)
-
-#define IRQ_STACK_TOP_LINK _IRQ_STACK_TOP(IRQ_STACK_SCATTER)
+#define IRQ_STACK_TOP_LINK SCATTER_REGION_LIMIT(IRQ_STACK_SCATTER,ZI)
 #define IRQ_STACK_TOP (unsigned int)&IRQ_STACK_TOP_LINK
 
 extern unsigned int IRQ_STACK_TOP_LINK;
 
 #else
 
-#define __IRQ_STACK_TOP(x) (unsigned int)x
-#define _IRQ_STACK_TOP(x) __IRQ_STACK_TOP(x)
-
-#define IRQ_STACK_TOP _IRQ_STACK_TOP(IRQ_STACK_LIMIT)
+#define IRQ_STACK_TOP (unsigned int)IRQ_STACK_LIMIT
 
 #endif
 

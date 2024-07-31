@@ -50,6 +50,7 @@ typedef HpsErr_t (*DmaXferStartFunc_t)(void* ctx);
 typedef HpsErr_t (*DmaXferSpaceFunc_t)(void* ctx, unsigned int* space);
 typedef HpsErr_t (*DmaAbortFunc_t)    (void* ctx, DmaAbortType abort);
 typedef HpsErr_t (*DmaStatusFunc_t)   (void* ctx);
+typedef HpsErr_t (*DmaStatInfoFunc_t) (void* ctx, unsigned int* info);
 
 // GPIO Context
 typedef struct {
@@ -62,9 +63,10 @@ typedef struct {
     DmaXferStartFunc_t  startTransfer;
     DmaAbortFunc_t      abortTransfer;
     // Status Functions
-    DmaStatusFunc_t transferBusy;
-    DmaStatusFunc_t transferDone;
-    DmaStatusFunc_t transferAborted;
+    DmaStatusFunc_t   transferBusy;
+    DmaStatusFunc_t   transferDone;
+    DmaStatInfoFunc_t transferError;
+    DmaStatusFunc_t   transferAborted;
 } DmaCtx_t, *PDmaCtx_t;
 
 // Check if driver initialised
@@ -137,6 +139,17 @@ static inline HpsErr_t DMA_transferDone(PDmaCtx_t dma) {
     if (!dma) return ERR_NULLPTR;
     if (!dma->transferDone) return ERR_NOSUPPORT;
     return dma->transferDone(dma->ctx);
+}
+
+// Check if the controller is in an error state
+// - Returns success if not in error state.
+// - Returns ERR_IOFAIL if in an error state
+//    - Optional second argument can be used to read error information.
+// - Non-stateful. Can be used to check at any time.
+static inline HpsErr_t DMA_transferError(PDmaCtx_t dma, unsigned int* errorInfo) {
+    if (!dma) return ERR_NULLPTR;
+    if (!dma->transferError) return ERR_NOSUPPORT;
+    return dma->transferError(dma->ctx, errorInfo);
 }
 
 // Check if the abort is complete

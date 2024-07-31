@@ -33,8 +33,8 @@
 
 #define ASSERT_CONCAT_(a, b) a##b
 #define ASSERT_CONCAT(a, b) ASSERT_CONCAT_(a, b)
-#define ct_assert(a,e) enum { ASSERT_CONCAT(assert_sizeof_, a) = 1/(!!(sizeof(a) == e)) }
-#define ct_assert_integer(a,e) enum { ASSERT_CONCAT(assert_sizeof_, a) = 1/(!!(a == e)) }
-#define ct_assert_aligned(a,v,s,e) enum { ASSERT_CONCAT(assert_sizeof_, a) = 1/(!!((v & (s-1)) == e)) }
+#define ct_assert(a,e) enum { ASSERT_CONCAT(assert_sizeof_, a) = 1/((size_t)!!(sizeof(a) == e)) }
+#define ct_assert_define(a,op) enum { assert_define_##a = 1/((size_t)!!(a op)) }
+#define ct_assert_aligned(a,v,s,e) enum { ASSERT_CONCAT(assert_sizeof_, a) = 1/((size_t)!!((v & (s-1)) == e)) }
 
 #endif /* CT_ASSERT_H_ */

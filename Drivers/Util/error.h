@@ -74,7 +74,8 @@ typedef signed int HpsErr_t;
 
 // Macros for checking for success/error, and common errors.
 #define ERR_IS_SUCCESS(code)   ((HpsErr_t)(code) >= ERR_SUCCESS)
-#define ERR_IS_TRUE(code)      ((HpsErr_t)(code) >  ERR_SUCCESS)   // Check if HpsErr_t is boolean true
+#define ERR_IS_TRUE(code)      ((HpsErr_t)(code) >= ERR_TRUE)    // Check if HpsErr_t is boolean true
+#define ERR_IS_FALSE(code)     ((HpsErr_t)(code) == ERR_FALSE)   // Check if HpsErr_t is boolean false
 #define ERR_IS_ERROR(code)     ((HpsErr_t)(code) <  ERR_SUCCESS)
 #define ERR_IS_BUSY(code)      ((HpsErr_t)(code) == ERR_BUSY)
 #define ERR_IS_RETRY(code)     ((HpsErr_t)(code) == ERR_AGAIN)
@@ -108,6 +109,10 @@ typedef signed int HpsErr_t;
 #define ERROR_CODES_LIST(m, type)                                                                      \
     /* Default success status. */                                                                      \
     m(,ERR_SUCCESS   ,,=  0)                                                                           \
+                                                                                                       \
+    /* Boolean values to return on success. */                                                         \
+    m(,ERR_TRUE      ,,=  1)                                                                           \
+    m(,ERR_FALSE     ,,=  0)                                                                           \
                                                                                                        \
     /* Initialisation failed or not performed */                                                       \
     m(,ERR_NOINIT    ,,= -1)                                                                           \

@@ -101,7 +101,7 @@ static HpsErr_t _HPS_I2C_writeCheckResult(PHPSI2CCtx_t ctx) {
     return ctx->writeLength;
 }
 
-static HpsErr_t _HPS_I2C_readCheckResult(PHPSI2CCtx_t ctx, unsigned char data[]) {
+static HpsErr_t _HPS_I2C_readCheckResult(PHPSI2CCtx_t ctx, unsigned char data[], unsigned int dataLen) {
     //Check if there is a read queued
     if (!ctx->readQueued) {
         return ERR_NOTFOUND; //Nothing running
@@ -109,7 +109,7 @@ static HpsErr_t _HPS_I2C_readCheckResult(PHPSI2CCtx_t ctx, unsigned char data[])
     //Check for a TX abort IRQ
     if (ctx->base[HPS_I2C_IRQFLG] & _BV(HPS_I2C_IRQFLAG_TXABORT)){
         (ctx->base[HPS_I2C_CLRTXA]); //Clear TX abort flag.
-        ctx->writeQueued = false;
+        ctx->readQueued = false;
         return ERR_ABORTED; //Aborted if any of the abort flags are set.
     }
     //Check if master to finished
@@ -123,7 +123,7 @@ static HpsErr_t _HPS_I2C_readCheckResult(PHPSI2CCtx_t ctx, unsigned char data[])
         //Read the word
         unsigned char rx = (unsigned char)ctx->base[HPS_I2C_DATCMD];
         //If within our data length, save it
-        if ((rxIdx < readLen) && data) data[rxIdx] = rx;
+        if ((rxIdx < readLen) && (rxIdx < dataLen) && data) data[rxIdx] = rx;
     }
     //Pin the returned amount read to readLen if it was over (should never be, just worth cleaning out the whole FIFO).
     if (fifoFill < readLen) fifoFill = readLen;
@@ -279,7 +279,7 @@ HpsErr_t HPS_I2C_read(PHPSI2CCtx_t ctx, unsigned short address, unsigned char wr
     if (ERR_IS_ERROR(status)) return status;
     //Length of 0 means check status
     if (!writeLen) {
-        return _HPS_I2C_readCheckResult(ctx, readData);
+        return _HPS_I2C_readCheckResult(ctx, readData, readLen);
     }
     //Check if busy
     if (ctx->writeQueued || ctx->readQueued) return ERR_BUSY;
@@ -316,5 +316,5 @@ HpsErr_t HPS_I2C_read(PHPSI2CCtx_t ctx, unsigned short address, unsigned char wr
         datcmd = _BV(HPS_I2C_DATACMD_READ);
     }
     //And done. Check if we succeeded
-    return _HPS_I2C_readCheckResult(ctx, readData);
+    return _HPS_I2C_readCheckResult(ctx, readData, readLen);
 }

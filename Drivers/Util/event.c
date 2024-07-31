@@ -256,7 +256,7 @@ HpsErr_t Event_init(PEvent_t evt, PTimerCtx_t timer, unsigned int interval, bool
     evt->lastTime = 0;
     // If we are requesting automatic start, do it
     if (enqueue) {
-        return Event_state(evt, EVENT_CNTRL_ENQUEUE, 0);
+        return Event_state(evt, EVENT_CNTRL_ENQUEUE, EVENT_INTERVAL_UNCHANGED);
     }
     return ERR_SUCCESS;
 }
@@ -296,7 +296,7 @@ HpsErr_t Event_state(PEvent_t evt, EventControl op, unsigned int interval) {
             return curState;
         case EVENT_CNTRL_ENQUEUE:
             // If enqueing, only restart if currently disabled.
-            if (!EVENT_STATE_ISDISABLED(evt->state)) {
+            if (!EVENT_STATE_ISDISABLED(curState)) {
                 // If not, then treat as checking
                 break;
             }
@@ -316,7 +316,7 @@ HpsErr_t Event_state(PEvent_t evt, EventControl op, unsigned int interval) {
             return curState;
         case EVENT_CNTRL_CHECK:
             // if just checking, skip any already in disabled state
-            if (EVENT_STATE_ISDISABLED(evt->state)) {
+            if (EVENT_STATE_ISDISABLED(curState)) {
                 return curState;
             }
             // Do checks
@@ -328,7 +328,6 @@ HpsErr_t Event_state(PEvent_t evt, EventControl op, unsigned int interval) {
     if (evt->type == EVENT_TYPE_MANUAL) {
         // Check if the task has reached its interval
         _Event_checkOccured(evt, curTime);
-        curState = evt->state;
         // If the event has occurred, update its state
         if (curState == EVENT_STATE_OCCURRED) {
             if (op == EVENT_CNTRL_ENQUEUE) {

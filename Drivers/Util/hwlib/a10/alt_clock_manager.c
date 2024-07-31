@@ -874,6 +874,140 @@ ALT_STATUS_CODE alt_clk_is_enabled(ALT_CLK_t clk)
 ********************************************************************/
 
 ALT_STATUS_CODE
+alt_clkmgr_readConfig(
+  CLOCK_MANAGER_CONFIG*  cfg,
+  CLOCK_SOURCE_CONFIG* inclks
+  )
+{
+  uint32_t data32;
+  // Update clock source parameters if required
+  if(inclks)
+  {
+    osc1_clock = inclks->clk_freq_of_eosc1;
+    cb_intosc_hs_div2 = inclks->clk_freq_of_f2h_free;
+    f2s_free_clk = inclks->clk_freq_of_cb_intosc_ls;
+  }
+
+  // Read in configuration from clock manager registers
+  if(!cfg)
+      return ALT_E_BAD_ARG;
+  
+  /* vco0 - depends on whether in secure boot mode */
+  data32 = alt_read_word (ALT_CLKMGR_MAINPLL_VCO0_ADDR);
+  cfg->mainpll.vco0_psrc = ALT_CLKMGR_MAINPLL_VCO0_PSRC_GET(data32);
+  data32 = alt_read_word (ALT_CLKMGR_PERPLL_VCO0_ADDR);
+  cfg->perpll.vco0_psrc = ALT_CLKMGR_PERPLL_VCO0_PSRC_GET(data32);
+  
+  /* vco1 */
+  data32 = alt_read_word (ALT_CLKMGR_MAINPLL_VCO1_ADDR);
+  cfg->mainpll.vco1_denom = ALT_CLKMGR_MAINPLL_VCO1_DENOM_GET(data32);
+  cfg->mainpll.vco1_numer = ALT_CLKMGR_MAINPLL_VCO1_NUMER_GET(data32);
+  
+  data32 = alt_read_word (ALT_CLKMGR_PERPLL_VCO1_ADDR);
+  cfg->perpll.vco1_denom = ALT_CLKMGR_PERPLL_VCO1_DENOM_GET(data32);
+  cfg->perpll.vco1_numer = ALT_CLKMGR_PERPLL_VCO1_NUMER_GET(data32);
+  
+  /* alteragrp.nocclk */
+  cfg->alteragrp.mpuclk = alt_read_word (ALT_CLKMGR_MPUCLK_ADDR);
+  cfg->alteragrp.nocclk = alt_read_word (ALT_CLKMGR_NOCCLK_ADDR);
+  
+  /* Main PLL Clock Source and Counters/Divider
+     ------------------------------------------
+     mainpll.c0 - pll0_mpu_base_clk */
+  data32 = alt_read_word (ALT_CLKMGR_MAINPLL_MPUCLK_ADDR);
+  cfg->mainpll.mpuclk_cnt = ALT_CLKMGR_MAINPLL_MPUCLK_CNT_GET(data32);
+  cfg->mainpll.mpuclk_src = ALT_CLKMGR_MAINPLL_MPUCLK_SRC_GET(data32);
+  /* mainpll.c1 - pll0_noc _base_clk */
+  data32 = alt_read_word (ALT_CLKMGR_MAINPLL_NOCCLK_ADDR);
+  cfg->mainpll.nocclk_cnt = ALT_CLKMGR_MAINPLL_NOCCLK_CNT_GET(data32);
+  cfg->mainpll.nocclk_src = ALT_CLKMGR_MAINPLL_NOCCLK_SRC_GET(data32);
+  /* mainpll.c2 - pll0_emaca_clk */
+  data32 = alt_read_word (ALT_CLKMGR_MAINPLL_CNTR2CLK_ADDR);
+  cfg->mainpll.cntr2clk_cnt = ALT_CLKMGR_MAINPLL_CNTR2CLK_CNT_GET(data32);
+  /* mainpll.c3 - pll0_emacb_clk */
+  data32 = alt_read_word (ALT_CLKMGR_MAINPLL_CNTR3CLK_ADDR);
+  cfg->mainpll.cntr3clk_cnt = ALT_CLKMGR_MAINPLL_CNTR3CLK_CNT_GET(data32);
+  /* mainpll.c4 - pll0_emac_ptp_clk */
+  data32 = alt_read_word (ALT_CLKMGR_MAINPLL_CNTR4CLK_ADDR);
+  cfg->mainpll.cntr4clk_cnt = ALT_CLKMGR_MAINPLL_CNTR4CLK_CNT_GET(data32);
+  /* mainpll.c5 - pll0_gpio_db_clk */
+  data32 = alt_read_word (ALT_CLKMGR_MAINPLL_CNTR5CLK_ADDR);
+  cfg->mainpll.cntr5clk_cnt = ALT_CLKMGR_MAINPLL_CNTR5CLK_CNT_GET(data32);
+  /* mainpll.c6 - pll0_sdmmc_clk */
+  data32 = alt_read_word (ALT_CLKMGR_MAINPLL_CNTR6CLK_ADDR);
+  cfg->mainpll.cntr6clk_cnt = ALT_CLKMGR_MAINPLL_CNTR6CLK_CNT_GET(data32);
+  /* mainpll.c7 - pll0_h2f_user0_clk (A.K.A. s2f_user0_clk) */
+  data32 = alt_read_word (ALT_CLKMGR_MAINPLL_CNTR7CLK_ADDR);
+  cfg->mainpll.cntr7clk_cnt = ALT_CLKMGR_MAINPLL_CNTR7CLK_CNT_GET(data32);
+  cfg->mainpll.cntr7clk_src = ALT_CLKMGR_MAINPLL_CNTR7CLK_SRC_GET(data32);
+  /* mainpll.c8 - pll0_h2f_user1_clk (A.K.A. s2f_user1_clk) */
+  data32 = alt_read_word (ALT_CLKMGR_MAINPLL_CNTR8CLK_ADDR);
+  cfg->mainpll.cntr8clk_cnt = ALT_CLKMGR_MAINPLL_CNTR8CLK_CNT_GET(data32);
+  /* mainpll.c9 - pll0_hmc_pll_ref_clk */
+  data32 = alt_read_word (ALT_CLKMGR_MAINPLL_CNTR9CLK_ADDR);
+  cfg->mainpll.cntr9clk_cnt = ALT_CLKMGR_MAINPLL_CNTR9CLK_CNT_GET(data32);
+  cfg->mainpll.cntr9clk_src = ALT_CLKMGR_MAINPLL_CNTR9CLK_SRC_GET(data32);
+  /* mainpll.c15 - periph_ref_clk
+   * Comment out because C15 input for PLL1 is not supported (2014.12.15 A10_5v4.PDF) */
+  data32 = alt_read_word (ALT_CLKMGR_MAINPLL_CNTR15CLK_ADDR);
+  cfg->mainpll.cntr15clk_cnt = ALT_CLKMGR_MAINPLL_CNTR15CLK_CNT_GET(data32);
+  /*mainpll's NoC Clocks's divider */
+  data32 = alt_read_word (ALT_CLKMGR_MAINPLL_NOCDIV_ADDR);
+  cfg->mainpll.nocdiv_l4mainclk  = ALT_CLKMGR_MAINPLL_NOCDIV_L4MAINCLK_GET(data32);
+  cfg->mainpll.nocdiv_l4mpclk    = ALT_CLKMGR_MAINPLL_NOCDIV_L4MPCLK_GET(data32);
+  cfg->mainpll.nocdiv_l4spclk    = ALT_CLKMGR_MAINPLL_NOCDIV_L4SPCLK_GET(data32);
+  cfg->mainpll.nocdiv_csatclk    = ALT_CLKMGR_MAINPLL_NOCDIV_CSATCLK_GET(data32);
+  cfg->mainpll.nocdiv_cstraceclk = ALT_CLKMGR_MAINPLL_NOCDIV_CSTRACECLK_GET(data32);
+  cfg->mainpll.nocdiv_cspdbgclk  = ALT_CLKMGR_MAINPLL_NOCDIV_CSPDBGCLK_GET(data32);
+  
+  /* Peripheral PLL Clock Source and Counters/Divider
+     ------------------------------------------------
+     perpll.c2 - pll1_emaca_clk 
+  */
+  data32 = alt_read_word (ALT_CLKMGR_PERPLL_CNTR2CLK_ADDR);
+  cfg->perpll.cntr2clk_cnt = ALT_CLKMGR_PERPLL_CNTR2CLK_CNT_GET(data32);
+  cfg->perpll.cntr2clk_src = ALT_CLKMGR_PERPLL_CNTR2CLK_SRC_GET(data32);
+  /* perpll.c3 - pll1_emacb_clk */
+  data32 = alt_read_word (ALT_CLKMGR_PERPLL_CNTR3CLK_ADDR);
+  cfg->perpll.cntr3clk_cnt = ALT_CLKMGR_PERPLL_CNTR3CLK_CNT_GET(data32);
+  cfg->perpll.cntr3clk_src = ALT_CLKMGR_PERPLL_CNTR3CLK_SRC_GET(data32);
+  /* perpll.c4 - pll1_emac_ptp_clk */
+  data32 = alt_read_word (ALT_CLKMGR_PERPLL_CNTR4CLK_ADDR);
+  cfg->perpll.cntr4clk_cnt = ALT_CLKMGR_PERPLL_CNTR4CLK_CNT_GET(data32);
+  cfg->perpll.cntr4clk_src = ALT_CLKMGR_PERPLL_CNTR4CLK_SRC_GET(data32);
+  /* perpll.c5 - pll1_gpio_db_clk */
+  data32 = alt_read_word (ALT_CLKMGR_PERPLL_CNTR5CLK_ADDR);
+  cfg->perpll.cntr5clk_cnt = ALT_CLKMGR_PERPLL_CNTR5CLK_CNT_GET(data32);
+  cfg->perpll.cntr5clk_src = ALT_CLKMGR_PERPLL_CNTR5CLK_SRC_GET(data32);
+  /* perpll.c6 - pll1_sdmmc_clk */
+  data32 = alt_read_word (ALT_CLKMGR_PERPLL_CNTR6CLK_ADDR);
+  cfg->perpll.cntr6clk_cnt = ALT_CLKMGR_PERPLL_CNTR6CLK_CNT_GET(data32);
+  cfg->perpll.cntr6clk_src = ALT_CLKMGR_PERPLL_CNTR6CLK_SRC_GET(data32);
+  /* perpll.c7 - pll1_h2f_user0_clk (A.K.A. s2f_user0_clk) */
+  data32 = alt_read_word (ALT_CLKMGR_PERPLL_CNTR7CLK_ADDR);
+  cfg->perpll.cntr7clk_cnt = ALT_CLKMGR_PERPLL_CNTR7CLK_CNT_GET(data32);
+  /* perpll.c8 - pll1_h2f_user1_clk (A.K.A. s2f_user1_clk) */
+  data32 = alt_read_word (ALT_CLKMGR_PERPLL_CNTR8CLK_ADDR);
+  cfg->perpll.cntr8clk_cnt = ALT_CLKMGR_PERPLL_CNTR8CLK_CNT_GET(data32);
+  cfg->perpll.cntr8clk_src = ALT_CLKMGR_PERPLL_CNTR8CLK_SRC_GET(data32);
+  /* perpll.c9 - pll1_hmc_pll_ref_clk */
+  data32 = alt_read_word (ALT_CLKMGR_PERPLL_CNTR9CLK_ADDR);
+  cfg->perpll.cntr9clk_cnt = ALT_CLKMGR_PERPLL_CNTR9CLK_CNT_GET(data32);
+
+  /* Select EMAC clock source */
+  data32 = alt_read_word (ALT_CLKMGR_PERPLL_EMACCTL_ADDR);
+  cfg->perpll.emacctl_emac0sel = ALT_CLKMGR_PERPLL_EMACCTL_EMAC0SEL_GET(data32);
+  cfg->perpll.emacctl_emac1sel = ALT_CLKMGR_PERPLL_EMACCTL_EMAC1SEL_GET(data32);
+  cfg->perpll.emacctl_emac2sel = ALT_CLKMGR_PERPLL_EMACCTL_EMAC2SEL_GET(data32);
+
+  /* Init GPIO De-bounce Clock Divider */
+  data32 = alt_read_word (ALT_CLKMGR_PERPLL_GPIODIV_ADDR);
+  cfg->perpll.gpiodiv_gpiodbclk = ALT_CLKMGR_PERPLL_GPIODIV_GPIODBCLK_GET(data32);
+
+  return ALT_E_SUCCESS;
+}
+
+ALT_STATUS_CODE
 alt_clkmgr_config(
   CLOCK_MANAGER_CONFIG*  cfg,
   CLOCK_SOURCE_CONFIG* inclks

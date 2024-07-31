@@ -29,11 +29,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  ******************************************************************************/
-#ifdef soc_a10
+
 #ifndef __ALT_CLK_MGR_H__
 #define __ALT_CLK_MGR_H__
 
 #include "../hwlib.h"
+
+#ifdef soc_a10
 
 #ifdef __cplusplus
 extern "C"
@@ -136,6 +138,11 @@ alt_clkmgr_config(
   CLOCK_SOURCE_CONFIG* inclks
   );
 
+ALT_STATUS_CODE
+alt_clkmgr_readConfig(
+  CLOCK_MANAGER_CONFIG*  cfg,
+  CLOCK_SOURCE_CONFIG* inclks
+  );
 
 typedef enum ALT_CLK
 {

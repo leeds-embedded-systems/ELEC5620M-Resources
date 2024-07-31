@@ -39,11 +39,13 @@
  *  Application Programming Interface
  */
 
-#ifdef soc_cv_av
 #ifndef __ALT_CLK_MGR_H__
 #define __ALT_CLK_MGR_H__
 
 #include "../hwlib.h"
+
+#ifdef soc_cv_av
+
 #include "alt_clock_group.h"
 
 #ifdef __cplusplus

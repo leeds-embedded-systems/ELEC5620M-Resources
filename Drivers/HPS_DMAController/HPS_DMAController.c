@@ -147,6 +147,7 @@ static HpsErr_t _HPS_DMA_killThread(PHPSDmaCtx_t ctx, HPSDmaThreadType thread, H
 
 //Check the current state of all channel threads.
 static HpsErr_t _HPS_DMA_checkState(PHPSDmaCtx_t ctx) {
+    HpsErr_t status;
     // If the controller is in reset, return not ready
     if (*HPS_DMA_RSTMGR_DMAREG & HPS_DMA_RSTMGR_DMAMASK) return ERR_NOTREADY;
     // Update state of manager
@@ -161,7 +162,10 @@ static HpsErr_t _HPS_DMA_checkState(PHPSDmaCtx_t ctx) {
     bool allChannelsAborted = true;
     for (unsigned int channel = HPS_DMA_CHANNEL_MIN; channel < HPS_DMA_CHANNEL_COUNT; channel++) {
         // Check the channel state
-        HPSDmaChStatus channelStatus = MaskExtract(HPSDMA_REG_THREADSTAT_CHSTAT(ctx->base, channel), HPSDMA_THREADSTAT_CHSTAT_DMASTAT_MASK, HPSDMA_THREADSTAT_CHSTAT_DMASTAT_OFFS);
+        unsigned int state;
+        status = _HPS_DMA_getState(ctx, HPS_DMA_THREADTYPE_CH, channel, &state);
+        if (ERR_IS_ERROR(status)) return status;
+        HPSDmaChStatus channelStatus = (HPSDmaChStatus)state;
         switch (channelStatus) {
             case HPS_DMA_CHSTAT_STOPPED:
                 // Channel is in stopped state
@@ -185,7 +189,8 @@ static HpsErr_t _HPS_DMA_checkState(PHPSDmaCtx_t ctx) {
         }
         // Check if channel is in a fault state
         if (MaskCheck(channelIsFault, 0x1, channel)) {
-            ctx->channelFault[channel] = HPSDMA_REG_CTRL_CHFAULTTYPE(ctx->base, channel);
+            status = _HPS_DMA_getFault(ctx, HPS_DMA_THREADTYPE_CH, channel, &ctx->channelFault[channel]);
+            if (ERR_IS_ERROR(status)) return status;
             ctx->channelState[channel] = HPS_DMA_STATE_CHNL_ERROR;
         } else {
             ctx->channelFault[channel] = 0;
@@ -532,6 +537,7 @@ HpsErr_t HPS_DMA_initialise(void* base, HPSDmaBurstSize wordSize, PHPSDmaHwInit_
     ctx->dma.abortTransfer = (DmaAbortFunc_t)&HPS_DMA_abort;
     ctx->dma.transferBusy = (DmaStatusFunc_t)&HPS_DMA_busy;
     ctx->dma.transferDone = (DmaStatusFunc_t)&HPS_DMA_completed;
+    ctx->dma.transferError = (DmaStatInfoFunc_t)&HPS_DMA_transferError;
     ctx->dma.transferAborted = (DmaStatusFunc_t)&HPS_DMA_aborted;
     //Initialise hardware
     status = _HPS_DMA_initHardware(ctx, hwInit);
@@ -769,6 +775,26 @@ HpsErr_t HPS_DMA_checkState(PHPSDmaCtx_t ctx, HPSDmaChannelId channel, unsigned 
     return ctx->channelState[channel];
 }
 
+
+// Check if the controller is in an error state
+// - Returns success if not in error state.
+// - Returns ERR_IOFAIL if in an error state
+//    - Optional second argument can be used to read error information.
+// - Non-stateful. Can be used to check at any time.
+HpsErr_t HPS_DMA_transferError(PHPSDmaCtx_t ctx, unsigned int* errorInfo) {
+    HpsErr_t status;
+    for (unsigned int channel = HPS_DMA_CHANNEL_MIN; channel < HPS_DMA_CHANNEL_COUNT; channel++) {
+        // Check the channel state
+        status = HPS_DMA_checkState(ctx, (HPSDmaChannelId)channel, errorInfo);
+        // If a general failure, return the error
+        if (ERR_IS_ERROR(status)) return status;
+        // If controller is in error state, return ERR_IOFAIL
+        if (status == HPS_DMA_STATE_CHNL_ERROR) return ERR_IOFAIL;
+    }
+    // No channels in error state.
+    return ERR_SUCCESS;
+}
+
 // Check if the DMA controller completed
 //  - Calling this function will return TRUE if the DMA has just completed
 //  - It will return ERR_BUSY if (a) the transfer has not completed, or (b) the completion has already been acknowledged
@@ -828,7 +854,7 @@ HpsErr_t HPS_DMA_abort(PHPSDmaCtx_t ctx, DmaAbortType abort) {
     if (abort == DMA_ABORT_NONE) {
         //Clear the abort pending flag, whether or not we have actually competed
         ctx->abortPending = false;
-        //And release the DMA controller from reset in case it was put there af
+        //And release the DMA controller from reset in case it was put there by a forced abort.
         *HPS_DMA_RSTMGR_DMAREG &= ~HPS_DMA_RSTMGR_DMAMASK;
         //Refresh states
         return _HPS_DMA_checkState(ctx);

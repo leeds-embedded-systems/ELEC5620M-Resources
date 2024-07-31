@@ -206,8 +206,15 @@ HpsErr_t HPS_DMA_busyCh(PHPSDmaCtx_t ctx, HPSDmaChannelId channel);
 //     - Use HPSDmaChFault bitmasks to decode fault condition.
 HpsErr_t HPS_DMA_checkState(PHPSDmaCtx_t ctx, HPSDmaChannelId channel, unsigned int* fault);
 
+// Check if the controller is in an error state
+// - Returns success if not in error state.
+// - Returns ERR_IOFAIL if in an error state
+//    - Optional second argument can be used to read error information.
+// - Non-stateful. Can be used to check at any time.
+HpsErr_t HPS_DMA_transferError(PHPSDmaCtx_t ctx, unsigned int* errorInfo);
+
 // Check if the DMA controller completed
-//  - Calling this function will return TRUE if the DMA has just completed
+//  - Calling this function will return success if the DMA has just completed
 //  - It will return ERR_BUSY if (a) the transfer has not completed, or (b) the completion has already been acknowledged
 //  - If ERR_SUCCESS is returned, the done flag will be cleared automatically acknowledging the completion.
 //  - Standard API returns complete once all channels are done. The xxxCh() API can check any channel.

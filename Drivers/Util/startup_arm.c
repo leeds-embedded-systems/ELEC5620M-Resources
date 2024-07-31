@@ -31,6 +31,12 @@
  *
  *      -D IRQ_STACK_SIZE=0x100
  *
+ * To delay startup (to aid in connecting and testing with
+ * the debugger), define the symbol STARTUP_WAIT. This will
+ * compile in a busy loop which halts execution until the
+ * debugger is connected and the variable `enableRun` is set
+ * manually to a non-zero value in the debugger.
+ *
  * Company: University of Leeds
  * Author: T Carpenter
  *
@@ -51,6 +57,7 @@
 #include "Util/bit_helpers.h"
 #include "Util/semihosting.h"
 #include "Util/watchdog.h"
+#include "Util/hwlib/alt_cache.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -179,32 +186,34 @@ void __reset_isr (void) {
 }
 
 // Masks for checking/configuring Co-Proc registers
-#define SCTLR_REQCLR_MASK   ((1 << SYSREG_SCTLR_BIT_A) | (1 << SYSREG_SCTLR_BIT_V))  // Need V and A bits clear
-#define CPACR_REQCLR_MASK   ((1 << SYSREG_CPACR_BIT_D32DIS) | (1 << SYSREG_CPACR_BIT_ASEDIS)) // Must have ASEDIS/D32DIS clear
+#define CPACR_REQCLR_MASK   (_BV(SYSREG_CPACR_BIT_D32DIS) | \
+                             _BV(SYSREG_CPACR_BIT_ASEDIS))    // Must have ASEDIS/D32DIS clear
 #define CPACR_REQSET_MASK   ((SYSREG_CPACR_MASK_NS << SYSREG_CPACR_BIT_CP(10)) | /* Must enable User and Privileged access for CP10 */ \
                              (SYSREG_CPACR_MASK_NS << SYSREG_CPACR_BIT_CP(11)))  /* Must enable User and Privileged access for CP11*/
 
+#ifdef STARTUP_WAIT
+// Defaults to 0 to halt first startup.
+// Can be set to 0 again before resetting PC to entry point to halt again.
+// Set to 1 in the debugger to begin running.
+volatile int enableRun = -1;
+#endif
+
 void __init_stacks (void) {
+#ifdef STARTUP_WAIT
+    // Wait please
+    while(enableRun <= 0) {
+        ResetWDT();
+        // Set enableRun > 0 in the debugger to continue
+    }
+#endif
     // Set the location of the vector table using VBAR register
     __SET_SYSREG(SYSREG_COPROC, VBAR, (unsigned int)&__vector_table);
-    // Enable VBAR and non-aligned access by clearing the V (bit 13) and
-    // A bit (bit 1) of the SCTLR register if set.
     unsigned int sctlr = __GET_SYSREG(SYSREG_COPROC, SCTLR);
-    if (sctlr & SCTLR_REQCLR_MASK) {
-        sctlr &= ~SCTLR_REQCLR_MASK;
-        __SET_SYSREG(SYSREG_COPROC, SCTLR, sctlr);
-    }
-    // Enable access to the CP10/CP11 co-processors. These are used
-    // for some SIMD and VFP type instructions
-    unsigned int cpacr = __GET_SYSREG(SYSREG_COPROC, CPACR);
-    if ((cpacr & CPACR_REQCLR_MASK) || (~cpacr & CPACR_REQSET_MASK)) {
-        cpacr |= CPACR_REQSET_MASK;
-        cpacr &= ~CPACR_REQCLR_MASK;
-        __SET_SYSREG(SYSREG_COPROC, CPACR, cpacr); // Store new access permissions into CPACR
-        __ISB();  // Synchronise any branch prediction so that effects are now visible
-    }
-    // Reset the debugger check flag
-    __semihostingEnabled = SVC_HAS_DEBUGGER;
+    // Enable VBAR and non-aligned access by clearing the V (bit 13)
+    // and A bit (bit 1) of the SCTLR register if set.
+    sctlr = MaskClear(sctlr, 0x1, SYSREG_SCTLR_BIT_A);
+    sctlr = MaskClear(sctlr, 0x1, SYSREG_SCTLR_BIT_V);
+    __SET_SYSREG(SYSREG_COPROC, SCTLR, sctlr);
     // Initialise all IRQ stack pointers
     unsigned int stackTop = IRQ_STACK_TOP;
     // FIQ
@@ -217,11 +226,33 @@ void __init_stacks (void) {
     __INIT_SP_MODE(PROC_STATE_ABT, stackTop - 3*IRQ_STACK_SIZE);
     // Undefined
     __INIT_SP_MODE(PROC_STATE_UND, stackTop - 4*IRQ_STACK_SIZE);
+
+    // Reset the watchdog
+    ResetWDT();
+
+    // Ensure data cache is disabled
+    alt_cache_system_disable();
+
+    // Reset the debugger check flag
+    __semihostingEnabled = SVC_HAS_DEBUGGER;
+
+    // Enable access to the CP10/CP11 co-processors. These are used
+    // for some SIMD and VFP type instructions
+    unsigned int cpacr = __GET_SYSREG(SYSREG_COPROC, CPACR);
+    if ((cpacr & CPACR_REQCLR_MASK) || (~cpacr & CPACR_REQSET_MASK)) {
+        cpacr |= CPACR_REQSET_MASK;
+        cpacr &= ~CPACR_REQCLR_MASK;
+        __SET_SYSREG(SYSREG_COPROC, CPACR, cpacr); // Store new access permissions into CPACR
+    }
+    __ISB();
+
     // If program is compiled targeting a hardware VFP, we must
     // enable the floating point unit to prevent run-time errors
     // in the C standard library.
 #if defined(__ARM_PCS_VFP) || defined(__TARGET_FPU_VFP)
-    __SET_PROC_FPEXC(1 << __PROC_FPEXC_BIT_EN);  // Enable VFP and SIMD extensions
+    unsigned int fpexc = __GET_PROC_FPEXC();
+    fpexc = MaskSet  (fpexc, 0x1, __PROC_FPEXC_BIT_EN);  // Enable VFP and SIMD extensions
+    __SET_PROC_FPEXC(fpexc);
 #endif
     // Launch the C entry point
     __main();

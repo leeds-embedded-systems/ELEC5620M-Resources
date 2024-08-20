@@ -35,6 +35,7 @@
 #define ASSERT_CONCAT(a, b) ASSERT_CONCAT_(a, b)
 #define ct_assert(a,e) enum { ASSERT_CONCAT(assert_sizeof_, a) = 1/((size_t)!!(sizeof(a) == e)) }
 #define ct_assert_define(a,op) enum { assert_define_##a = 1/((size_t)!!(a op)) }
+#define ct_assert_define_range(a,opmin,opmax) enum { assert_define_min_##a = 1/((size_t)!!(a opmin)), assert_define_max_##a = 1/((size_t)!!(a opmax))}
 #define ct_assert_aligned(a,v,s,e) enum { ASSERT_CONCAT(assert_sizeof_, a) = 1/((size_t)!!((v & (s-1)) == e)) }
 
 #endif /* CT_ASSERT_H_ */

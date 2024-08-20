@@ -35,9 +35,9 @@ typedef enum {
 
 
 // IO Function Templates
-typedef HpsErr_t (*I2CWriteFunc_t)(void* ctx, unsigned short address, uint8_t writeData[], unsigned int writeLen);
-typedef HpsErr_t (*I2CReadFunc_t )(void* ctx, unsigned short address, uint8_t writeData[], unsigned int writeLen, uint8_t readData[], unsigned int readLen);
-typedef HpsErr_t    (*I2CAbortFunc_t)(void* ctx, bool isRead);
+typedef HpsErr_t (*I2CWriteFunc_t)(void* ctx, unsigned short address, const uint8_t writeData[], unsigned int writeLen);
+typedef HpsErr_t (*I2CReadFunc_t )(void* ctx, unsigned short address, const uint8_t writeData[], unsigned int writeLen, uint8_t readData[], unsigned int readLen);
+typedef HpsErr_t (*I2CAbortFunc_t)(void* ctx, bool isRead);
 
 // GPIO Context
 typedef struct {
@@ -61,8 +61,8 @@ static inline bool I2C_isInitialised(PI2CCtx_t i2c) {
 //    - Returns ERR_AGAIN if still running
 //    - Positive return value indicates amount of data written.
 //    - Other error codes mean failure
-static inline HpsErr_t I2C_write(PI2CCtx_t i2c, unsigned short address, uint8_t writeData[], unsigned int writeLen) {
-    if (!i2c || !writeData) return ERR_NULLPTR;
+static inline HpsErr_t I2C_write(PI2CCtx_t i2c, unsigned short address, const uint8_t writeData[], unsigned int writeLen) {
+    if (!i2c) return ERR_NULLPTR;
     if (!i2c->write) return ERR_NOSUPPORT;
     return i2c->write(i2c->ctx,address,writeData,writeLen);
 }
@@ -76,8 +76,8 @@ static inline HpsErr_t I2C_write(PI2CCtx_t i2c, unsigned short address, uint8_t 
 //    - Returns ERR_AGAIN if still running
 //    - Positive return value indicates amount of data written.
 //    - Other error codes mean failure
-static inline HpsErr_t I2C_read(PI2CCtx_t i2c, unsigned short address, uint8_t writeData[], unsigned int writeLen, uint8_t readData[], unsigned int readLen) {
-    if (!i2c || !writeData) return ERR_NULLPTR;
+static inline HpsErr_t I2C_read(PI2CCtx_t i2c, unsigned short address, const uint8_t writeData[], unsigned int writeLen, uint8_t readData[], unsigned int readLen) {
+    if (!i2c) return ERR_NULLPTR;
     if (!i2c->read) return ERR_NOSUPPORT;
     return i2c->read(i2c->ctx,address,writeData,writeLen,readData,readLen);
 }

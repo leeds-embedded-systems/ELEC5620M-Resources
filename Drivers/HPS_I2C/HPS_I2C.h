@@ -39,7 +39,11 @@ typedef struct {
     unsigned int writeLength;
     bool readQueued;
     unsigned int readLength;
+    unsigned int abtStatus;
 } HPSI2CCtx_t, *PHPSI2CCtx_t;
+
+//Max space in FIFO for read/write
+#define HPS_I2C_FIFOSPACE 64
 
 //Initialise HPS I2C Controller
 // - For base, DE1-SoC uses 0xFFC04000 for Accelerometer/VGA/Audio/ADC. 0xFFC05000 for LTC 14pin Hdr.
@@ -54,6 +58,11 @@ bool HPS_I2C_isInitialised(PHPSI2CCtx_t ctx);
 // - Aborts read if isRead, otherwise aborts write
 HpsErr_t HPS_I2C_abort(PHPSI2CCtx_t ctx, bool isRead);
 
+//Returns the status flags from last abort
+// - If a read or write returns ERR_ABORTED, this function can be called to check why
+// - Will return the value of the "TX Abort Source" register when the abort happened.
+HpsErr_t HPS_I2C_abortStatus(PHPSI2CCtx_t ctx, unsigned int* abtStat);
+
 //Functions to write data
 // - 7bit address is I2C slave device address
 // - data is data to be sent (8bit, 16bit, 32bit or array respectively)
@@ -64,7 +73,7 @@ HpsErr_t HPS_I2C_abort(PHPSI2CCtx_t ctx, bool isRead);
 HpsErr_t HPS_I2C_write8b (PHPSI2CCtx_t ctx, unsigned short address, unsigned char data);
 HpsErr_t HPS_I2C_write16b(PHPSI2CCtx_t ctx, unsigned short address, unsigned short data);
 HpsErr_t HPS_I2C_write32b(PHPSI2CCtx_t ctx, unsigned short address, unsigned int data);
-HpsErr_t HPS_I2C_write   (PHPSI2CCtx_t ctx, unsigned short address, unsigned char data[], unsigned int length);
+HpsErr_t HPS_I2C_write   (PHPSI2CCtx_t ctx, unsigned short address, const unsigned char data[], unsigned int length);
 
 //Function to read data
 // - 7bit address is I2C slave device address
@@ -75,6 +84,6 @@ HpsErr_t HPS_I2C_write   (PHPSI2CCtx_t ctx, unsigned short address, unsigned cha
 //   - To check if complete, perform an read with writeLen = 0.
 //   - Returns ERR_AGAIN if not yet finished.
 //   - Returns number of bytes written if successful.
-HpsErr_t HPS_I2C_read(PHPSI2CCtx_t ctx, unsigned short address, unsigned char writeData[], unsigned int writeLen, unsigned char readData[], unsigned int readLen);
+HpsErr_t HPS_I2C_read(PHPSI2CCtx_t ctx, unsigned short address, const unsigned char writeData[], unsigned int writeLen, unsigned char readData[], unsigned int readLen);
 
 #endif /* HPS_I2C_H_ */

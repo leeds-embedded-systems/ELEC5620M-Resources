@@ -40,6 +40,7 @@
 #define HPS_I2C_STATUS  (0x70/sizeof(unsigned int))
 #define HPS_I2C_TXFILL  (0x74/sizeof(unsigned int))
 #define HPS_I2C_RXFILL  (0x78/sizeof(unsigned int))
+#define HPS_I2C_TXABTSC (0x80/sizeof(unsigned int))
 
 // IRQ flags
 #define HPS_I2C_IRQFLAG_ACTIVITY 8
@@ -88,7 +89,8 @@ static HpsErr_t _HPS_I2C_writeCheckResult(PHPSI2CCtx_t ctx) {
     }
     //Check for a TX abort IRQ
     if (ctx->base[HPS_I2C_IRQFLG] & _BV(HPS_I2C_IRQFLAG_TXABORT)){
-        ctx->base[HPS_I2C_CLRTXA] = 1; //Clear TX abort flag.
+        ctx->abtStatus = ctx->base[HPS_I2C_TXABTSC];
+        (ctx->base[HPS_I2C_CLRTXA]); //Clear TX abort flag by reading the abort register.
         ctx->writeQueued = false;
         return ERR_ABORTED; //Aborted if any of the abort flags are set.
     }
@@ -208,6 +210,19 @@ HpsErr_t HPS_I2C_abort(PHPSI2CCtx_t ctx, bool isRead) {
     return ERR_SUCCESS;
 }
 
+
+//Returns the status flags from last abort
+// - If a read or write returns ERR_ABORTED, this function can be called to check why
+// - Will return the value of the "TX Abort Source" register when the abort happened.
+HpsErr_t HPS_I2C_abortStatus(PHPSI2CCtx_t ctx, unsigned int* abtStat) {
+    //Ensure context valid and initialised
+    HpsErr_t status = DriverContextValidate(ctx);
+    if (ERR_IS_ERROR(status)) return status;
+    //Return the flags from the last abort
+    if (abtStat) *abtStat = ctx->abtStatus;
+    return ERR_SUCCESS;
+}
+
 //Functions to write data
 // - 7bit address is I2C slave device address
 // - data is data to be sent (8bit, 16bit, 32bit or array respectively)
@@ -230,7 +245,7 @@ HpsErr_t HPS_I2C_write32b(PHPSI2CCtx_t ctx, unsigned short address, unsigned int
     //Send data as array
     return HPS_I2C_write(ctx, address, (unsigned char*)&data, sizeof(data));
 }
-HpsErr_t HPS_I2C_write(PHPSI2CCtx_t ctx, unsigned short address, unsigned char data[], unsigned int length) {
+HpsErr_t HPS_I2C_write(PHPSI2CCtx_t ctx, unsigned short address, const unsigned char data[], unsigned int length) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -244,7 +259,7 @@ HpsErr_t HPS_I2C_write(PHPSI2CCtx_t ctx, unsigned short address, unsigned char d
     //Ensure arguments are valid
     if (!data) return ERR_NULLPTR;   //Empty array
     //Validate that there is space for the write request
-    unsigned int txFifoSpace = (64 - ctx->base[HPS_I2C_TXFILL]);
+    unsigned int txFifoSpace = (HPS_I2C_FIFOSPACE - ctx->base[HPS_I2C_TXFILL]);
     if (length > txFifoSpace) return ERR_NOSPACE; //Transfer too long. FIFO has space for 64 data words. Could add throttling later.
     //If a valid controller and the master is not currently busy, perform our transfer
     ctx->base[HPS_I2C_TAR] = address; //Load the target address as 7bit address in master mode
@@ -273,7 +288,7 @@ HpsErr_t HPS_I2C_write(PHPSI2CCtx_t ctx, unsigned short address, unsigned char d
 //   - To check if complete, perform an read with writeLen = 0.
 //   - Returns ERR_AGAIN if not yet finished.
 //   - Returns number of bytes written if successful.
-HpsErr_t HPS_I2C_read(PHPSI2CCtx_t ctx, unsigned short address, unsigned char writeData[], unsigned int writeLen, unsigned char readData[], unsigned int readLen) {
+HpsErr_t HPS_I2C_read(PHPSI2CCtx_t ctx, unsigned short address, const unsigned char writeData[], unsigned int writeLen, unsigned char readData[], unsigned int readLen) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -288,8 +303,8 @@ HpsErr_t HPS_I2C_read(PHPSI2CCtx_t ctx, unsigned short address, unsigned char wr
     if (!writeData) return ERR_NULLPTR; //Empty array
     //Validate there is space for the read request
     if (!readLen) return ERR_TOOSMALL; //Transfer too short. Must have a read length of at least 1
-    unsigned int txFifoSpace = (64 - ctx->base[HPS_I2C_TXFILL]);
-    unsigned int rxFifoSpace = (64 - ctx->base[HPS_I2C_RXFILL]);
+    unsigned int txFifoSpace = (HPS_I2C_FIFOSPACE - ctx->base[HPS_I2C_TXFILL]);
+    unsigned int rxFifoSpace = (HPS_I2C_FIFOSPACE - ctx->base[HPS_I2C_RXFILL]);
     if ((writeLen + readLen) > txFifoSpace) return ERR_NOSPACE; //Transfer too long. FIFO has space for 64 data/cmd words. Could add throttling later.
     if (readLen > rxFifoSpace) return ERR_NOSPACE;              //Read length is too big for the space in the read FIFO
     //If a valid controller and the master is not currently busy, perform our transfer

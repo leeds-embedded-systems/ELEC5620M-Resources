@@ -41,6 +41,23 @@ typedef enum {
     FPGA_PIO_DIRECTION_BIDIR = _BV(2) | FPGA_PIO_DIRECTION_IN | FPGA_PIO_DIRECTION_OUT,
 } FPGAPIODirectionType;
 
+typedef enum {
+    FPGA_PIO_IRQ_NONE = 0, // Must be 0
+    FPGA_PIO_IRQ_LEVEL,
+    FPGA_PIO_IRQ_EDGE
+} FPGAPIOIrqType;
+// Convert system header CMACRO to PIO irq type
+#define FPGA_PIO_IRQ_TYPE(x) CONCAT(FPGA_PIO_IRQ_,x)
+
+typedef enum {
+    FPGA_PIO_EDGE_NONE    = 0, // Must be 0
+    FPGA_PIO_EDGE_RISING  = _BV(0),
+    FPGA_PIO_EDGE_FALLING = _BV(1),
+    FPGA_PIO_EDGE_ANY     = FPGA_PIO_EDGE_RISING | FPGA_PIO_EDGE_FALLING
+} FPGAPIOEdgeCaptureType;
+// Convert system header CMACRO to PIO edge type
+#define FPGA_PIO_EDGE_TYPE(x) CONCAT(FPGA_PIO_EDGE_,x)
+
 typedef struct {
     //Header
     DrvCtx_t header;

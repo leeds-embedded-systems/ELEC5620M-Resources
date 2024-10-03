@@ -210,7 +210,7 @@ static inline HpsErr_t HPS_DMA_instChDMALDPB(HPSDmaProgram_t* prog, HPSDmaPeriph
 //  - If bodyLen is != 0, indicates the body is already inserted at end of program, in which case it will be
 //    shifted to make room for the loop start instruction.
 #define HPS_DMA_INSTCH_DMALP_LEN                    2
-#define HPS_DMA_INSTCH_DMALP(iter, ctr)             _HPS_DMA_INST_APPEND8(0x20 | HPS_DMA_INST_CNDFLAG(ctr,1)), _HPS_DMA_INST_APPEND8(iter),
+#define HPS_DMA_INSTCH_DMALP(iter, ctr)             _HPS_DMA_INST_APPEND8(0x20 | HPS_DMA_INST_CNDFLAG(ctr,1)), _HPS_DMA_INST_APPEND8(iter - 1),
 static inline HpsErr_t HPS_DMA_instChDMALP(HPSDmaProgram_t* prog, uint8_t iter, HPSDmaTargetCounter ctr, unsigned int bodyLen) {
     // If we have a body, it must be moved to make room for the loop start instruction
     if (MaskCheck(prog->loopCtrUse, 0x1, ctr)) return ERR_INUSE; // Counter is in use, can't use again until loop is ended
@@ -255,8 +255,8 @@ static inline HpsErr_t _HPS_DMA_instChDMALPEND(HPSDmaProgram_t* prog, unsigned i
     if (!prog->loopLvl) return ERR_NOTFOUND; // Not in a loop. Can't terminate.
     if (!forever && !MaskCheck(prog->loopCtrUse, 0x1, ctr)) return ERR_NOTFOUND; // Not forever loop, but requeseted loop counter is uninitialised.
     // Calculate jump required to get to start of loop
-    signed int lpJump = lpStart - prog->len;
-    if ((lpJump < -UINT8_MAX) || (lpJump > 0)) return ERR_OUTRANGE; // Loop body is too big.
+    signed int lpJump = prog->len - lpStart;
+    if ((lpJump > UINT8_MAX) || (lpJump < 0)) return ERR_OUTRANGE; // Loop body is too big.
     HpsErr_t status = _HPS_DMA_COPY(prog, _HPS_DMA_INSTCH_DMALPEND_LEN, _HPS_DMA_INSTCH_DMALPEND(lpJump, forever, ctr, cond));
     // If successful
     if (ERR_IS_SUCCESS(status)) {

@@ -2,11 +2,53 @@
  * HPS DMA Controller Driver
  * -------------------------
  *
- * Driver for configuring an ARM AMBA DMA-330
- * controller as is available in the Cyclone V
- * and Arria 10 HPS bridges.
+ * Driver for configuring an ARM AMBA DMA-330 controller as is
+ * available in the Cyclone V and Arria 10 HPS bridges.
  * 
+ * The simplest use case is a memory to memory transfer with
+ * a read address (source), a write address (destination) and
+ * a length in bytes. The addresses need not be aligned to the
+ * DMA word size, it will automatically optimise the alignment.
+ * This can be performed by calling HPS_DMA_setupTransfer() and
+ * optionally HPS_DMA_startTransfer() if autoStart is set false.
+ * 
+ * The driver supports up to eight DMA channels. By default the
+ * channel used will match the xfer->index parameter modulo 8
+ * to allow programming up to eight DMA transfer chunks.
+ * 
+ * For more complex transfers such as with non-incrementing
+ * source or destination addresses, the HPS_DMA_initDmaChunkParam
+ * API can be used to create a transfer with optional parameters
+ * structure to allow greater configuration.
+ * 
+ * For very short simple transfers (HPS_DMA_setupTransfer with 
+ * xfer->params==NULL and autoStart==true), the driver will
+ * copy using memcpy instead to reduce overhead. A short 
+ * transfer is one with a length less than or equal to wordSize
+ * times HPS_DMA_SHORT_TRANSFER_WORDS. This is by default defined
+ * as 2 words. Globally define HPS_DMA_SHORT_TRANSFER_WORDS to
+ * override this parameter (0 disables memcpy usage). This is
+ * a global define as it is an optimisation based on the DMA
+ * overhead rather than general performance.
  *
+ * The DMA has configurable cache handling capabilites. When
+ * performing a memory to memory transfer, the cache settings
+ * can be specified using the transfer parameters structure. By
+ * default the value is set to Non-Cacheable as this library set
+ * assumes that chacking is disabled. To override this, globally
+ * define HPS_DMA_DEFAULT_MEM_CACHE_VALUE to be one of the values
+ * from the HPSDmaCacheable enum (see HPS_DMAControllerEnums.h).
+ *
+ * 
+ * The DMA controller is a highly configurable device with its
+ * own 8-core processor and custom instruction set to allow all
+ * manner of weird transfers to be performed. This capability can
+ * be leveraged using the HPS_DMA_setupTransferWithProgram API
+ * which allows configuring a transfer with a completely custom
+ * program. The HPS_DMAControllerProgram.h header provides a set
+ * of assembler APIs to build DMA programs.
+ * 
+ * 
  * Company: University of Leeds
  * Author: T Carpenter
  *
@@ -25,6 +67,12 @@
 #include "HPS_DMAControllerRegs.h"
 
 #include "Util/irq.h"
+
+// Can tune based on hardware performance. Set a default
+// if not globally defined.
+#ifndef HPS_DMA_SHORT_TRANSFER_WORDS
+#define HPS_DMA_SHORT_TRANSFER_WORDS 2
+#endif
 
 /*
  * Internal Functions
@@ -252,8 +300,14 @@ static HpsErr_t _HPS_DMA_setupTransfer(PHPSDmaCtx_t ctx, PHPSDmaProgram_t prog, 
     //Ensure the IRQ flag for this channel is clear in case they are enabled.
     HPSDMA_REG_CTRL_IRQCLEAR(ctx->base) = MaskCreate(0x1, params->channel);
     //Start immediately if required.
-    if (autoStart) return _HPS_DMA_startTransferCh(ctx, channel);
-    return ERR_SUCCESS;
+    if (autoStart) {
+        status = _HPS_DMA_startTransferCh(ctx, channel);
+        if (ERR_IS_ERROR(status) && (status != ERR_NOTREADY)) {
+            // Failed to auto-start. Return channel state to idle
+            ctx->channelState[channel] = HPS_DMA_STATE_CHNL_FREE;
+        }
+    }
+    return status;
 }
 
 //Basic copy program
@@ -368,7 +422,12 @@ static HpsErr_t _HPS_DMA_generateMainProgram(PHPSDmaCtx_t ctx, PDmaChunk_t xfer,
     params->_srcBurstSize  = wordSize;
     params->_destBurstSize = wordSize;
     unsigned int wordsRemain = readRemain >> wordSize; // How many of transfers we need.
-    unsigned int burstsRemain = wordsRemain / HPS_DMA_BURSTLEN_MAX; // How many bursts are possible
+    unsigned int burstsRemain;
+    if (wordsRemain <= HPS_DMA_BURSTLEN_MAX) {
+        burstsRemain = 0; // If less than or equal to one burst worth of words remain, skip first burst loop.
+    } else {
+        burstsRemain = wordsRemain / HPS_DMA_BURSTLEN_MAX; // How many bursts are possible
+    }
     // Update remaining counts
     readRemain  &= wordMask; // Mask off all full words as these will be sent in the main body.
     writeRemain &= wordMask; 
@@ -386,11 +445,11 @@ static HpsErr_t _HPS_DMA_generateMainProgram(PHPSDmaCtx_t ctx, PDmaChunk_t xfer,
             unsigned int loopCount = min(burstsRemain, HPS_DMA_LOOP_COUNTER_MAX);
             burstsRemain -= loopCount;
             // Create a looped simple load-store program. Initialise the outer loop counter
-            unsigned int lpStartOuter = prog->len;
             if (ERR_IS_ERROR(HPS_DMA_instChDMALP(prog, loopCount, HPS_DMA_TARGET_CNTR1, 0))) return ERR_NOSPACE;
+            unsigned int lpStartOuter = prog->len;
             // If bursting is disabled, initialise the inner loop counter to make up the burst length.
-            unsigned int lpStartInner = prog->len;
             if (params->burstDisable && ERR_IS_ERROR(HPS_DMA_instChDMALP(prog, HPS_DMA_BURSTLEN_MAX, HPS_DMA_TARGET_CNTR0, 0))) return ERR_NOSPACE;
+            unsigned int lpStartInner = prog->len;
             // Add correct body for mode
             status = _HPS_DMA_loadStoreProgram(ctx, prog, storeZero);
             if (ERR_IS_ERROR(status)) return status;
@@ -411,8 +470,8 @@ static HpsErr_t _HPS_DMA_generateMainProgram(PHPSDmaCtx_t ctx, PDmaChunk_t xfer,
         params->_destBurstLen = params->burstDisable ? 1 : wordsRemain;
         if (ERR_IS_ERROR(HPS_DMA_instChDMAMOVCCR(prog, params))) return ERR_NOSPACE;
         // Create a simple load-store program. If bursting is disabled, initialise the inner loop counter to make up the burst length.
+        if (params->burstDisable && ERR_IS_ERROR(HPS_DMA_instChDMALP(prog, wordsRemain, HPS_DMA_TARGET_CNTR0, 0))) return ERR_NOSPACE;
         unsigned int lpStartInner = prog->len;
-        if (params->burstDisable && ERR_IS_ERROR(HPS_DMA_instChDMALP(prog, HPS_DMA_BURSTLEN_MAX, HPS_DMA_TARGET_CNTR0, 0))) return ERR_NOSPACE;
         // Add correct body for mode
         status = _HPS_DMA_loadStoreProgram(ctx, prog, storeZero);
         if (ERR_IS_ERROR(status)) return status;
@@ -543,7 +602,7 @@ HpsErr_t HPS_DMA_initialise(void* base, HPSDmaBurstSize wordSize, PHPSDmaHwInit_
     status = _HPS_DMA_initHardware(ctx, hwInit);
     if (ERR_IS_ERROR(status)) return DriverContextInitFail(pCtx, status);
     //Initialise default programs
-    status = HPS_DMA_allocateProgram(HPSDMA_REG_DEBUG_INSTR_OFFS + HPSDMA_REG_DEBUG_INSTR_LEN, false, &ctx->dbgProg);
+    status = HPS_DMA_allocateProgram(HPSDMA_REG_DEBUG_INSTR_OFFS + HPSDMA_REG_DEBUG_INSTR_LEN + HPS_DMA_INSTCH_DMAEND_LEN, false, &ctx->dbgProg);
     if (ERR_IS_ERROR(status)) return DriverContextInitFail(pCtx, status);
     //Set a sane default in the debug prog memory.
     HPS_DMA_INIT_DBGPROG(ctx);
@@ -669,12 +728,31 @@ HpsErr_t HPS_DMA_initParameters(PHPSDmaCtx_t ctx, PHPSDmaChCtlParams_t params, H
 //    - Can optionally configure transfer by setting xfer->params to a PHPSDmaChCtlParams_t structure.
 //    - Channel can be changed by setting the params->channel
 //    - For burst transfers, configure params appropriately
+//  - For simple transfers (xfer withot params) and with autoStart==true, if the length is
+//    very short, will use memcpy instead to reduce overhead. If the memcpy approach is used
+//    the API will return ERR_SKIPPED to indicate that it completed without starting a DMA
+//    transfer.
+//  - Will return ERR_SUCCESS if a transfer was successfully queued. Once queued:
+//    - Call HPS_DMA_startTransfer*() if autoStart=false
+//    - Use HPS_DMA_busy*()/HPS_DMA_completed*()/HPS_DMA_aborted*() to check the status of the transfer.
+//    - Use HPS_DMA_abort() to stop any running transfers.
 HpsErr_t HPS_DMA_setupTransfer(PHPSDmaCtx_t ctx, PDmaChunk_t xfer, bool autoStart) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
-    //Check if we have our optional parameters and if not make a default
+    //Check if we have been given optional parameters
     if (!xfer->params) {
+        //Check if auto-start is requested, and there is only a small number of words to transfer
+#if (HPS_DMA_SHORT_TRANSFER_WORDS > 0)
+        if (autoStart && (xfer->length <= (HPS_DMA_SHORT_TRANSFER_WORDS * ctx->wordBytes))) {
+            //If so, the overhead of setting up the DMA to perform a simple transfer
+            //is not worth it, we might as well just copy manually.
+            if ((xfer->readAddr > UINT32_MAX) || (xfer->writeAddr > UINT32_MAX)) return ERR_BEYONDEND;
+            memcpy((void*)xfer->writeAddr, (void*)xfer->readAddr, xfer->length);
+            return ERR_SKIPPED;
+        }
+#endif
+        //Make default parameter structure
         status = HPS_DMA_initDmaChunkParam(ctx, xfer);
         if (ERR_IS_ERROR(status)) return status;
     }
@@ -843,9 +921,9 @@ HpsErr_t HPS_DMA_completedCh(PHPSDmaCtx_t ctx, HPSDmaChannelId channel) {
 
 // Issue an abort request to the DMA controller
 //  - This will abort all channels.
-//  - NOABORT clears the abort request (whether or not it has actually completed). Must be called after FORCE abort to release from reset.
-//  - ABORT requests the controller stop once any outstanding bus requests are handled
-//  - FORCE stops immediately which may require a wider reset.
+//  - DMA_ABORT_NONE clears the abort request (whether or not it has actually completed). Must be called after DMA_ABORT_FORCE abort to release from reset.
+//  - DMA_ABORT_SAFE requests the controller stop once any outstanding bus requests are handled
+//  - DMA_ABORT_FORCE stops immediately which may require a wider reset.
 HpsErr_t HPS_DMA_abort(PHPSDmaCtx_t ctx, DmaAbortType abort) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);

@@ -69,20 +69,27 @@ typedef enum {
     HPS_DMA_PROT_DEFAULT       = HPS_DMA_PROT_DAT_SEC_NPVLG
 } HPDDmaProtection;
 
+
 typedef enum {
     HPS_DMA_CACHE_NALLC_NCACH_NBF = 0,                        // Non-Allocatable, Non-Cachable, Non-Bufferable
     HPS_DMA_CACHE_NALLC_NCACH_BUF =                   _BV(0), // Non-Allocatable, Non-Cachable, Bufferable
     HPS_DMA_CACHE_NALLC_CACHE_NBF =          _BV(1)         , // Non-Allocatable, Cachable,     Non-Bufferable
     HPS_DMA_CACHE_NALLC_CACHE_BUF =          _BV(1) | _BV(0), // Non-Allocatable, Cachable,     Bufferable
-    HPS_DMA_CACHE_ALLOC_NCACH_NBF = _BV(2)                  , // Allocatable,     Non-Cachable, Non-Bufferable
-    HPS_DMA_CACHE_ALLOC_NCACH_BUF = _BV(2)          | _BV(0), // Allocatable,     Non-Cachable, Bufferable
+  //HPS_DMA_CACHE_ALLOC_NCACH_NBF = _BV(2)                  , // Allocatable,     Non-Cachable, Non-Bufferable - Not allowed by AXI spec
+  //HPS_DMA_CACHE_ALLOC_NCACH_BUF = _BV(2)          | _BV(0), // Allocatable,     Non-Cachable, Bufferable     - Not allowed by AXI spec
     HPS_DMA_CACHE_ALLOC_CACHE_NBF = _BV(2) | _BV(1)         , // Allocatable,     Cachable,     Non-Bufferable
-    HPS_DMA_CACHE_ALLOC_CACHE_BUF = _BV(2) | _BV(1) | _BV(0), // Allocatable,     Cachable,     Bufferable
-    // Default memory access setting:
-    HPS_DMA_CACHE_DEFAULT_MEM     = HPS_DMA_CACHE_ALLOC_CACHE_BUF,
-    // Default register or zero access setting:
-    HPS_DMA_CACHE_DEFAULT_REG     = HPS_DMA_CACHE_NALLC_NCACH_NBF
+    HPS_DMA_CACHE_ALLOC_CACHE_BUF = _BV(2) | _BV(1) | _BV(0)  // Allocatable,     Cachable,     Bufferable
 } HPSDmaCacheable;
+
+// Default memory access setting:
+#ifndef HPS_DMA_CACHE_DEFAULT_MEM
+#define HPS_DMA_CACHE_DEFAULT_MEM HPS_DMA_CACHE_ALLOC_CACHE_BUF
+#endif
+
+// Default register or zero access setting:
+#ifndef HPS_DMA_CACHE_DEFAULT_REG
+#define HPS_DMA_CACHE_DEFAULT_REG HPS_DMA_CACHE_NALLC_NCACH_NBF
+#endif
 
 typedef enum {
     HPS_DMA_THREADTYPE_MGR = 0,

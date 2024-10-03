@@ -2,9 +2,50 @@
  * HPS DMA Controller Driver
  * -------------------------
  *
- * Driver for configuring an ARM AMBA DMA-330
- * controller as is available in the Cyclone V
- * and Arria 10 HPS bridges.
+ * Driver for configuring an ARM AMBA DMA-330 controller as is
+ * available in the Cyclone V and Arria 10 HPS bridges.
+ * 
+ * The simplest use case is a memory to memory transfer with
+ * a read address (source), a write address (destination) and
+ * a length in bytes. The addresses need not be aligned to the
+ * DMA word size, it will automatically optimise the alignment.
+ * This can be performed by calling HPS_DMA_setupTransfer() and
+ * optionally HPS_DMA_startTransfer() if autoStart is set false.
+ * 
+ * The driver supports up to eight DMA channels. By default the
+ * channel used will match the xfer->index parameter modulo 8
+ * to allow programming up to eight DMA transfer chunks.
+ * 
+ * For more complex transfers such as with non-incrementing
+ * source or destination addresses, the HPS_DMA_initDmaChunkParam
+ * API can be used to create a transfer with optional parameters
+ * structure to allow greater configuration.
+ * 
+ * For very short simple transfers (HPS_DMA_setupTransfer with 
+ * xfer->params==NULL and autoStart==true), the driver will
+ * copy using memcpy instead to reduce overhead. A short 
+ * transfer is one with a length less than or equal to wordSize
+ * times HPS_DMA_SHORT_TRANSFER_WORDS. This is by default defined
+ * as 2 words. Globally define HPS_DMA_SHORT_TRANSFER_WORDS to
+ * override this parameter (0 disables memcpy usage). This is
+ * a global define as it is an optimisation based on the DMA
+ * overhead rather than general performance.
+ *
+ * The DMA has configurable cache handling capabilites. When
+ * performing a memory to memory transfer, the cache settings
+ * can be specified using the transfer parameters structure. By
+ * default the value is set to Non-Cacheable as this library set
+ * assumes that chacking is disabled. To override this, globally
+ * define HPS_DMA_DEFAULT_MEM_CACHE_VALUE to be one of the values
+ * from the HPSDmaCacheable enum (see HPS_DMAControllerEnums.h).
+ * 
+ * The DMA controller is a highly configurable device with its
+ * own 8-core processor and custom instruction set to allow all
+ * manner of weird transfers to be performed. This capability can
+ * be leveraged using the HPS_DMA_setupTransferWithProgram API
+ * which allows configuring a transfer with a completely custom
+ * program. The HPS_DMAControllerProgram.h header provides a set
+ * of assembler APIs to build DMA programs.
  * 
  *
  * Company: University of Leeds
@@ -178,6 +219,14 @@ HpsErr_t HPS_DMA_initParameters(PHPSDmaCtx_t ctx, PHPSDmaChCtlParams_t param, HP
 //    - Can optionally configure transfer by setting xfer->params to a PHPSDmaChCtlParams_t structure.
 //    - Channel can be changed by setting the params->channel
 //    - For burst transfers, configure params appropriately
+//  - For simple transfers (xfer withot params) and with autoStart==true, if the length is
+//    very short, will use memcpy instead to reduce overhead. If the memcpy approach is used
+//    the API will return ERR_SKIPPED to indicate that it completed without starting a DMA
+//    transfer.
+//  - Will return ERR_SUCCESS if a transfer was successfully queued. Once queued:
+//    - Call HPS_DMA_startTransfer*() if autoStart=false
+//    - Use HPS_DMA_busy*()/HPS_DMA_completed*()/HPS_DMA_aborted*() to check the status of the transfer.
+//    - Use HPS_DMA_abort() to stop any running transfers.
 HpsErr_t HPS_DMA_setupTransfer(PHPSDmaCtx_t ctx, PDmaChunk_t xfer, bool autoStart);
 
 // Configure a DMA transfer with a custom program
@@ -223,9 +272,9 @@ HpsErr_t HPS_DMA_completedCh(PHPSDmaCtx_t ctx, HPSDmaChannelId channel);
 
 // Issue an abort request to the DMA controller
 //  - This will abort all channels.
-//  - NOABORT clears the abort request (whether or not it has actually completed). Must be called after FORCE abort to release from reset.
-//  - ABORT requests the controller stop once any outstanding bus requests are handled
-//  - FORCE stops immediately which may require a wider reset.
+//  - DMA_ABORT_NONE clears the abort request (whether or not it has actually completed). Must be called after DMA_ABORT_FORCE abort to release from reset.
+//  - DMA_ABORT_SAFE requests the controller stop once any outstanding bus requests are handled
+//  - DMA_ABORT_FORCE stops immediately which may require a wider reset.
 HpsErr_t HPS_DMA_abort(PHPSDmaCtx_t ctx, DmaAbortType abort);
 
 // Check if the DMA controller aborted

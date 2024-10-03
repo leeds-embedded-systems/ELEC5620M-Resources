@@ -102,7 +102,7 @@ static inline unsigned int __clz_failback(unsigned int x) {
 #define MaskExtract(      val, mask, ofs) (((val) >> (ofs)) & (mask))
 // - Shift and mask a signed field from a value
 #define MaskExtractSigned(val, mask, ofs) ((MaskExtract(val, mask, ofs) ^ (((mask) + 1)/2)) - (((mask) + 1)/2))
-// - Mask a value to perform logical checks
+// - Applies mask to value, e.g. to perform logical checks
 #define MaskCheck(        val, mask, ofs) ((val) & ((mask) << (ofs)))
 // - Create a bitmask selecting only bits in a field.
 #define MaskCreate(            mask, ofs) ((mask) << (ofs))
@@ -153,6 +153,18 @@ static inline void* alignPointer(const void* ptr, unsigned int size, bool toNext
 // - Returns -1 if no bits set
 static inline signed int findHighestBit(unsigned int x) {
     return 31-__clz(x);
+}
+
+// Find the least significant set bit.
+// - Returns the index of the lowest set bit
+// - Returns -1 if no bits set
+static inline signed int findLowestBit(unsigned int x) {
+    //Skip if no 1's
+    if (!x) return -1;
+    //Flip bit order so that we can look for first MSB
+    x = __rbit(x);
+    //Then count how many leading zeros there are (indicates the position of the first 1)
+    return __clz(x);
 }
 
 // Performs the hamming count on a 32bit integer (counts ones)

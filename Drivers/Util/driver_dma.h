@@ -98,6 +98,7 @@ static inline HpsErr_t DMA_initOptionalTransferParams(PDmaCtx_t dma, PDmaChunk_t
 
 // Configure a DMA transfer from the DmaChunk structure
 // - Can optionally request the transfer be started immediately
+// - Returns ERR_SKIPPED if transfer was completed immediately before returning.
 // - Returns ERR_BUSY if not enough space to start a new Xfer
 static inline HpsErr_t DMA_setupTransfer(PDmaCtx_t dma, PDmaChunk_t xfer, bool autoStart) {
     if (!dma) return ERR_NULLPTR;
@@ -115,7 +116,8 @@ static inline HpsErr_t DMA_startTransfer(PDmaCtx_t dma) {
 
 // Abort the current transfer
 // - Allows setting or clearing an abort flag.
-// - Check transferAborted to find out when abort is done. 
+// - Returns ERR_ABORTED if aborted immediately.
+// - Otherwise call transferAborted to find out when abort is done. 
 static inline HpsErr_t DMA_abortTransfer(PDmaCtx_t dma, DmaAbortType abort) {
     if (!dma) return ERR_NULLPTR;
     if (!dma->abortTransfer) return ERR_NOSUPPORT;

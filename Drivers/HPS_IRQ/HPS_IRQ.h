@@ -98,6 +98,7 @@
  *
  * Date       | Changes
  * -----------+----------------------------------
+ * 12/10/2024 | Add null-pointer checks to IRQ handler
  * 01/04/2024 | Add details about software interrupt calling convention.
  * 21/02/2024 | Fix software interrupt handler.
  * 31/01/2024 | Correct ISR attributes

@@ -96,6 +96,7 @@
  *
  * Date       | Changes
  * -----------+----------------------------------
+ * 12/10/2024 | Add null-pointer checks to IRQ handler
  * 01/04/2024 | Add details about software interrupt calling convention.
  * 21/02/2024 | Fix software interrupt handler.
  * 31/01/2024 | Correct ISR attributes
@@ -212,14 +213,21 @@ __irq void __irq_isr (void) {
     // Check to see if we have a registered handler
     unsigned int handler;
     for (handler = 0; handler < __isr_handler_count; handler++) {
-        if (int_ID == __isr_handlers[handler].interruptID) {
-            //If we have found a handler for this ID
-            //Backup our CPSR to the SPSR as the handler will clobber CPSR
-            //and restore from SPSR afterwards
+        IsrHandler_t* ctx = &__isr_handlers[handler];
+        if (!ctx->enabled) continue; // Skip disabled handler entries
+        if (int_ID == ctx->interruptID) {
+            // If we have found a handler for this ID
+            // Backup our CPSR to the SPSR as the handler will clobber CPSR
+            // and restore from SPSR afterwards
             __SET_PROC_SPSR(__GET_PROC_CPSR());
-            //Call it and check status
-            __isr_handlers[handler].handler(
-                int_ID, __isr_handlers[handler].param, &isr_handled);
+            // Check if we have a handler function
+            if (ctx->handler) {
+                // If so, call it and check status if we have a handler
+                ctx->handler(int_ID, ctx->param, &isr_handled);   
+            } else {
+                // Otherwise assume handled
+                isr_handled = true;
+            }
             break;
         }
     }
@@ -323,6 +331,9 @@ static void _HPS_IRQ_doUnregister(unsigned int handler, HPSIRQSource interruptID
 
 //Initialise HPS IRQ Driver
 HpsErr_t HPS_IRQ_initialise( bool enableIrqs, IsrHandlerFunc_t userUnhandledIRQCallback ) {
+    // Don't allow reinitialisation else we leak memory.
+    if (__isInitialised) return ERR_INUSE;
+    
     // Disable IRQ interrupts before configuring GIC
     __disable_irq();
 

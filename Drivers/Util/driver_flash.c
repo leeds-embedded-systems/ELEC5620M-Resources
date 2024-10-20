@@ -12,6 +12,7 @@
  *
  * Date       | Changes
  * -----------+----------------------------------
+ * 12/10/2024 | Add read-only/write-protect APIs.
  * 01/01/2024 | Creation of driver.
  */
 

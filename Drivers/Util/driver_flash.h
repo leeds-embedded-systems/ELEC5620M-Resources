@@ -12,6 +12,7 @@
  *
  * Date       | Changes
  * -----------+----------------------------------
+ * 12/10/2024 | Add read-only/write-protect APIs.
  * 01/01/2024 | Creation of driver.
  */
 
@@ -57,6 +58,8 @@ typedef struct {
     HpsErr_t initStatus;
     unsigned int wordSize;
     unsigned int blockSize;
+    bool readOnly;
+    bool writeProt;
     FlashType type;
     // Driver Function Pointers
     FlashReadFunc_t  read;
@@ -73,6 +76,28 @@ static inline bool FLASH_isInitialised(PFlashCtx_t flash) {
 
 // Returns true if the specified address range is within the specified region
 bool FLASH_rangeInRegion(PFlashRegion_t region, unsigned int address, unsigned int length);
+
+// Check if memory is read-only
+// - Returns ERR_WRONGMODE if read-only, else returns success
+static inline HpsErr_t FLASH_checkReadOnly(PFlashCtx_t flash) {
+    if (!flash) return ERR_NULLPTR;
+    return flash->readOnly ? ERR_WRONGMODE : ERR_SUCCESS;
+}
+
+// Check if memory is write-protected
+// - Returns ERR_WRITEPROT if write-protected, else returns success
+static inline HpsErr_t FLASH_checkWriteProtect(PFlashCtx_t flash) {
+    if (!flash) return ERR_NULLPTR;
+    return flash->readOnly ? ERR_WRITEPROT : ERR_SUCCESS;
+}
+
+// Set whether memory is write-protected
+// - modifies flag then returns success
+static inline HpsErr_t FLASH_modifyWriteProtect(PFlashCtx_t flash, bool writeProtect) {
+    if (!flash) return ERR_NULLPTR;
+    flash->writeProt = writeProtect;
+    return ERR_SUCCESS;
+}
 
 // Check if an address or length is aligned to the flash word size
 static inline HpsErr_t FLASH_checkAlignment(PFlashCtx_t flash, unsigned int val) {

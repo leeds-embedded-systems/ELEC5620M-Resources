@@ -10,8 +10,8 @@
 #else
 #include "Util/hwlib/cv/socal/hps.h"
 #endif
-#include "diskio.h"
-#include "ff.h"         /* Declarations of sector size */
+#include "ff.h"			/* Obtains integer types */
+#include "diskio.h"		/* Declarations of disk functions */
 // Minimal Altera HWLib for SD-Card (hwlib/)
 #include "Util/hwlib/alt_sdmmc.h"
 #include <stdlib.h>
@@ -39,6 +39,25 @@ PARTITION VolToPart[] __attribute__((weak)) = {};
     #define FF_SDMMC_BUS_WIDTH ALT_SDMMC_BUS_WIDTH_4
     #endif
 #endif
+
+
+
+/*-----------------------------------------------------------------------*/
+/* Get FAT time - weakly linked default can be overridden                */
+/*-----------------------------------------------------------------------*/
+
+#include "Util/compile_time.h"
+
+/* Get current time */
+DWORD get_fattime (void) __attribute__((weak));
+DWORD get_fattime (void) {
+    return (DWORD)(__TIME_YEARS__ - 1980) << 25 |
+           (DWORD)__TIME_MONTH__          << 21 |
+           (DWORD)__TIME_DAYS__           << 16 |
+           (DWORD)__TIME_HOURS__          << 11 |
+           (DWORD)__TIME_MINUTES__        << 5  |
+           (DWORD)__TIME_SECONDS__        >> 1;
+}
 
 /*-----------------------------------------------------------------------*/
 /* Global Variables                                                      */

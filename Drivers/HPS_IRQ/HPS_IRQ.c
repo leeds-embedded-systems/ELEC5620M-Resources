@@ -100,7 +100,7 @@
  * 21/02/2024 | Fix software interrupt handler.
  * 31/01/2024 | Correct ISR attributes
  * 22/01/2024 | Split Vector table to Util/startup_arm.c
- * 14/01/2024 | Make use of Util/lowlevel.h
+ * 14/01/2024 | Make use of Util/lowlevel_arm.h
  *            | Ensure data alignment checks start disabled in case
  *            | preloader enables them. If this flag is set, then
  *            | data abort would occur if -mno-unaligned-access not used.
@@ -117,7 +117,7 @@
 
 #include "HPS_IRQ.h"
 
-#include "Util/lowlevel.h"
+#include "Util/lowlevel_arm.h"
 
 #include <stdio.h>
 

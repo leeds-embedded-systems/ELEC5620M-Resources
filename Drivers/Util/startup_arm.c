@@ -52,7 +52,7 @@
 
 #ifdef __arm__
 
-#include "Util/lowlevel.h"
+#include "Util/lowlevel_arm.h"
 #include "Util/macros.h"
 #include "Util/bit_helpers.h"
 #include "Util/semihosting.h"

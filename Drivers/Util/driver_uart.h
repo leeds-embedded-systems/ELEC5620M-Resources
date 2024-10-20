@@ -80,7 +80,7 @@ enum {
 typedef HpsErr_t (*UartRxFunc_t)       (void* ctx, uint8_t data[], uint8_t length);
 typedef HpsErr_t (*UartTxFunc_t)       (void* ctx, const uint8_t data[], uint8_t length);
 typedef HpsErr_t (*UartFifoSpaceFunc_t)(void* ctx);
-typedef HpsErr_t    (*UartFifoClearFunc_t)(void* ctx, bool tx, bool rx);
+typedef HpsErr_t (*UartFifoClearFunc_t)(void* ctx, bool tx, bool rx);
 typedef HpsErr_t (*UartStatusFunc_t)   (void* ctx, bool clearFlag);
 
 // GPIO Context

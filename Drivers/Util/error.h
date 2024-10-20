@@ -91,7 +91,7 @@ typedef signed int HpsErr_t;
 //  - Mask using the following macro if this cannot be guaranteed.
 #define UNS_TO_SUCCESS(val)   (HpsErr_t)((val) & INT32_MAX)
 
-// Signed-magnitude HpsErr_t value van be used to return positive value as negative error code
+// Signed-magnitude HpsErr_t value can be used to return positive value as negative error code
 //  - The maximum value allowed is 0x3FFFFFFF (2^30 - 1)
 #define ERR_SIGNMAG_MASK (0x3FFFFFFFU)
 // Check if error code is sign-magnitude value.

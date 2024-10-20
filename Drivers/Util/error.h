@@ -95,7 +95,7 @@ typedef signed int HpsErr_t;
 //  - The maximum value allowed is 0x3FFFFFFF (2^30 - 1)
 #define ERR_SIGNMAG_MASK (0x3FFFFFFFU)
 // Check if error code is sign-magnitude value.
-#define ERR_IS_SIGNMAGERR(code)             ((((unsigned int)(code)) & ~ERR_SIGNMAG_MASK) == ~ERR_SIGNMAG_MASK)
+#define ERR_IS_SIGNMAGERR(code)             ((((unsigned int)(code)) & ~ERR_SIGNMAG_MASK) == INT32_MIN)
 // Encode a positive value as a sign-magnitude error code.
 #define TO_SIGNMAG_ERR(val)   (HpsErr_t)((((unsigned int)( val)) &  ERR_SIGNMAG_MASK) |   INT32_MIN       )
 // Extract value from sign-magnitude error code.

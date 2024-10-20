@@ -18,6 +18,7 @@
  *
  * Date       | Changes
  * -----------+----------------------------------
+ * 12/10/2024 | Add Debug Print Disable
  * 29/12/2023 | Creation of driver
  *
  */

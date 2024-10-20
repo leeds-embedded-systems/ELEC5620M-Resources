@@ -12,11 +12,24 @@
  *
  * Date       | Changes
  * -----------+----------------------------------
+ * 12/10/2024 | Add support for Nios2
  * 31/01/2024 | Creation of Header
  */
 
 #ifndef IRQ_ATTR_H_
 #define IRQ_ATTR_H_
+
+#if defined(__NIOS2__)
+// NIOS2 Specifics
+
+// Generic Interrupt Handler
+#define __isr
+// Specific Source Handler
+#define __irq
+
+
+#elif defined(__arm__)
+// ARM Specifics
 
 // Generic Interrupt Handler
 #define __isr   __attribute__((interrupt))
@@ -28,5 +41,7 @@
 #define __swi   __attribute__((interrupt("SWI")))
 #define __abort __attribute__((interrupt("ABORT")))
 #define __undef __attribute__((interrupt("UNDEF")))
+
+#endif
 
 #endif /* IRQ_ATTR_H_ */

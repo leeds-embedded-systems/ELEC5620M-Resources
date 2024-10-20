@@ -12,6 +12,7 @@
  *
  * Date       | Changes
  * -----------+----------------------------------
+ * 12/10/2024 | Add support for Nios2
  * 09/04/2024 | Creation of header
  * 
  */
@@ -28,8 +29,8 @@
 // ARM uses HPS IRQ Header
 #include "HPS_IRQ/HPS_IRQ.h"
 #elif defined(__NIOS2__)
-// Nios not implemented yet
-#warning Nios IRQs not yet supported.
+// Nios IRQ Header
+#include "NIOS_IRQ/NIOS_IRQ.h"
 #endif
 
 //Globally enable or disable interrupts
@@ -45,7 +46,7 @@ static inline HpsErr_t IRQ_globalEnable(bool enable) {
 #if defined(__arm__)
     return HPS_IRQ_globalEnable(enable);
 #elif defined(__NIOS2__)
-    return ERR_SUCCESS; //TODO: Add IRQ handling for Nios
+    return NIOS_IRQ_globalEnable(enable);
 #else
     return ERR_SUCCESS;
 #endif

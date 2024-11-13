@@ -41,6 +41,7 @@
 #include "a10/socal/hps.h"
 #include "a10/socal/socal.h"
 #else
+#include "cv/alt_int_device.h"
 #include "cv/socal/alt_sysmgr.h"
 #include "cv/socal/hps.h"
 #include "cv/socal/socal.h"
@@ -1662,8 +1663,13 @@ ALT_STATUS_CODE alt_cache_l2_int_status_clear(uint32_t interrupt)
     alt_write_word(ALT_MPUL2_INT_CLEAR_ADDR, interrupt);
     return ALT_E_SUCCESS;
 }
-
 #if defined(soc_cv_av)
+
+__attribute__((weak)) ALT_STATUS_CODE alt_int_dist_pending_clear(ALT_INT_INTERRUPT_t int_id)
+{
+    return ALT_E_SUCCESS;
+}
+
 static __inline uint32_t get_current_cpu_num(void)
 {
     uint32_t affinity = 0;

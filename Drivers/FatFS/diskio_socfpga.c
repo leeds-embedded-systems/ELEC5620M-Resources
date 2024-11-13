@@ -445,10 +445,10 @@ DRESULT disk_ioctl (
         case CTRL_SYNC:
             return RES_OK;
         case GET_SECTOR_COUNT:
-            *((DWORD*)buff) = Sdmmc_Device_Size / Sdmmc_Sector_Size;
+            *(LBA_t*)buff = Sdmmc_Device_Size / Sdmmc_Sector_Size;
             return RES_OK;
         case GET_SECTOR_SIZE:
-            *(DWORD*)buff = Sdmmc_Sector_Size;
+            *(WORD*)buff = Sdmmc_Sector_Size;
             return RES_OK;
         case GET_BLOCK_SIZE:
             *(DWORD*)buff = Sdmmc_Block_Size;

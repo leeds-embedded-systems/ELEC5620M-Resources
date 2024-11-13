@@ -1,0 +1,27 @@
+; On-Chip RAM starts at a base of 0xFFFF0000 and runs for 64kB
+; User code must fit within the On-Chip RAM load region. 
+; An Error will be given if total usage exceeds memory.
+OCRAM 0xFFFF0000 0x10000
+{
+    ; Application code starts at bottom of On-Chip RAM
+    APP_CODE +0
+    {   
+        *(vector_table,+FIRST) ; Vector Table must come first.
+        *(+RO)
+    }
+    ; RW/ZI data starts after APP_CODE. NOCOMPRESS means that the data is
+    ; uncompressed which is vital to allow warm reset to succeed
+    APP_DATA +0 NOCOMPRESS
+    {
+        *(+RW,+ZI)
+    }
+    ; Stack and heap comes after and is empty. 
+    ; We can align to a boundary using AlignExpr (16kB in this example)
+    ; Heap grows up, stack grows down.
+    ARM_LIB_STACKHEAP AlignExpr(+0,0x04000) EMPTY 0x3B00  
+    ; IRQ routine stacks come immediately after the stack/heap
+    ; (five 0x100 regions, one for each irq processor mode)
+    IRQ_STACKS ImageLimit(ARM_LIB_STACKHEAP) EMPTY 0x500
+    {}
+}
+

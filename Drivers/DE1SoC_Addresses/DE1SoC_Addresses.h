@@ -12,7 +12,8 @@
  * Change Log:
  *
  * Date       | Changes
- * -----------+----------------------------------
+ * -----------+--------------------------------------
+ * 12/11/2024 | Update for 2024/25 Leeds SoC Computer
  * 10/02/2024 | Create Header
  */
 
@@ -21,11 +22,12 @@
 
 // List of Common Addresses
 //      Peripheral             Base Address                     Description                                           Driver
-#define LSC_BASE_DDR_RAM       ((unsigned char*)0x01000040)   // 1GB DDR3 Memory 
-#define LSC_BASE_FPGA_OCRAM0   ((unsigned char*)0xC0000000)   // 64kB FPGA On-chip SRAM for ARM Instructions
-#define LSC_BASE_FPGA_SDRAM    ((unsigned char*)0xC4000000)   // 64MB DDR SDRAM (Untested)
-#define LSC_BASE_FPGA_OCRAM1   ((unsigned char*)0xC8000000)   // 16kB FPGA On-chip SRAM for ARM Stack/Heap
+#define LSC_BASE_BOOTLDR_RAM   ((unsigned char*)0x01000040)   // ~16MB Reserved DDR RAM for bootloader
+#define LSC_BASE_DDR_RAM       ((unsigned char*)0x02000040)   // ~1GB DDR3 Memory
+#define LSC_BASE_FPGA_SDRAM    ((unsigned char*)0xC0000000)   // 64MB DDR SDRAM (Untested)
+#define LSC_BASE_FPGA_OCRAM    ((unsigned char*)0xC8000000)   // 256kB FPGA On-chip SRAM
 #define LSC_BASE_VGA_CHAR_BUFF ((unsigned char*)0xC9000000)   // VGA Character Buffer
+#define LSC_BASE_BOOTLDR_CACHE ((unsigned char*)0xCA000000)   // 64kB Reserved On-chip SRAM for bootloader
 #define LSC_BASE_RED_LEDS      ((unsigned char*)0xFF200000)   // 10x Red LEDs                                          [FPGA_PIO]
 #define LSC_BASE_7SEG_0to3     ((unsigned char*)0xFF200020)   // 7-segment HEX[3], HEX[2], HEX[1] & HEX[0] Displays    [FPGA_PIO]
 #define LSC_BASE_7SEG_4to5     ((unsigned char*)0xFF200030)   // 7-segment HEX[5] & HEX[4] Displays                    [FPGA_PIO]
@@ -56,6 +58,14 @@
 #define LSC_BASE_PRIV_TIM      ((unsigned char*)0xFFFEC600)   // ARM A9 Private Timer
 #define LSC_BASE_PROC_OCRAM    ((unsigned char*)0xFFFF0000)   // ARM A9 64kB On-chip Memory used by Preloader
 
+
+// List of memory sizes
+#define LSC_SIZE_DDR_RAM       0xBDFFFFC0U
+#define LSC_SIZE_FPGA_SDRAM    0x04000000U
+#define LSC_SIZE_FPGA_OCRAM    0x00040000U
+#define LSC_SIZE_BOOTLDR_CACHE 0x00010000U
+#define LSC_SIZE_PROC_OCRAM    0x00010000U
+
 // Bitmap of used pins in LSC_BASE_ARM_GPIO
 #define ARM_GPIO_HPS_KEY          (1 << 25) //GPIO54. HPS Key (Bottom Right Corner)
 #define ARM_GPIO_HPS_LED          (1 << 24) //GPIO53. HPS LED (Bottom Right Corner)
@@ -64,6 +74,12 @@
 
 // Pin directions for ARM GPIO (pins which are outputs)
 #define ARM_GPIO_DIR              (ARM_GPIO_HPS_LED | ARM_GPIO_I2C_GENERAL_MUX | ARM_GPIO_I2C_LT14HDR_MUX)
+#define ARM_GPIO_POLARITY         (ARM_GPIO_HPS_KEY)  // Key is active low, so invert for consistency
+
+// Masks for Keys/Switches
+#define LSC_KEYS_MASK             0xFU
+#define LSC_SLIDE_SWITCH_MASK     0x3FFU
+#define LSC_RED_LEDS_MASK         0x3FFU
 
 // Init values for FPGA_PIO driver
 //   e.g. FPGA_PIO_initialise(LSC_BASE_7SEG_0to3, LSC_CONFIG_7SEG, &drivers.hex0to3);

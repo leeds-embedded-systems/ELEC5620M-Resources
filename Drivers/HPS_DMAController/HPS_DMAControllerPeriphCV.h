@@ -131,7 +131,7 @@ static HpsErr_t _HPS_DMA_eventSecToSysMgr(HPSDmaEventId eventId, HPSDmaSecurity 
         case HPS_DMA_SECURITY_SECURE:
             return ERR_SUCCESS;
         case HPS_DMA_SECURITY_NONSEC:
-            *sysMgrReg |= MaskCreate(0x1, (eventID) + ALT_SYSMGR_DMA_CTL_IRQNONSECURE_LSB);
+            *sysMgrReg |= MaskCreate(0x1, (eventId) + ALT_SYSMGR_DMA_CTL_IRQNONSECURE_LSB);
             return ERR_SUCCESS;
         default:
             return ERR_WRONGMODE;
@@ -166,6 +166,7 @@ static HpsErr_t _HPS_DMA_periphMuxToSysMgr(HPSDmaPeriphMux src[HPS_DMA_PERMUX_CO
                 return ERR_WRONGMODE;
         }
     }
+    return ERR_SUCCESS;
 }
 
 #endif

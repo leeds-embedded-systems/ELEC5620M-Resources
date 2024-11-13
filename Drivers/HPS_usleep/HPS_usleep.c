@@ -18,7 +18,10 @@
  * bridge, so does not conflict with the ARM A9 private
  * timer module. The timer can be changed to any of the
  * four HPS timers by calling the optional `selectTimer()`
- * function and providing a base address.
+ * function and providing a base address. The default
+ * timer can also be overridden by globally defining the
+ * DEFAULT_USLEEP_TIMER_BASE macro to point to the desired
+ * default timer.
  *
  * The default timer frequency can be overridden by globally
  * defining DEFAULT_USLEEP_TIMER_FREQ. The default if not
@@ -58,7 +61,9 @@
 #endif
 
 //Default to Timer SP1
+#ifndef DEFAULT_USLEEP_TIMER_BASE
 #define DEFAULT_USLEEP_TIMER_BASE HPS_TIMER_SP1_BASE
+#endif
 
 //Allow default timer frequency to be overridden.
 #ifndef DEFAULT_USLEEP_TIMER_FREQ
@@ -108,7 +113,8 @@ void usleep(int x) //Max delay ~2.09 seconds
     
     //Convert x from microseconds to ticks
     __timer[TIMER_LOAD] = (((unsigned int)x) * __timerFreqMhz) - 1;
-    //Initialise the timer
+    //Re-initialise the timer
+    __timer[TIMER_CTRL] = (TIMER_IRQMASKED | TIMER_ONESHOT | TIMER_DISABLED);
     __timer[TIMER_CTRL] = (TIMER_IRQMASKED | TIMER_ONESHOT | TIMER_ENABLED);
     //Wait until timer overflows
     while(!__timer[TIMER_RAWIRQ]);

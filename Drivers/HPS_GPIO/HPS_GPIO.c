@@ -135,7 +135,7 @@ HpsErr_t HPS_GPIO_getDirection(PHPSGPIOCtx_t ctx, unsigned int* dir, unsigned in
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
     //Get direction
-    *dir = ctx->base[GPIO_DIRECTION];
+    *dir = ctx->base[GPIO_DIRECTION] & mask;
     return ERR_SUCCESS;
 }
 
@@ -178,7 +178,7 @@ HpsErr_t HPS_GPIO_getOutput(PHPSGPIOCtx_t ctx, unsigned int* port, unsigned int 
     if (ERR_IS_ERROR(status)) return status;
     //Get output
     unsigned int _port = ctx->base[GPIO_OUTPUT];
-    *port = _port ^ ctx->polarity;
+    *port = (_port ^ ctx->polarity) & mask;
     return ERR_SUCCESS;
 }
 
@@ -191,7 +191,7 @@ HpsErr_t HPS_GPIO_getInput(PHPSGPIOCtx_t ctx,  unsigned int* in, unsigned int ma
     if (ERR_IS_ERROR(status)) return status;
     //Get input
     unsigned int _in = ctx->base[GPIO_INPUT];
-    *in = _in ^ ctx->polarity;
+    *in = (_in ^ ctx->polarity) & mask;
     return ERR_SUCCESS;
 }
 

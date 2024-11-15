@@ -18,14 +18,14 @@ wait 5s
 reset hardware
 reset hardware
 reset hardware
+
+#
+# Stop processor if running
+#
+stop
 wait 5s
 
 # Processor should now be stopped at 0x00000000
-
-#
-# Enable semihosting to allow printf
-#
-set semihosting enabled 1
 
 #
 # We need to add a hw breakpoint at a specific place. This is actually
@@ -41,6 +41,11 @@ set semihosting enabled 1
 # function
 #
 add-symbol-file "$sdir/Bootloader.axf"
+
+#
+# Enable semihosting to allow printf
+#
+set semihosting enabled 1
 
 #
 # Add a breakpoint at a specific point in the bootloader where the SoC

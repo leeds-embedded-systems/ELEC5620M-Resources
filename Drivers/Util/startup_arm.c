@@ -6,6 +6,19 @@
  * stack initialisation, and various other initial routines
  * for the ARMv7 processors on Altera HPS FPGA Devices.
  *
+ * Board Specific Initialisation
+ * -----------------------------
+ *
+ * Some boards require additional initialisation to be performed
+ * before the start of C runtime. This can be accomplished by
+ * implementing the __init_board() function stub. This is called
+ * during the startup routines. If not defined, the default
+ * weakly defined "do nothing" stub will be called.
+ *
+ * Note that the C runtime has not been initialised when this
+ * is called, so do not use any APIs that require runtime APIs
+ * (include things like malloc!).
+ *
  * IRQ Stacks
  * ----------
  *
@@ -171,8 +184,8 @@ extern unsigned int IRQ_STACK_TOP_LINK;
  * the programs main entry point.
  */
 
-void __init_stacks (void) __attribute__ ((noreturn));
-void __main(void) __attribute__((noreturn));
+void __init_stacks(void) __attribute__((noreturn));
+void __main       (void) __attribute__((noreturn));
 
 void __reset_isr (void) {
     // Mask fast and normal interrupts
@@ -197,6 +210,12 @@ void __reset_isr (void) {
 // Set to 1 in the debugger to begin running.
 volatile int enableRun = -1;
 #endif
+
+void __init_board (void) __attribute__((weak));
+void __init_board() {
+    // Do nothing by default
+}
+
 
 void __init_stacks (void) {
 #ifdef STARTUP_WAIT
@@ -232,6 +251,9 @@ void __init_stacks (void) {
 
     // Ensure data cache is disabled
     alt_cache_system_disable();
+
+    // Call board specific initialisation
+    __init_board();
 
     // Reset the debugger check flag
     __semihostingEnabled = SVC_HAS_DEBUGGER;

@@ -1,7 +1,7 @@
 ; DDR3 RAM for HPS spans from 0x02000040 to 0x40000000 (top is at 1GB point). 
 ; User code must fit within the DDR RAM load region. 
 ; An Error will be given if total usage exceeds memory.
-DDR 0x02000040 0x3DFFFFC0
+LOADREGION 0x02000040 0x3DFFFFC0
 {   
     ; Application code starts at start of DDR (preloader entry address)
     APP_CODE +0 

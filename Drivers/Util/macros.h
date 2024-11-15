@@ -49,11 +49,19 @@
  #define FALLTHROUGH ((void)0)
 #endif
 
-//Linker scatter entry
+//Linker load scatter entry
+#define _SCATTER_LOAD_HELPER(region, end) Load$$LR$$##region##$$##end
+
+#define SCATTER_LOAD_BASE(region)   _SCATTER_LOAD_HELPER(region, Base)
+#define SCATTER_LOAD_LENGTH(region) _SCATTER_LOAD_HELPER(region, Length)
+#define SCATTER_LOAD_LIMIT(region)  _SCATTER_LOAD_HELPER(region, Limit)
+
+//Linker execution scatter entry
 #define _SCATTER_REGION_HELPER(region, type, end) Image$$##region##$$##type##$$##end
 
-#define SCATTER_REGION_BASE(region, type)  _SCATTER_REGION_HELPER(region, type, Base)
-#define SCATTER_REGION_LIMIT(region, type) _SCATTER_REGION_HELPER(region, type, Limit)
+#define SCATTER_REGION_BASE(region, type)   _SCATTER_REGION_HELPER(region, type, Base)
+#define SCATTER_REGION_LENGTH(region, type) _SCATTER_REGION_HELPER(region, type, Length)
+#define SCATTER_REGION_LIMIT(region, type)  _SCATTER_REGION_HELPER(region, type, Limit)
 
 //Size of fixed array
 #define ARRAYSIZE(arr) (sizeof((arr))/sizeof(*(arr)))

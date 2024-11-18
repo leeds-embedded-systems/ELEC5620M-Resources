@@ -119,5 +119,8 @@ SW2_value = (*SW_ptr & 0x2); //Use the dereference operator to read switch value
 
 // Create a "pointer" which is set to the base address of the
 // 7-segment HEX[3], HEX[2], HEX[1] & HEX[0] Displays.
-volatile unsigned char *sevenseg03_ptr = (unsigned char *)0xFF200020;
-*(sevenseg_ptr+1)  = (*switch_ptr & 0x3FF); // Set HEX1 to the switch input value
+// Can access each segment individually, either with pointer
+// arithmetic, or array access (both options work):
+volatile unsigned char *sevenseg_ptr = (unsigned char *)0xFF200020;
+*(sevenseg_ptr+1) = 0x7F; // Set HEX1 to show the text "8"
+sevenseg_ptr[3] = 0x3;    // Set HEX3 to show the text "1" 

@@ -20,7 +20,7 @@ void exitOnFail(signed int status, signed int successStatus){
 
 int main (void) {
     //Initialise Servo Driver
-    PServoCtx_t servoCtx;
+    ServoCtx_t* servoCtx;
     exitOnFail(    //Initialise Servo Controller
             Servo_initialise(LSC_BASE_SERVO, &servoCtx),   
             ERR_SUCCESS);                               //Exit if not successful

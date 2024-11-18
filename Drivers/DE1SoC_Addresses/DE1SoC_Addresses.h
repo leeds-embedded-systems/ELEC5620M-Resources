@@ -56,7 +56,7 @@
 #define LSC_BASE_HPS_TIMERSP1  ((unsigned char*)0xFFC09000)   // HPS SP Timer 1 (runs at 100MHz)
 #define LSC_BASE_WATCHDOG      ((unsigned char*)0xFFD02000)   // ARM A9 Watchdog Timer (CPU 0)                         [HPS_Watchdog]
 #define LSC_BASE_PRIV_TIM      ((unsigned char*)0xFFFEC600)   // ARM A9 Private Timer
-#define LSC_BASE_PROC_OCRAM    ((unsigned char*)0xFFFF0000)   // ARM A9 64kB On-chip Memory used by Preloader
+#define LSC_BASE_PROC_OCRAM    ((unsigned char*)0xFFFF0000)   // ARM A9 64kB On-chip Memory
 
 
 // List of memory sizes

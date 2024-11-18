@@ -31,7 +31,6 @@ int main (void) {
     //...
         unsigned int timePeriod = 10;
         startTimeout(hexPtr, &timer, timePeriod);
-    //...
 }
 
 

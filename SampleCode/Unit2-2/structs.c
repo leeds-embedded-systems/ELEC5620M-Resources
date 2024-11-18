@@ -46,3 +46,30 @@ timer_info* timerPtr = &timer;
 //  - If we have a pointer to a struct, we access it slightly differently
 //  - Use '->' to access a field within a struct pointer
 unsigned int curFreq = timerPtr->frequency / (timerPtr->prescalar + 1);
+
+// Dynamic Allocation of timer structure
+bool initialiseTimer(unsigned int* base, timer_info** timerPtrRet) {
+    // Allocate and zero-initialise a timer_info struct;
+    timer_info* timerPtr = calloc(1, sizeof(timer_info));
+    if (!timerPtr) return false; // Allocate failed.
+    // Initialise fields
+    timerPtr->base = base;
+    // Return the newly allocated structure to the user
+    *timerPtrRet = timerPtr;
+    return true;
+}
+void freeTimer(timer_info* timerPtr) {
+    // Free the allocated memory.
+    free(timerPtr);
+}
+//...
+// Initialise a timer structure. We don't create a struct variable, but
+// rather a pointer variable which will allow us to keep track of the
+// allocated memory
+timer_info* timerPtr = NULL;
+initialiseTimer(0x1234, &timerPtr); // Initialise writes the address to timerPtr.
+// ...
+// <Do Main Program>
+// ...
+// On crash, cleanup
+freeTimer(timerPtr);

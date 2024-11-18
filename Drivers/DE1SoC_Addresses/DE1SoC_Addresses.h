@@ -20,43 +20,45 @@
 #ifndef DE1SOC_ADDRESSES_H_
 #define DE1SOC_ADDRESSES_H_
 
+#include <stdint.h>
+
 // List of Common Addresses
-//      Peripheral             Base Address                     Description                                           Driver
-#define LSC_BASE_BOOTLDR_RAM   ((unsigned char*)0x01000040)   // ~16MB Reserved DDR RAM for bootloader
-#define LSC_BASE_DDR_RAM       ((unsigned char*)0x02000040)   // ~1GB DDR3 Memory
-#define LSC_BASE_FPGA_SDRAM    ((unsigned char*)0xC0000000)   // 64MB DDR SDRAM (Untested)
-#define LSC_BASE_FPGA_OCRAM    ((unsigned char*)0xC8000000)   // 256kB FPGA On-chip SRAM
-#define LSC_BASE_VGA_CHAR_BUFF ((unsigned char*)0xC9000000)   // VGA Character Buffer
-#define LSC_BASE_BOOTLDR_CACHE ((unsigned char*)0xCA000000)   // 64kB Reserved On-chip SRAM for bootloader
-#define LSC_BASE_RED_LEDS      ((unsigned char*)0xFF200000)   // 10x Red LEDs                                          [FPGA_PIO]
-#define LSC_BASE_7SEG_0to3     ((unsigned char*)0xFF200020)   // 7-segment HEX[3], HEX[2], HEX[1] & HEX[0] Displays    [FPGA_PIO]
-#define LSC_BASE_7SEG_4to5     ((unsigned char*)0xFF200030)   // 7-segment HEX[5] & HEX[4] Displays                    [FPGA_PIO]
-#define LSC_BASE_SLIDE_SWITCH  ((unsigned char*)0xFF200040)   // 10x Slide Switches                                    [FPGA_PIO]
-#define LSC_BASE_KEYS          ((unsigned char*)0xFF200050)   // 4x Push Buttons                                       [FPGA_PIO]
-#define LSC_BASE_GPIO_JP1      ((unsigned char*)0xFF200060)   // GPIO0 (JP1) Connector for LT24 LCD and Touchscreen    [FPGA_PIO] | [DE1SoC_LT24]
-#define LSC_BASE_GPIO_JP2      ((unsigned char*)0xFF200070)   // GPIO1 (JP2) General Purpose I/O Expansion             [FPGA_PIO]
-#define LSC_BASE_LT24HWDATA    ((unsigned char*)0xFF200080)   // LT24 Hardware Optimised Data Transfer                 [DE1SoC_LT24]
-#define LSC_BASE_MANDELBROT    ((unsigned char*)0xFF200090)   // Mandelbrot Pattern Animation Generator                [DE1SoC_Mandelbrot]
-#define LSC_BASE_SERVO         ((unsigned char*)0xFF2000C0)   // 4-channel Servo PWM Controller                        [DE1SoC_Servo]
-#define LSC_BASE_PS2_PRIMARY   ((unsigned char*)0xFF200100)   // PS/2 (Primary Port)
-#define LSC_BASE_PS2_SECONDARY ((unsigned char*)0xFF200108)   // PS/2 (Secondary Port)
-#define LSC_BASE_JTAG_UART     ((unsigned char*)0xFF201000)   // 2x JTAG UART
-#define LSC_BASE_INFRARED      ((unsigned char*)0xFF201020)   // Infrared (IrDA)
-#define LSC_BASE_INTERVAL_TMR1 ((unsigned char*)0xFF202000)   // Interval Timer
-#define LSC_BASE_INTERVAL_TMR2 ((unsigned char*)0xFF202020)   // Second Interval Timer
-#define LSC_BASE_AV_CONFIG     ((unsigned char*)0xFF203000)   // Audio/video Configuration
-#define LSC_BASE_PIXEL_BUFF    ((unsigned char*)0xFF203020)   // Pixel Buffer Control
-#define LSC_BASE_CHAR_BUFF     ((unsigned char*)0xFF203030)   // Character Buffer Control
-#define LSC_BASE_AUDIOCODEC    ((unsigned char*)0xFF203040)   // Audio System                                          [DE1SoC_WM8731 + HPS_I2C + HPS_GPIO]
-#define LSC_BASE_ADC           ((unsigned char*)0xFF204000)   // 8-Channel 12-bit Analog-to-Digital Converter
-#define LSC_BASE_ARM_GPIO      ((unsigned char*)0xFF709000)   // ARM A9 GPIO 1                                         [HPS_GPIO]
-#define LSC_BASE_I2C_GENERAL   ((unsigned char*)0xFFC04000)   // HPS I2C Master (Accelerometer/VGA/Audio/ADC)          [HPS_I2C]
-#define LSC_BASE_I2C_LT14HDR   ((unsigned char*)0xFFC05000)   // HPS I2C Master (LT 14-pin Header)                     [HPS_I2C]
-#define LSC_BASE_HPS_TIMERSP0  ((unsigned char*)0xFFC08000)   // HPS SP Timer 0 (runs at 100MHz)
-#define LSC_BASE_HPS_TIMERSP1  ((unsigned char*)0xFFC09000)   // HPS SP Timer 1 (runs at 100MHz)
-#define LSC_BASE_WATCHDOG      ((unsigned char*)0xFFD02000)   // ARM A9 Watchdog Timer (CPU 0)                         [HPS_Watchdog]
-#define LSC_BASE_PRIV_TIM      ((unsigned char*)0xFFFEC600)   // ARM A9 Private Timer
-#define LSC_BASE_PROC_OCRAM    ((unsigned char*)0xFFFF0000)   // ARM A9 64kB On-chip Memory
+//      Peripheral             Base Address                   Description                                           Driver
+#define LSC_BASE_BOOTLDR_RAM   ((uint8_t  *)0x01000040U)   // ~16MB Reserved DDR RAM for bootloader
+#define LSC_BASE_DDR_RAM       ((uint8_t  *)0x02000040U)   // ~1GB DDR3 Memory
+#define LSC_BASE_FPGA_SDRAM    ((uint8_t  *)0xC0000000U)   // 64MB DDR SDRAM (Untested)
+#define LSC_BASE_FPGA_OCRAM    ((uint8_t  *)0xC8000000U)   // 256kB FPGA On-chip SRAM
+#define LSC_BASE_VGA_CHAR_BUFF ((uint8_t  *)0xC9000000U)   // VGA Character Buffer
+#define LSC_BASE_BOOTLDR_CACHE ((uint8_t  *)0xCA000000U)   // 64kB Reserved On-chip SRAM for bootloader
+#define LSC_BASE_RED_LEDS      ((uint8_t  *)0xFF200000U)   // 10x Red LEDs                                          [FPGA_PIO]
+#define LSC_BASE_7SEG_0to3     ((uint8_t  *)0xFF200020U)   // 7-segment HEX[3], HEX[2], HEX[1] & HEX[0] Displays    [FPGA_PIO]
+#define LSC_BASE_7SEG_4to5     ((uint8_t  *)0xFF200030U)   // 7-segment HEX[5] & HEX[4] Displays                    [FPGA_PIO]
+#define LSC_BASE_SLIDE_SWITCH  ((uint8_t  *)0xFF200040U)   // 10x Slide Switches                                    [FPGA_PIO]
+#define LSC_BASE_KEYS          ((uint8_t  *)0xFF200050U)   // 4x Push Buttons                                       [FPGA_PIO]
+#define LSC_BASE_GPIO_JP1      ((uint8_t  *)0xFF200060U)   // GPIO0 (JP1) Connector for LT24 LCD and Touchscreen    [FPGA_PIO] | [DE1SoC_LT24]
+#define LSC_BASE_GPIO_JP2      ((uint8_t  *)0xFF200070U)   // GPIO1 (JP2) General Purpose I/O Expansion             [FPGA_PIO]
+#define LSC_BASE_LT24HWDATA    ((uint32_t *)0xFF200080U)   // LT24 Hardware Optimised Data Transfer                 [DE1SoC_LT24]
+#define LSC_BASE_MANDELBROT    ((uint8_t  *)0xFF200090U)   // Mandelbrot Pattern Animation Generator                [DE1SoC_Mandelbrot]
+#define LSC_BASE_SERVO         ((uint8_t  *)0xFF2000C0U)   // 4-channel Servo PWM Controller                        [DE1SoC_Servo]
+#define LSC_BASE_PS2_PRIMARY   ((uint32_t *)0xFF200100U)   // PS/2 (Primary Port)
+#define LSC_BASE_PS2_SECONDARY ((uint32_t *)0xFF200108U)   // PS/2 (Secondary Port)
+#define LSC_BASE_JTAG_UART     ((uint32_t *)0xFF201000U)   // 2x JTAG UART
+#define LSC_BASE_INFRARED      ((uint8_t  *)0xFF201020U)   // Infrared (IrDA)                                       [FPGA_IrDAController]
+#define LSC_BASE_INTERVAL_TMR1 ((uint32_t *)0xFF202000U)   // Interval Timer
+#define LSC_BASE_INTERVAL_TMR2 ((uint32_t *)0xFF202020U)   // Second Interval Timer
+#define LSC_BASE_AV_CONFIG     ((uint32_t *)0xFF203000U)   // Audio/video Configuration
+#define LSC_BASE_PIXEL_BUFF    ((uint32_t *)0xFF203020U)   // Pixel Buffer Control
+#define LSC_BASE_CHAR_BUFF     ((uint32_t *)0xFF203030U)   // Character Buffer Control
+#define LSC_BASE_AUDIOCODEC    ((uint8_t  *)0xFF203040U)   // Audio System                                          [DE1SoC_WM8731 + HPS_I2C + HPS_GPIO]
+#define LSC_BASE_ADC           ((uint32_t *)0xFF204000U)   // 8-Channel 12-bit Analog-to-Digital Converter
+#define LSC_BASE_ARM_GPIO      ((uint32_t *)0xFF709000U)   // ARM A9 GPIO 1                                         [HPS_GPIO]
+#define LSC_BASE_I2C_GENERAL   ((uint32_t *)0xFFC04000U)   // HPS I2C Master (Accelerometer/VGA/Audio/ADC)          [HPS_I2C]
+#define LSC_BASE_I2C_LT14HDR   ((uint32_t *)0xFFC05000U)   // HPS I2C Master (LT 14-pin Header)                     [HPS_I2C]
+#define LSC_BASE_HPS_TIMERSP0  ((uint32_t *)0xFFC08000U)   // HPS SP Timer 0 (runs at 100MHz)
+#define LSC_BASE_HPS_TIMERSP1  ((uint32_t *)0xFFC09000U)   // HPS SP Timer 1 (runs at 100MHz)
+#define LSC_BASE_WATCHDOG      ((uint32_t *)0xFFD02000U)   // ARM A9 Watchdog Timer (CPU 0)                         [HPS_Watchdog]
+#define LSC_BASE_PRIV_TIM      ((uint32_t *)0xFFFEC600U)   // ARM A9 Private Timer
+#define LSC_BASE_PROC_OCRAM    ((uint8_t  *)0xFFFF0000U)   // ARM A9 64kB On-chip Memory
 
 
 // List of memory sizes

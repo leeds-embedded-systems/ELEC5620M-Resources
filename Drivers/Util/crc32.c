@@ -161,7 +161,7 @@ _crc32_failback(uint32_t crc, const void *buf, size_t size)
 
 #endif
 
-static PCRCCtx_t _crc32Proc = NULL;
+static CRCCtx_t* _crc32Proc = NULL;
 
 // Base CRC32 function for driver calls
 static uint32_t _crc32_driver(uint32_t crc, const uint8_t *p, uint32_t len) {
@@ -179,7 +179,7 @@ static uint32_t _crc32_driver(uint32_t crc, const uint8_t *p, uint32_t len) {
 // - Passing a null pointer as crcCtx will clear the current handler.
 //   This should be done if the crc driver being used as the current
 //   handler is cleaned up.
-HpsErr_t crc32_setCtx(PCRCCtx_t crcCtx) {
+HpsErr_t crc32_setCtx(CRCCtx_t* crcCtx) {
     _crc32Proc = NULL;
     if (!crcCtx) return ERR_SUCCESS;
     // Must support initial value

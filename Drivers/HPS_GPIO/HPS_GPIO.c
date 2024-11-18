@@ -57,7 +57,7 @@ static unsigned int _HPS_GPIO_setConfigFlag(unsigned int cur, unsigned int mask,
     return cur;
 }
 
-static void _HPS_GPIO_cleanup(PHPSGPIOCtx_t ctx) {
+static void _HPS_GPIO_cleanup(HPSGPIOCtx_t* ctx) {
     //Disable interrupts and set default output state
     if (ctx->base) {
         ctx->base[GPIO_INTR_EN  ] = 0x0;
@@ -75,7 +75,7 @@ static void _HPS_GPIO_cleanup(PHPSGPIOCtx_t ctx) {
 // - dir is the default direction for GPIO pins
 // - port is the default output value for GPIO pins
 // - polarity sets whether a given pin is inverted (bit mask).
-HpsErr_t HPS_GPIO_initialise(void* base, unsigned int dir, unsigned int port, unsigned int polarity, PHPSGPIOCtx_t* pCtx) {
+HpsErr_t HPS_GPIO_initialise(void* base, unsigned int dir, unsigned int port, unsigned int polarity, HPSGPIOCtx_t** pCtx) {
     //Ensure user pointers valid
     if (!base) return ERR_NULLPTR;
     if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
@@ -83,7 +83,7 @@ HpsErr_t HPS_GPIO_initialise(void* base, unsigned int dir, unsigned int port, un
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_HPS_GPIO_cleanup);
     if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
-    PHPSGPIOCtx_t ctx = *pCtx;
+    HPSGPIOCtx_t* ctx = *pCtx;
     ctx->base = (unsigned int*)base;
     ctx->initDir = dir;
     ctx->initPort = port;
@@ -108,7 +108,7 @@ HpsErr_t HPS_GPIO_initialise(void* base, unsigned int dir, unsigned int port, un
 
 //Check if driver initialised
 // - Returns true if driver previously initialised
-bool HPS_GPIO_isInitialised(PHPSGPIOCtx_t ctx) {
+bool HPS_GPIO_isInitialised(HPSGPIOCtx_t* ctx) {
     return DriverContextCheckInit(ctx);
 }
 
@@ -117,7 +117,7 @@ bool HPS_GPIO_isInitialised(PHPSGPIOCtx_t ctx) {
 // - Will perform read-modify-write such that only pins with
 //   their mask bit set will be changed.
 // - e.g. with mask of 0x00010002, pins [1] and [16] will be changed.
-HpsErr_t HPS_GPIO_setDirection(PHPSGPIOCtx_t ctx, unsigned int dir, unsigned int mask) {
+HpsErr_t HPS_GPIO_setDirection(HPSGPIOCtx_t* ctx, unsigned int dir, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -129,7 +129,7 @@ HpsErr_t HPS_GPIO_setDirection(PHPSGPIOCtx_t ctx, unsigned int dir, unsigned int
 
 //Get direction
 // - Returns the current direction of masked pins to *dir
-HpsErr_t HPS_GPIO_getDirection(PHPSGPIOCtx_t ctx, unsigned int* dir, unsigned int mask) {
+HpsErr_t HPS_GPIO_getDirection(HPSGPIOCtx_t* ctx, unsigned int* dir, unsigned int mask) {
     if (!dir) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
@@ -144,7 +144,7 @@ HpsErr_t HPS_GPIO_getDirection(PHPSGPIOCtx_t ctx, unsigned int* dir, unsigned in
 // - Will perform read-modify-write such that only pins with
 //   their mask bit set will be changed.
 // - e.g. with mask of 0x00010002, pins [1] and [16] will be changed.
-HpsErr_t HPS_GPIO_setOutput(PHPSGPIOCtx_t ctx, unsigned int port, unsigned int mask) {
+HpsErr_t HPS_GPIO_setOutput(HPSGPIOCtx_t* ctx, unsigned int port, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -160,7 +160,7 @@ HpsErr_t HPS_GPIO_setOutput(PHPSGPIOCtx_t ctx, unsigned int port, unsigned int m
 // - Will perform read-modify-write such that only pins with
 //   their mask bit set will be toggled.
 // - e.g. with mask of 0x00010002, pins [1] and [16] will be changed.
-HpsErr_t HPS_GPIO_toggleOutput(PHPSGPIOCtx_t ctx, unsigned int mask) {
+HpsErr_t HPS_GPIO_toggleOutput(HPSGPIOCtx_t* ctx, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -171,7 +171,7 @@ HpsErr_t HPS_GPIO_toggleOutput(PHPSGPIOCtx_t ctx, unsigned int mask) {
 
 //Get output value
 // - Returns the current value of the masked output pins to *port
-HpsErr_t HPS_GPIO_getOutput(PHPSGPIOCtx_t ctx, unsigned int* port, unsigned int mask) {
+HpsErr_t HPS_GPIO_getOutput(HPSGPIOCtx_t* ctx, unsigned int* port, unsigned int mask) {
     if (!port) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
@@ -184,7 +184,7 @@ HpsErr_t HPS_GPIO_getOutput(PHPSGPIOCtx_t ctx, unsigned int* port, unsigned int 
 
 //Get input value
 // - Returns the current value of the masked input pins to *in.
-HpsErr_t HPS_GPIO_getInput(PHPSGPIOCtx_t ctx,  unsigned int* in, unsigned int mask) {
+HpsErr_t HPS_GPIO_getInput(HPSGPIOCtx_t* ctx,  unsigned int* in, unsigned int mask) {
     if (!in) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
@@ -195,7 +195,7 @@ HpsErr_t HPS_GPIO_getInput(PHPSGPIOCtx_t ctx,  unsigned int* in, unsigned int ma
     return ERR_SUCCESS;
 }
 
-HpsErr_t HPS_GPIO_setInterruptConfig(PHPSGPIOCtx_t ctx, GPIOIRQPolarity config, unsigned int mask) {
+HpsErr_t HPS_GPIO_setInterruptConfig(HPSGPIOCtx_t* ctx, GPIOIRQPolarity config, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -216,7 +216,7 @@ HpsErr_t HPS_GPIO_setInterruptConfig(PHPSGPIOCtx_t ctx, GPIOIRQPolarity config, 
 
 //Get interrupt config
 // - Returns the current interrupt configuration for the specified pin
-HpsErr_t HPS_GPIO_getInterruptConfig(PHPSGPIOCtx_t ctx, unsigned int pin) {
+HpsErr_t HPS_GPIO_getInterruptConfig(HPSGPIOCtx_t* ctx, unsigned int pin) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -233,7 +233,7 @@ HpsErr_t HPS_GPIO_getInterruptConfig(PHPSGPIOCtx_t ctx, unsigned int pin) {
 
 //Get interrupt flags
 // - Returns flags indicating which pins have generated an interrupt
-HpsErr_t HPS_GPIO_getInterruptFlags(PHPSGPIOCtx_t ctx,  unsigned int* flags) {
+HpsErr_t HPS_GPIO_getInterruptFlags(HPSGPIOCtx_t* ctx,  unsigned int* flags) {
     if (!flags) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
@@ -245,7 +245,7 @@ HpsErr_t HPS_GPIO_getInterruptFlags(PHPSGPIOCtx_t ctx,  unsigned int* flags) {
 
 //Clear interrupt flags
 // - Clear interrupt flags of pins with bits set in mask.
-HpsErr_t HPS_GPIO_clearInterruptFlags(PHPSGPIOCtx_t ctx, unsigned int mask) {
+HpsErr_t HPS_GPIO_clearInterruptFlags(HPSGPIOCtx_t* ctx, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -258,7 +258,7 @@ HpsErr_t HPS_GPIO_clearInterruptFlags(PHPSGPIOCtx_t ctx, unsigned int mask) {
 // - Will perform read-modify-write such that only pins with
 //   their mask bit set will be changed.
 // - e.g. with mask of 0x00010002, pins [1] and [16] will be changed.
-HpsErr_t HPS_GPIO_setDebounce(PHPSGPIOCtx_t ctx, unsigned int bounce, unsigned int mask) {
+HpsErr_t HPS_GPIO_setDebounce(HPSGPIOCtx_t* ctx, unsigned int bounce, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;

@@ -98,7 +98,7 @@ typedef struct {
     // IRQ shadow
     HPSUARTIrqSources irqFlags;
     unsigned int modemStat;
-} HPSUARTCtx_t, *PHPSUARTCtx_t;
+} HPSUARTCtx_t;
 
 
 // Initialise HPS UART driver
@@ -106,45 +106,45 @@ typedef struct {
 //  - periphClk is the peripheral clock rate in Hz (e.g. 100E6 = 100MHz for DE1-SoC)
 //  - Returns Util/error Code
 //  - Returns context pointer to *ctx
-HpsErr_t HPS_UART_initialise(void* base, unsigned int periphClk, PHPSUARTCtx_t* pCtx);
+HpsErr_t HPS_UART_initialise(void* base, unsigned int periphClk, HPSUARTCtx_t** pCtx);
 
 // Check if driver initialised
 //  - Returns true if driver context previously initialised
-bool HPS_UART_isInitialised(PHPSUARTCtx_t ctx);
+bool HPS_UART_isInitialised(HPSUARTCtx_t* ctx);
 
 // Enable or Disable UART interrupt(s)
 // - Will enable or disable based on the enable input.
 // - Only interrupts with mask bit set will be changed.
-HpsErr_t HPS_UART_setInterruptEnable(PHPSUARTCtx_t ctx, HPSUARTIrqSources enable, HPSUARTIrqSources mask);
+HpsErr_t HPS_UART_setInterruptEnable(HPSUARTCtx_t* ctx, HPSUARTIrqSources enable, HPSUARTIrqSources mask);
 
 // Check interrupt flags
 // - Returns whether each of the the selected interrupt flags is asserted
 // - If clear is true, will also clear the flags.
-HpsErr_t HPS_UART_getInterruptFlags(PHPSUARTCtx_t ctx, HPSUARTIrqSources mask, bool clear);
+HpsErr_t HPS_UART_getInterruptFlags(HPSUARTCtx_t* ctx, HPSUARTIrqSources mask, bool clear);
 
 // Set the UART Baud Rate
 // - Returns the achieved baud rate
-HpsErr_t HPS_UART_setBaudRate(PHPSUARTCtx_t ctx, unsigned int baudRate);
+HpsErr_t HPS_UART_setBaudRate(HPSUARTCtx_t* ctx, unsigned int baudRate);
 
 // Check UART Operation mode
 //  - Always returns full-duplex
-HpsErr_t HPS_UART_getTransferMode(PHPSUARTCtx_t ctx);
+HpsErr_t HPS_UART_getTransferMode(HPSUARTCtx_t* ctx);
 
 // Set the UART Data Format
 //  - Sets the data format to be used.
 //  - The format can select the data width, and the parity mode.
 //  - Stop bit count can be set to 1 or 1.5/2 based on enum values.
-HpsErr_t HPS_UART_setDataFormat(PHPSUARTCtx_t ctx, unsigned int dataWidth, UartParity parityEn, HPSUARTStopBits stopBits, HPSUARTFlowCntrl flowctrl);
+HpsErr_t HPS_UART_setDataFormat(HPSUARTCtx_t* ctx, unsigned int dataWidth, UartParity parityEn, HPSUARTStopBits stopBits, HPSUARTFlowCntrl flowctrl);
 
 // Clear UART FIFOs
 //  - Clears either the TX, RX or both FIFOs.
 //  - Data will be deleted. Any pending TX will not be sent.
-HpsErr_t HPS_UART_clearDataFifos(PHPSUARTCtx_t ctx, bool clearTx, bool clearRx);
+HpsErr_t HPS_UART_clearDataFifos(HPSUARTCtx_t* ctx, bool clearTx, bool clearRx);
 
 // Check if there is space for TX data
 //  - Returns ERR_NOSPACE if there is no space.
 //  - If non-null, returns the amount of empty space in the TX FIFO in *space
-HpsErr_t HPS_UART_writeSpace(PHPSUARTCtx_t ctx, unsigned int* space);
+HpsErr_t HPS_UART_writeSpace(HPSUARTCtx_t* ctx, unsigned int* space);
 
 // Perform a UART write
 //  - A write transfer will be performed
@@ -152,17 +152,17 @@ HpsErr_t HPS_UART_writeSpace(PHPSUARTCtx_t ctx, unsigned int* space);
 //  - The data[] parameter must be an array of at least 'length' bytes.
 //  - If there is not enough space in the FIFO, as many bytes as possible are sent.
 //  - The return value indicates number sent.
-HpsErr_t HPS_UART_write(PHPSUARTCtx_t ctx, const uint8_t data[], uint8_t length);
+HpsErr_t HPS_UART_write(HPSUARTCtx_t* ctx, const uint8_t data[], uint8_t length);
 
 // Check if there is available Rx data
 //  - Returns ERR_ISEMPTY if there is nothing available.
 //  - If non-null, returns the amount available in the RX FIFO in *available
-HpsErr_t HPS_UART_available(PHPSUARTCtx_t ctx, unsigned int* available);
+HpsErr_t HPS_UART_available(HPSUARTCtx_t* ctx, unsigned int* available);
 
 // Read a word with status info
 //  - Reads a single word from the UART FIFO
 //  - Error information is included in the return struct
-UartRxData_t HPS_UART_readWord(PHPSUARTCtx_t ctx);
+UartRxData_t HPS_UART_readWord(HPSUARTCtx_t* ctx);
 
 // Read from the UART FIFO
 //  - This will attempt to read multiple bytes from the UART FIFO.
@@ -171,6 +171,6 @@ UartRxData_t HPS_UART_readWord(PHPSUARTCtx_t ctx);
 //  - The data[] parameter must be an array of at least 'length' words.
 //  - If successful, will return number of bytes read
 //  - If the return value is negative, an error occurred in one of the words
-HpsErr_t HPS_UART_read(PHPSUARTCtx_t ctx, uint8_t data[], uint8_t length);
+HpsErr_t HPS_UART_read(HPSUARTCtx_t* ctx, uint8_t data[], uint8_t length);
 
 #endif /* HPS_UART_H_ */

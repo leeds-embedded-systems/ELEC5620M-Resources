@@ -35,7 +35,7 @@
  */
 
 //Cleanup
-static void _Template_cleanup(PTemplateCtx_t ctx) {
+static void _Template_cleanup(TemplateCtx_t* ctx) {
     if (ctx->base) {
         TEMPLATE_REG_MYREG(ctx->base) = MaskClear(TEMPLATE_REG_MYREG(ctx->base), TEMPLATE_MYREG_ENABLE_MASK, TEMPLATE_MYREG_ENABLE_OFFS);
     }
@@ -49,7 +49,7 @@ static void _Template_cleanup(PTemplateCtx_t ctx) {
 //  - base is a pointer to the template thingy
 //  - Returns Util/error Code
 //  - Returns context pointer to *ctx
-HpsErr_t Template_initialise(void* base, PTemplateCtx_t* pCtx) {
+HpsErr_t Template_initialise(void* base, TemplateCtx_t** pCtx) {
     //Ensure user pointers valid
     if (!base) return ERR_NULLPTR;
     if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
@@ -57,7 +57,7 @@ HpsErr_t Template_initialise(void* base, PTemplateCtx_t* pCtx) {
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_Template_cleanup);
     if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
-    PTemplateCtx_t ctx = *pCtx;
+    TemplateCtx_t* ctx = *pCtx;
     ctx->base = (unsigned int *)base;
     //Initialised
     DriverContextSetInit(ctx);
@@ -66,13 +66,13 @@ HpsErr_t Template_initialise(void* base, PTemplateCtx_t* pCtx) {
 
 // Check if driver initialised
 //  - Returns true if driver previously initialised
-bool Template_isInitialised(PTemplateCtx_t ctx) {
+bool Template_isInitialised(TemplateCtx_t* ctx) {
     return DriverContextCheckInit(ctx);
 }
 
 // Template API
 //  - Does stuff.
-HpsErr_t Template_api(PTemplateCtx_t ctx) {
+HpsErr_t Template_api(TemplateCtx_t* ctx) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;

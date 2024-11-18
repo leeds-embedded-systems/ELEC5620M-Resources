@@ -36,7 +36,7 @@
         // Context Body
         volatile unsigned int* base;
         ... any fields you want
-    } MyDriverCtx_t, *PMyDriverCtx_t;
+    } MyDriverCtx_t;
 
     #define MY_DATA_REG (0/sizeof(unsigned int))
     #define MY_IRQ_REG  (4/sizeof(unsigned int))
@@ -47,7 +47,7 @@
     // Cleanup function called when driver destroyed.
     //  - Disables any hardware and interrupts.
     //  - Free any allocated memory
-    void _MY_cleanup(PMyDriverCtx_t ctx) {
+    void _MY_cleanup(MyDriverCtx_t* ctx) {
         if (ctx->base) {
             // Disable any interrupts
             ctx->base[MY_IRQ_REG] = 0;
@@ -60,7 +60,7 @@
     //  - base is a pointer to my hardwar
     //  - Returns Util/error Code
     //  - Returns context pointer to *ctx
-    HpsErr_t MY_initialise(void* base, PMyDriverCtx_t* pCtx) {
+    HpsErr_t MY_initialise(void* base, MyDriverCtx_t** pCtx) {
         //Ensure user pointers valid
         if (!base) return ERR_NULLPTR;
         if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
@@ -68,7 +68,7 @@
         HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_MY_cleanup);
         if (ERR_IS_ERROR(status)) return status;
         //Save base address pointers
-        PMyDriverCtx_t ctx = *pCtx;
+        MyDriverCtx_t* ctx = *pCtx;
         ctx->base = (unsigned int*)base;
 
         ... Any other initialisation "stuff" ...
@@ -84,7 +84,7 @@
 
     // Check if driver initialised
     //  - Returns true if driver previously initialised
-    bool MY_isInitialised(PMyDriverCtx_t ctx) {
+    bool MY_isInitialised(MyDriverCtx_t* ctx) {
         return DriverContextCheckInit(ctx);
     }
 
@@ -92,7 +92,7 @@
 
     // Read my value
     // - Reads a certain value from my hardware and returns it via *val
-    HpsErr_t MY_queueIsInterruptable(PMyDriverCtx_t ctx, unsigned int *val) {
+    HpsErr_t MY_queueIsInterruptable(MyDriverCtx_t* ctx, unsigned int *val) {
         if (!val) return ERR_NULLPTR;
         //Ensure context valid and initialised
         HpsErr_t status = DriverContextValidate(ctx);
@@ -123,7 +123,7 @@ typedef struct {
     ContextCleanupFunc_t __destroy;
     // Whether initialised
     bool initialised;
-} DrvCtx_t, *PDrvCtx_t;
+} DrvCtx_t;
 
 
 /*
@@ -132,27 +132,27 @@ typedef struct {
 // Allocate context
 // - Remember to set initialised flag once driver specific context is initialised
 // - Returns success or error code
-HpsErr_t DRV_allocateContext(unsigned int drvSize, PDrvCtx_t* pCtx, ContextCleanupFunc_t destroy);
+HpsErr_t DRV_allocateContext(unsigned int drvSize, DrvCtx_t** pCtx, ContextCleanupFunc_t destroy);
 
 // Cleanup a context
 // - Will set *pCtx to null once freed.
 // - Returns success or error code
-HpsErr_t DRV_freeContext(PDrvCtx_t* pCtx);
+HpsErr_t DRV_freeContext(DrvCtx_t** pCtx);
 
 // Cleanum context with status
 // - Same as DRV_freeContext, except returns
 //   provided status code.
-static inline HpsErr_t DRV_freeContextWithStatus(PDrvCtx_t* pCtx, HpsErr_t retVal) {
+static inline HpsErr_t DRV_freeContextWithStatus(DrvCtx_t** pCtx, HpsErr_t retVal) {
     DRV_freeContext(pCtx);
     return retVal;
 }
 
 // Check if the driver context is initialised
-bool DRV_isInitialised(PDrvCtx_t ctx);
+bool DRV_isInitialised(DrvCtx_t* ctx);
 
 // Checks that a driver context is valid
 // - Returns success or error code
-HpsErr_t DRV_checkContext(PDrvCtx_t ctx);
+HpsErr_t DRV_checkContext(DrvCtx_t* ctx);
 
 
 /*
@@ -162,12 +162,12 @@ HpsErr_t DRV_checkContext(PDrvCtx_t ctx);
 // Allocate a context pointer
 // - Returns HpsErr_t
 #define DriverContextAllocate(pCtx) \
-    DRV_allocateContext(sizeof(**(pCtx)),(PDrvCtx_t*)(pCtx),NULL)
+    DRV_allocateContext(sizeof(**(pCtx)),(DrvCtx_t**)(pCtx),NULL)
 
 // Allocate a context pointer with cleanup function
 // - Returns HpsErr_t
 #define DriverContextAllocateWithCleanup(pCtx, cleanupFunc) \
-    DRV_allocateContext(sizeof(**(pCtx)),(PDrvCtx_t*)(pCtx),(ContextCleanupFunc_t)(cleanupFunc))
+    DRV_allocateContext(sizeof(**(pCtx)),(DrvCtx_t**)(pCtx),(ContextCleanupFunc_t)(cleanupFunc))
 
 // Free a context pointer
 // - Call during initialisation function if there is an
@@ -175,7 +175,7 @@ HpsErr_t DRV_checkContext(PDrvCtx_t ctx);
 // - Call when finished with a driver context to clean it up.
 // - Returns HpsErr_t
 #define DriverContextFree(pCtx) \
-    DRV_freeContext((PDrvCtx_t*)(pCtx))
+    DRV_freeContext((DrvCtx_t**)(pCtx))
 
 // Driver initialise failed
 // - Call after Allocate but before SetInit if something
@@ -183,22 +183,22 @@ HpsErr_t DRV_checkContext(PDrvCtx_t ctx);
 // - This will clean up the allocated context then return
 //   the provided return value
 #define DriverContextInitFail(pCtx, retVal) \
-    DRV_freeContextWithStatus((PDrvCtx_t*)(pCtx), retVal)
+    DRV_freeContextWithStatus((DrvCtx_t**)(pCtx), retVal)
 
 // Mark driver context as initialised.
 // - Call once at end of driver initialisation function
 #define DriverContextSetInit(ctx) \
-    ((PDrvCtx_t)(ctx))->initialised = true
+    ((DrvCtx_t*)(ctx))->initialised = true
 
 // Check if context initialised
 //  - returns bool
 #define DriverContextCheckInit(ctx) \
-    DRV_isInitialised((PDrvCtx_t)(ctx))
+    DRV_isInitialised((DrvCtx_t*)(ctx))
 
 // Ensure driver context is valid
 // - Returns HpsErr_t
 #define DriverContextValidate(ctx) \
-    DRV_checkContext((PDrvCtx_t)(ctx))
+    DRV_checkContext((DrvCtx_t*)(ctx))
 
 #endif /* DRIVER_CTX_H */
 

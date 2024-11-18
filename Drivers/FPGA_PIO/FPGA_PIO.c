@@ -36,7 +36,7 @@
  * Internal Functions
  */
 
-static void _FPGA_PIO_cleanup(PFPGAPIOCtx_t ctx) {
+static void _FPGA_PIO_cleanup(FPGAPIOCtx_t* ctx) {
     //Disable interrupts and reset default output states
     if (ctx->base) {
         ctx->base[GPIO_INTR_MASK] = 0x0;
@@ -49,19 +49,19 @@ static void _FPGA_PIO_cleanup(PFPGAPIOCtx_t ctx) {
     }
 }
 
-static HpsErr_t _FPGA_PIO_setDirection(PFPGAPIOCtx_t ctx, unsigned int dir, unsigned int mask) {
+static HpsErr_t _FPGA_PIO_setDirection(FPGAPIOCtx_t* ctx, unsigned int dir, unsigned int mask) {
     //R-M-W direction
     unsigned int curVal = ctx->base[GPIO_DIRECTION];
     ctx->base[GPIO_DIRECTION] = ((dir & mask) | (curVal & ~mask));
     return ERR_SUCCESS;
 }
 
-static HpsErr_t _FPGA_PIO_getDirection(PFPGAPIOCtx_t ctx, unsigned int* dir, unsigned int mask) {
+static HpsErr_t _FPGA_PIO_getDirection(FPGAPIOCtx_t* ctx, unsigned int* dir, unsigned int mask) {
     *dir = ctx->base[GPIO_DIRECTION] & mask;
     return ERR_SUCCESS;
 }
 
-static HpsErr_t _FPGA_PIO_setOutput(PFPGAPIOCtx_t ctx, unsigned int port, unsigned int mask){
+static HpsErr_t _FPGA_PIO_setOutput(FPGAPIOCtx_t* ctx, unsigned int port, unsigned int mask){
     //Masking required
     if (ctx->gpio.getOutput) {
         // Can read output register, so do R-M-W
@@ -83,20 +83,20 @@ static HpsErr_t _FPGA_PIO_setOutput(PFPGAPIOCtx_t ctx, unsigned int port, unsign
     return ERR_SUCCESS;
 }
 
-static HpsErr_t _FPGA_PIO_toggleOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
+static HpsErr_t _FPGA_PIO_toggleOutput(FPGAPIOCtx_t* ctx, unsigned int mask) {
     //Toggle outputs
     ctx->base[GPIO_OUTPUT] = (ctx->base[GPIO_OUTPUT] ^ mask);
     return ERR_SUCCESS;
 }
 
-static HpsErr_t _FPGA_PIO_getOutput(PFPGAPIOCtx_t ctx, unsigned int* port, unsigned int mask) {
+static HpsErr_t _FPGA_PIO_getOutput(FPGAPIOCtx_t* ctx, unsigned int* port, unsigned int mask) {
     //Get output
     *port = ctx->base[GPIO_OUTPUT] & mask;
     return ERR_SUCCESS;
 }
 
 
-static HpsErr_t _FPGA_PIO_getInput(PFPGAPIOCtx_t ctx, unsigned int* in, unsigned int mask) {
+static HpsErr_t _FPGA_PIO_getInput(FPGAPIOCtx_t* ctx, unsigned int* in, unsigned int mask) {
     //Get input
     if (ctx->splitData) {
         *in = ctx->base[GPIO_SPLITINPUT] & mask;
@@ -106,7 +106,7 @@ static HpsErr_t _FPGA_PIO_getInput(PFPGAPIOCtx_t ctx, unsigned int* in, unsigned
     return ERR_SUCCESS;
 }
 
-static HpsErr_t _FPGA_PIO_setInterruptEnable(PFPGAPIOCtx_t ctx, unsigned int flags, unsigned int mask) {
+static HpsErr_t _FPGA_PIO_setInterruptEnable(FPGAPIOCtx_t* ctx, unsigned int flags, unsigned int mask) {
     //Before changing anything we need to mask global interrupts temporarily
     HpsErr_t irqStatus = IRQ_globalEnable(false);
     //Modify the enable flags
@@ -117,7 +117,7 @@ static HpsErr_t _FPGA_PIO_setInterruptEnable(PFPGAPIOCtx_t ctx, unsigned int fla
     return ERR_SUCCESS;
 }
 
-static HpsErr_t _FPGA_PIO_getInterruptFlags(PFPGAPIOCtx_t ctx, unsigned int* flags, unsigned int mask, bool autoClear) {
+static HpsErr_t _FPGA_PIO_getInterruptFlags(FPGAPIOCtx_t* ctx, unsigned int* flags, unsigned int mask, bool autoClear) {
     //Read the flags
     unsigned int edgeCapt = ctx->base[GPIO_INTR_FLAGS] & mask;
     //Clear the flags if requested
@@ -129,7 +129,7 @@ static HpsErr_t _FPGA_PIO_getInterruptFlags(PFPGAPIOCtx_t ctx, unsigned int* fla
     return ERR_SUCCESS;
 }
 
-static HpsErr_t _FPGA_PIO_clearInterruptFlags(PFPGAPIOCtx_t ctx, unsigned int mask) {
+static HpsErr_t _FPGA_PIO_clearInterruptFlags(FPGAPIOCtx_t* ctx, unsigned int mask) {
     ctx->base[GPIO_INTR_FLAGS] = mask;
     return ERR_SUCCESS;
 }
@@ -150,7 +150,7 @@ static HpsErr_t _FPGA_PIO_clearInterruptFlags(PFPGAPIOCtx_t ctx, unsigned int ma
 //  - port is the default output value for GPIO pins
 //  - Returns Util/error Code
 //  - Returns context pointer to *ctx
-HpsErr_t FPGA_PIO_initialise(void* base, FPGAPIODirectionType pioType, bool splitData, bool hasBitset, bool hasEdge, bool hasIrq, unsigned int dir, unsigned int port, PFPGAPIOCtx_t* pCtx) {
+HpsErr_t FPGA_PIO_initialise(void* base, FPGAPIODirectionType pioType, bool splitData, bool hasBitset, bool hasEdge, bool hasIrq, unsigned int dir, unsigned int port, FPGAPIOCtx_t** pCtx) {
     //Ensure user pointers valid
     if (!base) return ERR_NULLPTR;
     if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
@@ -158,7 +158,7 @@ HpsErr_t FPGA_PIO_initialise(void* base, FPGAPIODirectionType pioType, bool spli
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_FPGA_PIO_cleanup);
     if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
-    PFPGAPIOCtx_t ctx = *pCtx;
+    FPGAPIOCtx_t* ctx = *pCtx;
     ctx->base = (unsigned int*)base;
     ctx->pioType = pioType;
     ctx->splitData = splitData;
@@ -205,7 +205,7 @@ HpsErr_t FPGA_PIO_initialise(void* base, FPGAPIODirectionType pioType, bool spli
 
 // Check if driver initialised
 //  - Returns true if driver previously initialised
-bool FPGA_PIO_isInitialised(PFPGAPIOCtx_t ctx) {
+bool FPGA_PIO_isInitialised(FPGAPIOCtx_t* ctx) {
     return DriverContextCheckInit(ctx);
 }
 
@@ -215,7 +215,7 @@ bool FPGA_PIO_isInitialised(PFPGAPIOCtx_t ctx) {
 // - Will perform read-modify-write such that only pins with
 //   their mask bit set will be changed.
 // - e.g. with mask of 0x00010002, pins [1] and [16] will be changed.
-HpsErr_t FPGA_PIO_setDirection(PFPGAPIOCtx_t ctx, unsigned int dir, unsigned int mask) {
+HpsErr_t FPGA_PIO_setDirection(FPGAPIOCtx_t* ctx, unsigned int dir, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -226,7 +226,7 @@ HpsErr_t FPGA_PIO_setDirection(PFPGAPIOCtx_t ctx, unsigned int dir, unsigned int
 
 //Get direction
 // - Returns the current direction of masked pins to *dir
-HpsErr_t FPGA_PIO_getDirection(PFPGAPIOCtx_t ctx, unsigned int* dir, unsigned int mask) {
+HpsErr_t FPGA_PIO_getDirection(FPGAPIOCtx_t* ctx, unsigned int* dir, unsigned int mask) {
     if (!dir) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
@@ -241,7 +241,7 @@ HpsErr_t FPGA_PIO_getDirection(PFPGAPIOCtx_t ctx, unsigned int* dir, unsigned in
 // - Will perform read-modify-write such that only pins with
 //   their mask bit set will be changed.
 // - e.g. with mask of 0x00010002, pins [1] and [16] will be changed.
-HpsErr_t FPGA_PIO_setOutput(PFPGAPIOCtx_t ctx, unsigned int port, unsigned int mask) {
+HpsErr_t FPGA_PIO_setOutput(FPGAPIOCtx_t* ctx, unsigned int port, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -252,7 +252,7 @@ HpsErr_t FPGA_PIO_setOutput(PFPGAPIOCtx_t ctx, unsigned int port, unsigned int m
 
 //Set output bits
 // - If bit-set feature is supported, directly sets the masked bits
-HpsErr_t FPGA_PIO_bitsetOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
+HpsErr_t FPGA_PIO_bitsetOutput(FPGAPIOCtx_t* ctx, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -264,7 +264,7 @@ HpsErr_t FPGA_PIO_bitsetOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
 
 //Clear output bits
 // - If bit-set feature is supported, directly clears the masked bits
-HpsErr_t FPGA_PIO_bitclearOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
+HpsErr_t FPGA_PIO_bitclearOutput(FPGAPIOCtx_t* ctx, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -279,7 +279,7 @@ HpsErr_t FPGA_PIO_bitclearOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
 // - Will perform read-modify-write such that only pins with
 //   their mask bit set will be toggled.
 // - e.g. with mask of 0x00010002, pins [1] and [16] will be changed.
-HpsErr_t FPGA_PIO_toggleOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
+HpsErr_t FPGA_PIO_toggleOutput(FPGAPIOCtx_t* ctx, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -290,7 +290,7 @@ HpsErr_t FPGA_PIO_toggleOutput(PFPGAPIOCtx_t ctx, unsigned int mask) {
 
 //Get output value
 // - Returns the current value of the masked output pins to *port
-HpsErr_t FPGA_PIO_getOutput(PFPGAPIOCtx_t ctx, unsigned int* port, unsigned int mask) {
+HpsErr_t FPGA_PIO_getOutput(FPGAPIOCtx_t* ctx, unsigned int* port, unsigned int mask) {
     if (!port) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
@@ -302,7 +302,7 @@ HpsErr_t FPGA_PIO_getOutput(PFPGAPIOCtx_t ctx, unsigned int* port, unsigned int 
 
 //Get input value
 // - Returns the current value of the masked input pins to *in.
-HpsErr_t FPGA_PIO_getInput(PFPGAPIOCtx_t ctx, unsigned int* in, unsigned int mask) {
+HpsErr_t FPGA_PIO_getInput(FPGAPIOCtx_t* ctx, unsigned int* in, unsigned int mask) {
     if (!in) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
@@ -314,7 +314,7 @@ HpsErr_t FPGA_PIO_getInput(PFPGAPIOCtx_t ctx, unsigned int* in, unsigned int mas
 
 //Set interrupt mask
 // - Enable masked pins to generate an interrupt to the processor.
-HpsErr_t FPGA_PIO_setInterruptEnable(PFPGAPIOCtx_t ctx, unsigned int flags, unsigned int mask) {
+HpsErr_t FPGA_PIO_setInterruptEnable(FPGAPIOCtx_t* ctx, unsigned int flags, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -326,7 +326,7 @@ HpsErr_t FPGA_PIO_setInterruptEnable(PFPGAPIOCtx_t ctx, unsigned int flags, unsi
 // - Returns flags indicating which pins have generated an interrupt
 // - The returned flags are unmasked so even pins for which interrupt
 //   has not been enabled may return true in the flags.
-HpsErr_t FPGA_PIO_getInterruptFlags(PFPGAPIOCtx_t ctx, unsigned int* flags, unsigned int mask, bool autoClear) {
+HpsErr_t FPGA_PIO_getInterruptFlags(FPGAPIOCtx_t* ctx, unsigned int* flags, unsigned int mask, bool autoClear) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -336,7 +336,7 @@ HpsErr_t FPGA_PIO_getInterruptFlags(PFPGAPIOCtx_t ctx, unsigned int* flags, unsi
 
 //Clear interrupt flags
 // - Clear interrupt flags of pins with bits set in mask.
-HpsErr_t FPGA_PIO_clearInterruptFlags(PFPGAPIOCtx_t ctx, unsigned int mask) {
+HpsErr_t FPGA_PIO_clearInterruptFlags(FPGAPIOCtx_t* ctx, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;

@@ -28,7 +28,7 @@
 //     - in split mode, this controls whether the initialise function is called.
 //  - CRC is calculated on length bytes from *data
 //  - Result is returned to (*crc)
-HpsErr_t CRC_calculate(PCRCCtx_t crcCtx, bool init, const uint8_t * data, unsigned int length, unsigned int* crc) {
+HpsErr_t CRC_calculate(CRCCtx_t* crcCtx, bool init, const uint8_t * data, unsigned int length, unsigned int* crc) {
     if (!crcCtx || !crc) return ERR_NULLPTR;
     // Check mode
     if (crcCtx->mode == CRC_FUNC_COMBINED) {
@@ -57,7 +57,7 @@ HpsErr_t CRC_calculate(PCRCCtx_t crcCtx, bool init, const uint8_t * data, unsign
 
 // Get the width of the CRC result in bits
 //  - Maximum width is 32 for the generic CRC driver.
-HpsErr_t CRC_getWidth(PCRCCtx_t crcCtx) {
+HpsErr_t CRC_getWidth(CRCCtx_t* crcCtx) {
     if (!crcCtx->getWidth) return ERR_NOSUPPORT;
     return crcCtx->getWidth(crcCtx->ctx);
 }

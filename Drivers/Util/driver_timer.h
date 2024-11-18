@@ -54,10 +54,10 @@ typedef struct {
     TimerGetModeFunc_t    getMode;
     TimerOverflowedFunc_t checkOverflow;    
     TimerConfigureFunc_t  configure;    
-} TimerCtx_t, *PTimerCtx_t;
+} TimerCtx_t;
 
 // Check if driver initialised
-static inline bool Timer_isInitialised(PTimerCtx_t timer) {
+static inline bool Timer_isInitialised(TimerCtx_t* timer) {
     if (!timer) return false;
     return DriverContextCheckInit(timer->ctx);
 }
@@ -66,28 +66,28 @@ static inline bool Timer_isInitialised(PTimerCtx_t timer) {
 //  - Returns via *clockRate the current timer clock rate based on configured prescaler settings
 //  - If prescaler is UINT32_MAX, will return based on previously configured.
 //    prescaler settings, otherwise will calculate for specified value
-static inline HpsErr_t Timer_getRate(PTimerCtx_t timer, unsigned int prescaler, unsigned int* rate) {
+static inline HpsErr_t Timer_getRate(TimerCtx_t* timer, unsigned int prescaler, unsigned int* rate) {
     if (!timer || !rate) return ERR_NULLPTR;
     if (!timer->getRate) return ERR_NOSUPPORT;
     return timer->getRate(timer->ctx,prescaler,rate);
 }
 
 // Get the current mode of the timer
-static inline HpsErr_t Timer_getMode(PTimerCtx_t timer, TimerMode* mode) {
+static inline HpsErr_t Timer_getMode(TimerCtx_t* timer, TimerMode* mode) {
     if (!timer || !mode) return ERR_NULLPTR;
     if (!timer->getMode) return ERR_NOSUPPORT;
     return timer->getMode(timer->ctx,mode);
 }
 
 // Get the top/initial/load value of the timer
-static inline HpsErr_t Timer_getLoad(PTimerCtx_t timer, unsigned int* loadTime) {
+static inline HpsErr_t Timer_getLoad(TimerCtx_t* timer, unsigned int* loadTime) {
     if (!timer || !loadTime) return ERR_NULLPTR;
     if (!timer->getLoad) return ERR_NOSUPPORT;
     return timer->getLoad(timer->ctx,loadTime);
 }
 
 // Get current timer value
-static inline HpsErr_t Timer_getTime(PTimerCtx_t timer, unsigned int* curTime) {
+static inline HpsErr_t Timer_getTime(TimerCtx_t* timer, unsigned int* curTime) {
     if (!timer || !curTime) return ERR_NULLPTR;
     if (!timer->getTime) return ERR_NOSUPPORT;
     return timer->getTime(timer->ctx,curTime);
@@ -96,7 +96,7 @@ static inline HpsErr_t Timer_getTime(PTimerCtx_t timer, unsigned int* curTime) {
 // Configure timer
 //  - For one-shot mode, will disable the timer. Call NIOS_Timer_enable() to start one-shot.
 //  - For other modes, timer will remain in current state (running or stopped)
-static inline HpsErr_t Timer_configure(PTimerCtx_t timer, TimerMode mode, unsigned int prescalar, unsigned int loadValue) {
+static inline HpsErr_t Timer_configure(TimerCtx_t* timer, TimerMode mode, unsigned int prescalar, unsigned int loadValue) {
     if (!timer) return ERR_NULLPTR;
     if (!timer->configure) return ERR_NOSUPPORT;
     return timer->configure(timer->ctx, mode, prescalar, loadValue);
@@ -107,14 +107,14 @@ static inline HpsErr_t Timer_configure(PTimerCtx_t timer, TimerMode mode, unsign
 //    to the configured value divided by this fraction
 //    for this run. Allows quickly scaling the timeout
 //    between runs.
-static inline HpsErr_t Timer_enable(PTimerCtx_t timer, unsigned int fraction) {
+static inline HpsErr_t Timer_enable(TimerCtx_t* timer, unsigned int fraction) {
     if (!timer) return ERR_NULLPTR;
     if (!timer->enable) return ERR_NOSUPPORT;
     return timer->enable(timer->ctx,fraction);
 }
 
 // Disable timer
-static inline HpsErr_t Timer_disable(PTimerCtx_t timer) {
+static inline HpsErr_t Timer_disable(TimerCtx_t* timer) {
     if (!timer) return ERR_NULLPTR;
     if (!timer->disable) return ERR_NOSUPPORT;
     return timer->disable(timer->ctx);
@@ -124,7 +124,7 @@ static inline HpsErr_t Timer_disable(PTimerCtx_t timer) {
 //  - Returns 1 if timer overflow flag was set
 //  - Returns 0 if interrupt flag was clear.
 //  - If autoClear is true, will clear the interrupt flag.
-static inline HpsErr_t Timer_checkOverflow(PTimerCtx_t timer, bool autoClear) {
+static inline HpsErr_t Timer_checkOverflow(TimerCtx_t* timer, bool autoClear) {
     if (!timer) return ERR_NULLPTR;
     if (!timer->checkOverflow) return ERR_NOSUPPORT;
     return timer->checkOverflow(timer->ctx, autoClear);

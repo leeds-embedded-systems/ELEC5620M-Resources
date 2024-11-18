@@ -45,7 +45,7 @@
 
 // Set the CRC processor context used by the CRC32 routines.
 // - If this returns an error code, the CRC32 functions will not work.
-HpsErr_t crc32_setCtx(PCRCCtx_t ctx);
+HpsErr_t crc32_setCtx(CRCCtx_t* ctx);
 
 // CRC32 calculation for small buffers
 uint32_t crc32(uint32_t crc, const uint8_t *p, uint32_t len);

@@ -82,7 +82,7 @@ enum {
  */
 
 //Check if write complete
-static HpsErr_t _HPS_I2C_writeCheckResult(PHPSI2CCtx_t ctx) {
+static HpsErr_t _HPS_I2C_writeCheckResult(HPSI2CCtx_t* ctx) {
     //Check if there is a write queued
     if (!ctx->writeQueued) {
         return ERR_NOTFOUND; //Nothing running
@@ -103,7 +103,7 @@ static HpsErr_t _HPS_I2C_writeCheckResult(PHPSI2CCtx_t ctx) {
     return ctx->writeLength;
 }
 
-static HpsErr_t _HPS_I2C_readCheckResult(PHPSI2CCtx_t ctx, unsigned char data[], unsigned int dataLen) {
+static HpsErr_t _HPS_I2C_readCheckResult(HPSI2CCtx_t* ctx, unsigned char data[], unsigned int dataLen) {
     //Check if there is a read queued
     if (!ctx->readQueued) {
         return ERR_NOTFOUND; //Nothing running
@@ -136,7 +136,7 @@ static HpsErr_t _HPS_I2C_readCheckResult(PHPSI2CCtx_t ctx, unsigned char data[],
     return fifoFill;
 }
 
-static void _HPS_I2C_cleanup(PHPSI2CCtx_t ctx) {
+static void _HPS_I2C_cleanup(HPSI2CCtx_t* ctx) {
     //Disable the I2C controller.
     if (ctx->base) {
         ctx->base[HPS_I2C_ENABLE] = 0x0;
@@ -150,7 +150,7 @@ static void _HPS_I2C_cleanup(PHPSI2CCtx_t ctx) {
 //Initialise HPS I2C Controller
 // - For base, DE1-SoC uses 0xFFC04000 for Accelerometer/VGA/Audio/ADC. 0xFFC05000 for LTC 14pin Hdr.
 // - Returns 0 if successful.
-HpsErr_t HPS_I2C_initialise(void* base, I2CSpeed speed, PHPSI2CCtx_t* pCtx) {
+HpsErr_t HPS_I2C_initialise(void* base, I2CSpeed speed, HPSI2CCtx_t** pCtx) {
     //Ensure user pointers valid
     if (!base) return ERR_NULLPTR;
     if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
@@ -158,7 +158,7 @@ HpsErr_t HPS_I2C_initialise(void* base, I2CSpeed speed, PHPSI2CCtx_t* pCtx) {
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_HPS_I2C_cleanup);
     if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
-    PHPSI2CCtx_t ctx = *pCtx;
+    HPSI2CCtx_t* ctx = *pCtx;
     ctx->base = (unsigned int*)base;
     //Initialise I2C common context
     ctx->i2c.ctx = ctx;
@@ -187,13 +187,13 @@ HpsErr_t HPS_I2C_initialise(void* base, I2CSpeed speed, PHPSI2CCtx_t* pCtx) {
 
 //Check if driver initialised
 // - Returns true if driver context is initialised
-bool HPS_I2C_isInitialised(PHPSI2CCtx_t ctx){
+bool HPS_I2C_isInitialised(HPSI2CCtx_t* ctx){
     return DriverContextCheckInit(ctx);
 }
 
 //Abort a pending read or write
 // - Aborts read if isRead, otherwise aborts write
-HpsErr_t HPS_I2C_abort(PHPSI2CCtx_t ctx, bool isRead) {
+HpsErr_t HPS_I2C_abort(HPSI2CCtx_t* ctx, bool isRead) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -214,7 +214,7 @@ HpsErr_t HPS_I2C_abort(PHPSI2CCtx_t ctx, bool isRead) {
 //Returns the status flags from last abort
 // - If a read or write returns ERR_ABORTED, this function can be called to check why
 // - Will return the value of the "TX Abort Source" register when the abort happened.
-HpsErr_t HPS_I2C_abortStatus(PHPSI2CCtx_t ctx, unsigned int* abtStat) {
+HpsErr_t HPS_I2C_abortStatus(HPSI2CCtx_t* ctx, unsigned int* abtStat) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -230,22 +230,22 @@ HpsErr_t HPS_I2C_abortStatus(PHPSI2CCtx_t ctx, unsigned int* abtStat) {
 //   - To check if complete, perform an array write with length 0.
 //   - Returns ERR_AGAIN if not yet finished.
 //   - Returns number of bytes written if successful.
-HpsErr_t HPS_I2C_write8b(PHPSI2CCtx_t ctx, unsigned short address, unsigned char data) {
+HpsErr_t HPS_I2C_write8b(HPSI2CCtx_t* ctx, unsigned short address, unsigned char data) {
     return HPS_I2C_write(ctx, address, &data, 1);
 }
-HpsErr_t HPS_I2C_write16b(PHPSI2CCtx_t ctx, unsigned short address, unsigned short data) {
+HpsErr_t HPS_I2C_write16b(HPSI2CCtx_t* ctx, unsigned short address, unsigned short data) {
     //Remap data to big-endian
     data = reverseShort(data);
     //Send data as array
     return HPS_I2C_write(ctx, address, (unsigned char*)&data, sizeof(data));
 }
-HpsErr_t HPS_I2C_write32b(PHPSI2CCtx_t ctx, unsigned short address, unsigned int data) {
+HpsErr_t HPS_I2C_write32b(HPSI2CCtx_t* ctx, unsigned short address, unsigned int data) {
     //Remap data to big-endian
     data = reverseInt(data);
     //Send data as array
     return HPS_I2C_write(ctx, address, (unsigned char*)&data, sizeof(data));
 }
-HpsErr_t HPS_I2C_write(PHPSI2CCtx_t ctx, unsigned short address, const unsigned char data[], unsigned int length) {
+HpsErr_t HPS_I2C_write(HPSI2CCtx_t* ctx, unsigned short address, const unsigned char data[], unsigned int length) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -288,7 +288,7 @@ HpsErr_t HPS_I2C_write(PHPSI2CCtx_t ctx, unsigned short address, const unsigned 
 //   - To check if complete, perform an read with writeLen = 0.
 //   - Returns ERR_AGAIN if not yet finished.
 //   - Returns number of bytes written if successful.
-HpsErr_t HPS_I2C_read(PHPSI2CCtx_t ctx, unsigned short address, const unsigned char writeData[], unsigned int writeLen, unsigned char readData[], unsigned int readLen) {
+HpsErr_t HPS_I2C_read(HPSI2CCtx_t* ctx, unsigned short address, const unsigned char writeData[], unsigned int writeLen, unsigned char readData[], unsigned int readLen) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;

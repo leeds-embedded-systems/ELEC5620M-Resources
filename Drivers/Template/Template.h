@@ -25,21 +25,21 @@ typedef struct {
     DrvCtx_t header;
     //Body
     volatile unsigned int* base;
-} TemplateCtx_t, *PTemplateCtx_t;
+} TemplateCtx_t;
 
 // Initialise the Template Driver
 //  - base is a pointer to the template thingy
 //  - Returns Util/error Code
 //  - Returns context pointer to *ctx
-HpsErr_t Template_initialise(void* base, PTemplateCtx_t* pCtx);
+HpsErr_t Template_initialise(void* base, TemplateCtx_t** pCtx);
 
 // Check if driver initialised
 //  - Returns true if driver previously initialised
-bool Template_isInitialised(PTemplateCtx_t ctx);
+bool Template_isInitialised(TemplateCtx_t* ctx);
 
 // Template API
 //  - Does stuff.
-HpsErr_t Template_api(PTemplateCtx_t ctx);
+HpsErr_t Template_api(TemplateCtx_t* ctx);
 
 
 #endif /* TEMPLATE_H_ */

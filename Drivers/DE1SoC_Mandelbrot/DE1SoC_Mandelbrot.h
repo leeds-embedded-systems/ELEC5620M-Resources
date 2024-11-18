@@ -41,20 +41,20 @@ typedef struct {
     double radius;
     double xcentre;
     double ycentre;
-} MandelbrotCtx_t, *PMandelbrotCtx_t;
+} MandelbrotCtx_t;
 
 //Function to initialise the Mandelbrot driver
 // - Requires that the LT24 controller has already been initialised.
 // - Returns 0 if successful
-HpsErr_t Mandelbrot_initialise( void* base, PLT24Ctx_t lt24ctx, PMandelbrotCtx_t* pCtx );
+HpsErr_t Mandelbrot_initialise( void* base, LT24Ctx_t* lt24ctx, MandelbrotCtx_t** pCtx );
 
 //Check if driver initialised
 // - returns true if initialised
-bool Mandelbrot_isInitialised( PMandelbrotCtx_t ctx );
+bool Mandelbrot_isInitialised( MandelbrotCtx_t* ctx );
 
 //Get Precision
 // - returns MandelbrotPrecision value.
-HpsErr_t Mandelbrot_getCalculationPrecision( PMandelbrotCtx_t ctx );
+HpsErr_t Mandelbrot_getCalculationPrecision( MandelbrotCtx_t* ctx );
 
 //Set Precision
 // - Default to FLOAT
@@ -62,37 +62,37 @@ HpsErr_t Mandelbrot_getCalculationPrecision( PMandelbrotCtx_t ctx );
 // - returns 0 if successful
 // - Once precision is changed, all coefficients (Zmax, Xmin, Ymin, Xstep, Ystep)
 //   will automatically be reprogrammed.
-HpsErr_t Mandelbrot_setCalculationPrecision( PMandelbrotCtx_t ctx, MandelbrotPrecision precision );
+HpsErr_t Mandelbrot_setCalculationPrecision( MandelbrotCtx_t* ctx, MandelbrotPrecision precision );
 
 //Set Bounding Value
 // - This typically never needs changing. It defaults to 2.
-HpsErr_t Mandelbrot_setZnMax( PMandelbrotCtx_t ctx, double znMax );
+HpsErr_t Mandelbrot_setZnMax( MandelbrotCtx_t* ctx, double znMax );
 
 //Set Coordinates
 // - Sets coordinates and radius of pattern.
 // - Change this to change the zoom.
-HpsErr_t Mandelbrot_setCoordinates( PMandelbrotCtx_t ctx, double radius, double xcentre, double ycentre );
+HpsErr_t Mandelbrot_setCoordinates( MandelbrotCtx_t* ctx, double radius, double xcentre, double ycentre );
 
 //Current iteration
 // - Returns how many iterations have been made on the current pattern.
 // - If >=0 is current iteration of this pattern
 // - If <0 is error code
-HpsErr_t Mandelbrot_currentIteration( PMandelbrotCtx_t ctx );
+HpsErr_t Mandelbrot_currentIteration( MandelbrotCtx_t* ctx );
 
 //Start new pattern
 // - Resets the Mandelbrot generator and starts a new pattern.
 // - Returns 0 if successfully started new pattern.
 // - Ensure first that no iteration is currently running (Mandelbrot_iterationDone() returns SUCCESS).
-HpsErr_t Mandelbrot_resetPattern( PMandelbrotCtx_t ctx );
+HpsErr_t Mandelbrot_resetPattern( MandelbrotCtx_t* ctx );
 
 //Start next iteration
 // - Return 0 if successfully started iteration.
 // - Call mandelbrot_interationDone() to check if finished.
-HpsErr_t Mandelbrot_startIteration( PMandelbrotCtx_t ctx );
+HpsErr_t Mandelbrot_startIteration( MandelbrotCtx_t* ctx );
 
 //Check if last iteration is done
 // - Return 0 if successfully finished iteration.
 // - Return ERR_BUSY if still running.
-HpsErr_t Mandelbrot_iterationDone( PMandelbrotCtx_t ctx );
+HpsErr_t Mandelbrot_iterationDone( MandelbrotCtx_t* ctx );
 
 #endif /* DE1SOC_MANDELBROT_H_ */

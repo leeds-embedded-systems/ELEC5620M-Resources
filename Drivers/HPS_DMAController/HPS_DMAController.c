@@ -79,7 +79,7 @@
  */
 
 // Re-initialse an existing program structure
-static HpsErr_t HPS_DMA_initialiseProgram(PHPSDmaProgram_t prog) {
+static HpsErr_t HPS_DMA_initialiseProgram(HPSDmaProgram_t* prog) {
     if (!prog) return ERR_NULLPTR;
     // Initialise first program buffer word to DMAEND instruction for safety.
     prog->buf[0] = _HPS_DMA_ENDVAL;
@@ -91,11 +91,11 @@ static HpsErr_t HPS_DMA_initialiseProgram(PHPSDmaProgram_t prog) {
 }
 
 // Allocate a new program structure
-static HpsErr_t HPS_DMA_allocateProgram(unsigned int maxSize, bool autoFree, PHPSDmaProgram_t* pProg) {
+static HpsErr_t HPS_DMA_allocateProgram(unsigned int maxSize, bool autoFree, HPSDmaProgram_t** pProg) {
     if (!pProg) return ERR_NULLPTR;
     if (!maxSize) return ERR_TOOSMALL; // No point allocating a program with no space for any instructions.
     // Allocate the program structure
-    PHPSDmaProgram_t prog = malloc(sizeof(*prog) + maxSize);
+    HPSDmaProgram_t* prog = malloc(sizeof(*prog) + maxSize);
     if (!prog) return ERR_ALLOCFAIL;
     prog->size = maxSize - 1; // Account for space taken up by END marker.
     // Set auto-free marker.
@@ -109,7 +109,7 @@ static HpsErr_t HPS_DMA_allocateProgram(unsigned int maxSize, bool autoFree, PHP
 
 // Free a program structure
 //  - if onlyAuto is true, will only perform free operation if *pProg->autoFree is true.
-static HpsErr_t HPS_DMA_freeProgram(PHPSDmaProgram_t* pProg, bool onlyAuto) {
+static HpsErr_t HPS_DMA_freeProgram(HPSDmaProgram_t** pProg, bool onlyAuto) {
     if (!pProg) return ERR_NULLPTR;
     // Check if skipping manual free objects
     if (onlyAuto && !(*pProg)->autoFree) return ERR_SKIPPED;
@@ -121,7 +121,7 @@ static HpsErr_t HPS_DMA_freeProgram(PHPSDmaProgram_t* pProg, bool onlyAuto) {
 
 //Check the debug command status.
 // - Will return ERR_BUSY if a command is running.
-static HpsErr_t _HPS_DMA_debugCommandStatus(PHPSDmaCtx_t ctx) {
+static HpsErr_t _HPS_DMA_debugCommandStatus(HPSDmaCtx_t* ctx) {
     return MaskCheck(HPSDMA_REG_DEBUG_STATUS(ctx->base), HPSDMA_DEBUG_STATUS_ISBUSY_MASK, HPSDMA_DEBUG_STATUS_ISBUSY_OFFS) ? ERR_BUSY : ERR_SUCCESS;
 }
 
@@ -130,7 +130,7 @@ static HpsErr_t _HPS_DMA_debugCommandStatus(PHPSDmaCtx_t ctx) {
 
 //Issue debug command
 // - First populate the debug command in ctx->dbgProg befores issuing.
-static HpsErr_t _HPS_DMA_issueDebugCommand(PHPSDmaCtx_t ctx, HPSDmaThreadType thread, HPSDmaChannelId channel) {
+static HpsErr_t _HPS_DMA_issueDebugCommand(HPSDmaCtx_t* ctx, HPSDmaThreadType thread, HPSDmaChannelId channel) {
     //Ensure the debug interface is not busy
     HpsErr_t status = _HPS_DMA_debugCommandStatus(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -151,7 +151,7 @@ static HpsErr_t _HPS_DMA_issueDebugCommand(PHPSDmaCtx_t ctx, HPSDmaThreadType th
 }
 
 //Get state of DMA thread
-static HpsErr_t _HPS_DMA_getState(PHPSDmaCtx_t ctx, HPSDmaThreadType thread, HPSDmaChannelId channel, unsigned int* state) {
+static HpsErr_t _HPS_DMA_getState(HPSDmaCtx_t* ctx, HPSDmaThreadType thread, HPSDmaChannelId channel, unsigned int* state) {
     if (!state) return ERR_NULLPTR;
     if (thread == HPS_DMA_THREADTYPE_MGR) {
         *state = MaskExtract(HPSDMA_REG_CTRL_MGRSTAT(ctx->base), HPSDMA_CTRL_MGRSTAT_DMASTAT_MASK, HPSDMA_CTRL_MGRSTAT_DMASTAT_OFFS);
@@ -165,7 +165,7 @@ static HpsErr_t _HPS_DMA_getState(PHPSDmaCtx_t ctx, HPSDmaThreadType thread, HPS
 //Get fault status of DMA thread
 // - For Mgr thread, flags can be checked against HPSDmaMgrFault
 // - For Ch thread, flags can be checked against HPSDmaChFault
-static HpsErr_t _HPS_DMA_getFault(PHPSDmaCtx_t ctx, HPSDmaThreadType thread, HPSDmaChannelId channel, unsigned int* flags) {
+static HpsErr_t _HPS_DMA_getFault(HPSDmaCtx_t* ctx, HPSDmaThreadType thread, HPSDmaChannelId channel, unsigned int* flags) {
     if (!flags) return ERR_NULLPTR;
     if (thread == HPS_DMA_THREADTYPE_MGR) {
         *flags = HPSDMA_REG_CTRL_MGRFAULTTYPE(ctx->base);
@@ -177,7 +177,7 @@ static HpsErr_t _HPS_DMA_getFault(PHPSDmaCtx_t ctx, HPSDmaThreadType thread, HPS
 }
 
 //Manually an event using the debug interface
-static HpsErr_t _HPS_DMA_sendEvent(PHPSDmaCtx_t ctx, HPSDmaEventId eventId) {
+static HpsErr_t _HPS_DMA_sendEvent(HPSDmaCtx_t* ctx, HPSDmaEventId eventId) {
     if ((eventId >= HPS_DMA_EVENT_COUNT) || (eventId < HPS_DMA_EVENT_MIN)) return ERR_BADID;
     HPS_DMA_INIT_DBGPROG(ctx);
     HpsErr_t status = HPS_DMA_instMgrDMASEV(ctx->dbgProg, eventId);
@@ -186,7 +186,7 @@ static HpsErr_t _HPS_DMA_sendEvent(PHPSDmaCtx_t ctx, HPSDmaEventId eventId) {
 }
 
 //Issue a DMAKILL command to a DMA thread
-static HpsErr_t _HPS_DMA_killThread(PHPSDmaCtx_t ctx, HPSDmaThreadType thread, HPSDmaChannelId channel) {
+static HpsErr_t _HPS_DMA_killThread(HPSDmaCtx_t* ctx, HPSDmaThreadType thread, HPSDmaChannelId channel) {
     HPS_DMA_INIT_DBGPROG(ctx);
     HpsErr_t status = HPS_DMA_instDbgDMAKILL(ctx->dbgProg);
     if (ERR_IS_ERROR(status)) return status;
@@ -194,7 +194,7 @@ static HpsErr_t _HPS_DMA_killThread(PHPSDmaCtx_t ctx, HPSDmaThreadType thread, H
 }
 
 //Check the current state of all channel threads.
-static HpsErr_t _HPS_DMA_checkState(PHPSDmaCtx_t ctx) {
+static HpsErr_t _HPS_DMA_checkState(HPSDmaCtx_t* ctx) {
     HpsErr_t status;
     // If the controller is in reset, return not ready
     if (*HPS_DMA_RSTMGR_DMAREG & HPS_DMA_RSTMGR_DMAMASK) return ERR_NOTREADY;
@@ -254,7 +254,7 @@ static HpsErr_t _HPS_DMA_checkState(PHPSDmaCtx_t ctx) {
 }
 
 //Start the transfer for the specified channel
-static HpsErr_t _HPS_DMA_startTransferCh(PHPSDmaCtx_t ctx, HPSDmaChannelId channel) {
+static HpsErr_t _HPS_DMA_startTransferCh(HPSDmaCtx_t* ctx, HPSDmaChannelId channel) {
     //Check if channel is allocated and ready to start
     if (ctx->channelState[channel] != HPS_DMA_STATE_CHNL_READY) {
         return ERR_NOTREADY;
@@ -262,7 +262,7 @@ static HpsErr_t _HPS_DMA_startTransferCh(PHPSDmaCtx_t ctx, HPSDmaChannelId chann
     //Grab the correct program. This is assumed validated by setupTransfer which
     //is the only API compliant way that a channel could have been marked as ready.
     //We do a basic null-pointer check in case the memory was freed in the mean time.
-    PHPSDmaProgram_t prog = ctx->chProg[channel];
+    HPSDmaProgram_t* prog = ctx->chProg[channel];
     if (!prog) return ERR_NULLPTR;
     //Issue DMA start
     HPS_DMA_INIT_DBGPROG(ctx);
@@ -274,7 +274,7 @@ static HpsErr_t _HPS_DMA_startTransferCh(PHPSDmaCtx_t ctx, HPSDmaChannelId chann
 }
 
 //Setup transfer for the specified channel
-static HpsErr_t _HPS_DMA_setupTransfer(PHPSDmaCtx_t ctx, PHPSDmaProgram_t prog, PHPSDmaChCtlParams_t params, bool autoStart) {
+static HpsErr_t _HPS_DMA_setupTransfer(HPSDmaCtx_t* ctx, HPSDmaProgram_t* prog, HPSDmaChCtlParams_t* params, bool autoStart) {
     //Update channel status flags to check if any previously running 
     //transfers have finished so we know if we can reuse this channel.
     HpsErr_t status = _HPS_DMA_checkState(ctx);
@@ -311,7 +311,7 @@ static HpsErr_t _HPS_DMA_setupTransfer(PHPSDmaCtx_t ctx, PHPSDmaProgram_t prog, 
 }
 
 //Basic copy program
-static HpsErr_t _HPS_DMA_loadStoreProgram(PHPSDmaCtx_t ctx, PHPSDmaProgram_t prog, bool storeZero) {
+static HpsErr_t _HPS_DMA_loadStoreProgram(HPSDmaCtx_t* ctx, HPSDmaProgram_t* prog, bool storeZero) {
     if (storeZero) {
         if (ERR_IS_ERROR(HPS_DMA_instChDMASTZ(prog))) return ERR_NOSPACE;
     } else {
@@ -323,13 +323,13 @@ static HpsErr_t _HPS_DMA_loadStoreProgram(PHPSDmaCtx_t ctx, PHPSDmaProgram_t pro
 
 
 //Create the default program
-static HpsErr_t _HPS_DMA_generateMainProgram(PHPSDmaCtx_t ctx, PDmaChunk_t xfer, PHPSDmaProgram_t* pProg) {
+static HpsErr_t _HPS_DMA_generateMainProgram(HPSDmaCtx_t* ctx, DmaChunk_t* xfer, HPSDmaProgram_t** pProg) {
     //Allocate our program memory
     HpsErr_t status = HPS_DMA_allocateProgram(256, true, pProg);
     if (ERR_IS_ERROR(status)) return status;
-    PHPSDmaProgram_t prog = *pProg;
+    HPSDmaProgram_t* prog = *pProg;
     //Get transfer params
-    PHPSDmaChCtlParams_t params = (PHPSDmaChCtlParams_t)xfer->params;
+    HPSDmaChCtlParams_t* params = (HPSDmaChCtlParams_t*)xfer->params;
     //Build the DMA program from op-codes
     unsigned int readAddr = xfer->readAddr;
     unsigned int writeAddr = xfer->writeAddr;
@@ -517,7 +517,7 @@ static HpsErr_t _HPS_DMA_generateMainProgram(PHPSDmaCtx_t ctx, PDmaChunk_t xfer,
 }
 
 //Initialise hardware
-static HpsErr_t _HPS_DMA_initHardware(PHPSDmaCtx_t ctx, PHPSDmaHwInit_t hwInit) {
+static HpsErr_t _HPS_DMA_initHardware(HPSDmaCtx_t* ctx, HPSDmaHwInit_t* hwInit) {
     HpsErr_t status;
     // Ensure the DMA controller in reset to allow config
     *HPS_DMA_RSTMGR_DMAREG |= HPS_DMA_RSTMGR_DMAMASK;
@@ -552,7 +552,7 @@ static HpsErr_t _HPS_DMA_initHardware(PHPSDmaCtx_t ctx, PHPSDmaHwInit_t hwInit) 
 }
 
 //Cleanup
-static void _HPS_DMA_cleanup(PHPSDmaCtx_t ctx) {
+static void _HPS_DMA_cleanup(HPSDmaCtx_t* ctx) {
     if (ctx->base) {
         // Kill all threads
         for (unsigned int channel = HPS_DMA_CHANNEL_MIN; channel < HPS_DMA_CHANNEL_COUNT; channel++) {
@@ -576,7 +576,7 @@ static void _HPS_DMA_cleanup(PHPSDmaCtx_t ctx) {
 //  - hwInit is optional configuration settings for hardware. If NULL, will use default for all HW settings.
 //  - Returns Util/error Code
 //  - Returns context pointer to *ctx
-HpsErr_t HPS_DMA_initialise(void* base, HPSDmaBurstSize wordSize, PHPSDmaHwInit_t hwInit, PHPSDmaCtx_t* pCtx) {
+HpsErr_t HPS_DMA_initialise(void* base, HPSDmaBurstSize wordSize, HPSDmaHwInit_t* hwInit, HPSDmaCtx_t** pCtx) {
     //Ensure user pointers valid
     if (!base) return ERR_NULLPTR;
     if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
@@ -584,7 +584,7 @@ HpsErr_t HPS_DMA_initialise(void* base, HPSDmaBurstSize wordSize, PHPSDmaHwInit_
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_HPS_DMA_cleanup);
     if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
-    PHPSDmaCtx_t ctx = *pCtx;
+    HPSDmaCtx_t* ctx = *pCtx;
     ctx->base = (unsigned int*)base;
     ctx->wordSize = wordSize;
     ctx->wordBytes = 1 << wordSize;
@@ -614,14 +614,14 @@ HpsErr_t HPS_DMA_initialise(void* base, HPSDmaBurstSize wordSize, PHPSDmaHwInit_
 
 // Check if driver initialised
 //  - Returns true if driver previously initialised
-bool HPS_DMA_isInitialised(PHPSDmaCtx_t ctx) {
+bool HPS_DMA_isInitialised(HPSDmaCtx_t* ctx) {
     return DriverContextCheckInit(ctx);
 }
 
 // Set interrupt mask
 //  - Configure whether masked flags to generate an interrupt to the processor.
 //  - Any masked flag with a 1 bit in the flags will generate IRQ.
-HpsErr_t HPS_DMA_setInterruptEnable(PHPSDmaCtx_t ctx, unsigned int flags, unsigned int mask) {
+HpsErr_t HPS_DMA_setInterruptEnable(HPSDmaCtx_t* ctx, unsigned int flags, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -638,7 +638,7 @@ HpsErr_t HPS_DMA_setInterruptEnable(PHPSDmaCtx_t ctx, unsigned int flags, unsign
 // Get interrupt flags
 //  - Returns flags indicating which sources have generated an interrupt
 //  - If autoClear true, then interrupt flags will be cleared on read.
-HpsErr_t HPS_DMA_getInterruptFlags(PHPSDmaCtx_t ctx, unsigned int* flags, unsigned int mask, bool autoClear) {
+HpsErr_t HPS_DMA_getInterruptFlags(HPSDmaCtx_t* ctx, unsigned int* flags, unsigned int mask, bool autoClear) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -655,7 +655,7 @@ HpsErr_t HPS_DMA_getInterruptFlags(PHPSDmaCtx_t ctx, unsigned int* flags, unsign
 
 // Clear interrupt flags
 //  - Clear interrupt flags with bits set in mask.
-HpsErr_t HPS_DMA_clearInterruptFlags(PHPSDmaCtx_t ctx, unsigned int mask) {
+HpsErr_t HPS_DMA_clearInterruptFlags(HPSDmaCtx_t* ctx, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -669,10 +669,10 @@ HpsErr_t HPS_DMA_clearInterruptFlags(PHPSDmaCtx_t ctx, unsigned int mask) {
 //    the provided chunk.
 //  - By default the autoFreeParams value will be set to true so that
 //    it is auto-free'd when the chunk is processed.
-HpsErr_t HPS_DMA_initDmaChunkParam(PHPSDmaCtx_t ctx, PDmaChunk_t xfer) {
+HpsErr_t HPS_DMA_initDmaChunkParam(HPSDmaCtx_t* ctx, DmaChunk_t* xfer) {
     if (!xfer) return ERR_NULLPTR;
     // Allocate parameters
-    PHPSDmaChCtlParams_t params = malloc(sizeof(*params));
+    HPSDmaChCtlParams_t* params = malloc(sizeof(*params));
     if (!params) return ERR_ALLOCFAIL;
     // Initialise the parameters
     HpsErr_t status = HPS_DMA_initParameters(ctx, params, HPS_DMA_SOURCE_MEMORY, HPS_DMA_DESTINATION_MEMORY);
@@ -692,7 +692,7 @@ HpsErr_t HPS_DMA_initDmaChunkParam(PHPSDmaCtx_t ctx, PDmaChunk_t xfer) {
 // Initialise a HPSDmaChCtlParams structure
 //  - Populates the default fields into a parameters structure
 //  - By default the autoFreeParams value will be set to false.
-HpsErr_t HPS_DMA_initParameters(PHPSDmaCtx_t ctx, PHPSDmaChCtlParams_t params, HPSDmaDataSource source, HPSDmaDataDest destination) {
+HpsErr_t HPS_DMA_initParameters(HPSDmaCtx_t* ctx, HPSDmaChCtlParams_t* params, HPSDmaDataSource source, HPSDmaDataDest destination) {
     if (!params) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
@@ -725,7 +725,7 @@ HpsErr_t HPS_DMA_initParameters(PHPSDmaCtx_t ctx, PHPSDmaChCtlParams_t params, H
 //  - Can optionally start the transfer immediately
 //  - If selected DMA channel is in use, returns ERR_BUSY.
 //  - Standard API defaults to (xfer->index % CH_COUNT) to perform a simple memory to memory transfer
-//    - Can optionally configure transfer by setting xfer->params to a PHPSDmaChCtlParams_t structure.
+//    - Can optionally configure transfer by setting xfer->params to a HPSDmaChCtlParams_t* structure.
 //    - Channel can be changed by setting the params->channel
 //    - For burst transfers, configure params appropriately
 //  - For simple transfers (xfer withot params) and with autoStart==true, if the length is
@@ -736,7 +736,7 @@ HpsErr_t HPS_DMA_initParameters(PHPSDmaCtx_t ctx, PHPSDmaChCtlParams_t params, H
 //    - Call HPS_DMA_startTransfer*() if autoStart=false
 //    - Use HPS_DMA_busy*()/HPS_DMA_completed*()/HPS_DMA_aborted*() to check the status of the transfer.
 //    - Use HPS_DMA_abort() to stop any running transfers.
-HpsErr_t HPS_DMA_setupTransfer(PHPSDmaCtx_t ctx, PDmaChunk_t xfer, bool autoStart) {
+HpsErr_t HPS_DMA_setupTransfer(HPSDmaCtx_t* ctx, DmaChunk_t* xfer, bool autoStart) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -757,10 +757,10 @@ HpsErr_t HPS_DMA_setupTransfer(PHPSDmaCtx_t ctx, PDmaChunk_t xfer, bool autoStar
         if (ERR_IS_ERROR(status)) return status;
     }
     //Create the default memory copy program
-    PHPSDmaProgram_t prog;
+    HPSDmaProgram_t* prog;
     status = _HPS_DMA_generateMainProgram(ctx, xfer, &prog);
     //Setup the transfer
-    PHPSDmaChCtlParams_t params = (PHPSDmaChCtlParams_t)xfer->params;
+    HPSDmaChCtlParams_t* params = (HPSDmaChCtlParams_t*)xfer->params;
     if (ERR_IS_SUCCESS(status)) {
         status = _HPS_DMA_setupTransfer(ctx, prog, params, autoStart);
     }
@@ -776,7 +776,7 @@ HpsErr_t HPS_DMA_setupTransfer(PHPSDmaCtx_t ctx, PDmaChunk_t xfer, bool autoStar
 //  - allows performing transfers with arbitrary programs.
 //  - Use HPS_DMA_instCh*() API from HPS_DMAControllerProgram.h to create these programs.
 //  - If selected DMA channel is in use, returns ERR_BUSY.
-HpsErr_t HPS_DMA_setupTransferWithProgram(PHPSDmaCtx_t ctx, PHPSDmaProgram_t prog, PHPSDmaChCtlParams_t params, bool autoStart){
+HpsErr_t HPS_DMA_setupTransferWithProgram(HPSDmaCtx_t* ctx, HPSDmaProgram_t* prog, HPSDmaChCtlParams_t* params, bool autoStart){
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -789,7 +789,7 @@ HpsErr_t HPS_DMA_setupTransferWithProgram(PHPSDmaCtx_t ctx, PHPSDmaProgram_t pro
 // Start the previously configured transfer
 //  - If not enough space to start, returns ERR_BUSY.
 //  - Standard API starts all prepared channels. The xxxCh() API can start any channel.
-HpsErr_t HPS_DMA_startTransfer(PHPSDmaCtx_t ctx) {
+HpsErr_t HPS_DMA_startTransfer(HPSDmaCtx_t* ctx) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -800,7 +800,7 @@ HpsErr_t HPS_DMA_startTransfer(PHPSDmaCtx_t ctx) {
     }
     return ERR_SUCCESS;
 }
-HpsErr_t HPS_DMA_startTransferCh(PHPSDmaCtx_t ctx, HPSDmaChannelId channel) {
+HpsErr_t HPS_DMA_startTransferCh(HPSDmaCtx_t* ctx, HPSDmaChannelId channel) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -814,7 +814,7 @@ HpsErr_t HPS_DMA_startTransferCh(PHPSDmaCtx_t ctx, HPSDmaChannelId channel) {
 // Check if the DMA controller is busy
 //  - Will return ERR_BUSY if the DMA processor is busy.
 //  - Standard API returns busy if any channel is busy. The xxxCh() API can check a specific channel.
-HpsErr_t HPS_DMA_busy(PHPSDmaCtx_t ctx) {
+HpsErr_t HPS_DMA_busy(HPSDmaCtx_t* ctx) {
     HpsErr_t status;
     for (unsigned int channel = HPS_DMA_CHANNEL_MIN; channel < HPS_DMA_CHANNEL_COUNT; channel++) {
         status = HPS_DMA_busyCh(ctx, (HPSDmaChannelId)channel);
@@ -822,7 +822,7 @@ HpsErr_t HPS_DMA_busy(PHPSDmaCtx_t ctx) {
     }
     return ERR_SUCCESS;
 }
-HpsErr_t HPS_DMA_busyCh(PHPSDmaCtx_t ctx, HPSDmaChannelId channel) {
+HpsErr_t HPS_DMA_busyCh(HPSDmaCtx_t* ctx, HPSDmaChannelId channel) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -838,7 +838,7 @@ HpsErr_t HPS_DMA_busyCh(PHPSDmaCtx_t ctx, HPSDmaChannelId channel) {
 // Check the state of a DMA channel
 //  - Returns HPSDmaChannelState on success.
 //  - Optionally returns the last fault condition for the channel to *fault.
-HpsErr_t HPS_DMA_checkState(PHPSDmaCtx_t ctx, HPSDmaChannelId channel, unsigned int* fault) {
+HpsErr_t HPS_DMA_checkState(HPSDmaCtx_t* ctx, HPSDmaChannelId channel, unsigned int* fault) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -859,7 +859,7 @@ HpsErr_t HPS_DMA_checkState(PHPSDmaCtx_t ctx, HPSDmaChannelId channel, unsigned 
 // - Returns ERR_IOFAIL if in an error state
 //    - Optional second argument can be used to read error information.
 // - Non-stateful. Can be used to check at any time.
-HpsErr_t HPS_DMA_transferError(PHPSDmaCtx_t ctx, unsigned int* errorInfo) {
+HpsErr_t HPS_DMA_transferError(HPSDmaCtx_t* ctx, unsigned int* errorInfo) {
     HpsErr_t status;
     for (unsigned int channel = HPS_DMA_CHANNEL_MIN; channel < HPS_DMA_CHANNEL_COUNT; channel++) {
         // Check the channel state
@@ -878,7 +878,7 @@ HpsErr_t HPS_DMA_transferError(PHPSDmaCtx_t ctx, unsigned int* errorInfo) {
 //  - It will return ERR_BUSY if (a) the transfer has not completed, or (b) the completion has already been acknowledged
 //  - If ERR_SUCCESS is returned, the done flag will be cleared automatically acknowledging the completion.
 //  - Standard API returns complete once all channels are done. The xxxCh() API can check any channel.
-HpsErr_t HPS_DMA_completed(PHPSDmaCtx_t ctx) {
+HpsErr_t HPS_DMA_completed(HPSDmaCtx_t* ctx) {
     //Check if busy.
     HpsErr_t status = HPS_DMA_busy(ctx);
     if (ERR_IS_ERROR(status)) return status; // One or more channels is busy
@@ -898,7 +898,7 @@ HpsErr_t HPS_DMA_completed(PHPSDmaCtx_t ctx) {
     }
     return status;
 }
-HpsErr_t HPS_DMA_completedCh(PHPSDmaCtx_t ctx, HPSDmaChannelId channel) {
+HpsErr_t HPS_DMA_completedCh(HPSDmaCtx_t* ctx, HPSDmaChannelId channel) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -924,7 +924,7 @@ HpsErr_t HPS_DMA_completedCh(PHPSDmaCtx_t ctx, HPSDmaChannelId channel) {
 //  - DMA_ABORT_NONE clears the abort request (whether or not it has actually completed). Must be called after DMA_ABORT_FORCE abort to release from reset.
 //  - DMA_ABORT_SAFE requests the controller stop once any outstanding bus requests are handled
 //  - DMA_ABORT_FORCE stops immediately which may require a wider reset.
-HpsErr_t HPS_DMA_abort(PHPSDmaCtx_t ctx, DmaAbortType abort) {
+HpsErr_t HPS_DMA_abort(HPSDmaCtx_t* ctx, DmaAbortType abort) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -965,7 +965,7 @@ HpsErr_t HPS_DMA_abort(PHPSDmaCtx_t ctx, DmaAbortType abort) {
 //  - It will return ERR_BUSY if (a) the transfer has not aborted, or (b) the abort has already been acknowledged
 //  - If ERR_SUCCESS is returned, the abort flag will be cleared automatically acknowledging it.
 //  - Standard API returns aborted once all channels are aborted. The xxxCh() API can check any channel.
-HpsErr_t HPS_DMA_aborted(PHPSDmaCtx_t ctx) {
+HpsErr_t HPS_DMA_aborted(HPSDmaCtx_t* ctx) {
     //Check if busy.
     HpsErr_t status = HPS_DMA_busy(ctx);
     if (ERR_IS_ERROR(status)) return status; // One or more channels is busy
@@ -985,7 +985,7 @@ HpsErr_t HPS_DMA_aborted(PHPSDmaCtx_t ctx) {
     }
     return status;
 }
-HpsErr_t HPS_DMA_abortedCh(PHPSDmaCtx_t ctx, HPSDmaChannelId channel) {
+HpsErr_t HPS_DMA_abortedCh(HPSDmaCtx_t* ctx, HPSDmaChannelId channel) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;

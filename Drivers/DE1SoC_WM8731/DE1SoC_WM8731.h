@@ -32,40 +32,40 @@ typedef struct {
     DrvCtx_t header;
     // Context Body
     volatile unsigned int* base;
-    PHPSI2CCtx_t i2c; // I2C peripheral used by Audio Codec
+    HPSI2CCtx_t* i2c; // I2C peripheral used by Audio Codec
     unsigned int i2cAddr;
     unsigned int sampleRate;
-} WM8731Ctx_t, *PWM8731Ctx_t;
+} WM8731Ctx_t;
 
 //Initialise Audio Codec
 // - base_address is memory-mapped address of audio controller
 // - returns 0 if successful
-HpsErr_t WM8731_initialise( void* base, PHPSI2CCtx_t i2c, PWM8731Ctx_t* pCtx );
+HpsErr_t WM8731_initialise( void* base, HPSI2CCtx_t* i2c, WM8731Ctx_t** pCtx );
 
 //Check if driver initialised
 // - Returns true if driver previously initialised
 // - WM8731_initialise() must be called if false.
-bool WM8731_isInitialised( PWM8731Ctx_t ctx );
+bool WM8731_isInitialised( WM8731Ctx_t* ctx );
 
 //Get the sample rate for the ADC/DAC
-HpsErr_t WM8731_getSampleRate( PWM8731Ctx_t ctx, unsigned int* sampleRate );
+HpsErr_t WM8731_getSampleRate( WM8731Ctx_t* ctx, unsigned int* sampleRate );
 
 //Clears FIFOs
 // - returns 0 if successful
-HpsErr_t WM8731_clearFIFO( PWM8731Ctx_t ctx, bool adc, bool dac);
+HpsErr_t WM8731_clearFIFO( WM8731Ctx_t* ctx, bool adc, bool dac);
 
 //Get FIFO Space (DAC)
-HpsErr_t WM8731_getFIFOSpace( PWM8731Ctx_t ctx, unsigned int* fifoSpace );
+HpsErr_t WM8731_getFIFOSpace( WM8731Ctx_t* ctx, unsigned int* fifoSpace );
 
 //Get FIFO Fill (ADC)
-HpsErr_t WM8731_getFIFOFill( PWM8731Ctx_t ctx, unsigned int* fifoFill );
+HpsErr_t WM8731_getFIFOFill( WM8731Ctx_t* ctx, unsigned int* fifoFill );
 
 //Write a sample to the FIFO for the both channels
 // - You must check there is data available in the FIFO before calling this function.
-HpsErr_t WM8731_writeSample( PWM8731Ctx_t ctx, unsigned int left, unsigned int right);
+HpsErr_t WM8731_writeSample( WM8731Ctx_t* ctx, unsigned int left, unsigned int right);
 
 //Read a sample from the FIFO for both channels
 // - You must check there is space in the FIFO before calling this function.
-HpsErr_t WM8731_readSample( PWM8731Ctx_t ctx, unsigned int* left, unsigned int* right);
+HpsErr_t WM8731_readSample( WM8731Ctx_t* ctx, unsigned int* left, unsigned int* right);
 
 #endif /*DE1SoC_WM8731_H_*/

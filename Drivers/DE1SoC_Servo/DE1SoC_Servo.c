@@ -45,13 +45,13 @@
 
 //Validation function for servo ID
 // - Returns true if an invalid servo ID
-static bool _Servo_invalidID( PServoCtx_t ctx, unsigned int channel ) {
+static bool _Servo_invalidID( ServoCtx_t* ctx, unsigned int channel ) {
     if (channel >= SERVO_MAX_COUNT) return false;
     volatile unsigned char* servo_ptr = (unsigned char*)&ctx->base[channel]; //Get the csr for the requested servo
     return !(servo_ptr[SERVO_CONTROL] & SERVO_AVAILABLE);
 }
 
-static void _Servo_enable( PServoCtx_t ctx, unsigned int channel, bool enable) {
+static void _Servo_enable( ServoCtx_t* ctx, unsigned int channel, bool enable) {
     //Get the csr for the requested servo
     volatile unsigned char* servo_ptr = (unsigned char*)&ctx->base[channel]; 
     if (enable) {
@@ -62,7 +62,7 @@ static void _Servo_enable( PServoCtx_t ctx, unsigned int channel, bool enable) {
 }
 
 // Cleanup function called when driver destroyed.
-static void _Servo_cleanup( PServoCtx_t ctx ) {
+static void _Servo_cleanup( ServoCtx_t* ctx ) {
     if (ctx->base) {
         // Disable all servos
         for (unsigned int channel = 0; channel < SERVO_MAX_COUNT; channel++) {
@@ -77,7 +77,7 @@ static void _Servo_cleanup( PServoCtx_t ctx ) {
  */
 
 //Function to initialise the Servo controller
-HpsErr_t Servo_initialise( void* base, PServoCtx_t* pCtx ) {
+HpsErr_t Servo_initialise( void* base, ServoCtx_t** pCtx ) {
     //Ensure user pointers valid. dataBase can be NULL.
     if (!base) return ERR_NULLPTR;
     if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
@@ -85,7 +85,7 @@ HpsErr_t Servo_initialise( void* base, PServoCtx_t* pCtx ) {
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_Servo_cleanup);
     if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
-    PServoCtx_t ctx = *pCtx;
+    ServoCtx_t* ctx = *pCtx;
     ctx->base = (unsigned int*)base;
     //Populate the GPIO structure. We only have the getInput function.
     ctx->gpio.ctx = ctx;
@@ -101,7 +101,7 @@ HpsErr_t Servo_initialise( void* base, PServoCtx_t* pCtx ) {
 }
 
 //Check if driver initialised
-bool Servo_isInitialised( PServoCtx_t ctx ) {
+bool Servo_isInitialised( ServoCtx_t* ctx ) {
     return DriverContextCheckInit(ctx);
 }
 
@@ -109,7 +109,7 @@ bool Servo_isInitialised( PServoCtx_t ctx ) {
 // - "channel" is the number of the servo to control
 // - "set_enabled" is true to enable, false to disable.
 // - returns ERR_SUCCESS if successful
-HpsErr_t Servo_enable( PServoCtx_t ctx, unsigned int channel, bool enable) {
+HpsErr_t Servo_enable( ServoCtx_t* ctx, unsigned int channel, bool enable) {
     //Ensure context valid and initialised and channel is valid
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -125,7 +125,7 @@ HpsErr_t Servo_enable( PServoCtx_t ctx, unsigned int channel, bool enable) {
 // - Reads will populate *value with the pin value, while mask can be used to select which pins to read.
 // - When the servo is enabled, this function will return the current output value, and the pin
 //   should not be used as an input.
-HpsErr_t Servo_readInput( PServoCtx_t ctx, unsigned int* value, unsigned int mask ) {
+HpsErr_t Servo_readInput( ServoCtx_t* ctx, unsigned int* value, unsigned int mask ) {
     // Validate inputs
     if (!value) return ERR_NULLPTR;
     HpsErr_t status = DriverContextValidate(ctx);
@@ -154,7 +154,7 @@ HpsErr_t Servo_readInput( PServoCtx_t ctx, unsigned int* value, unsigned int mas
 // - The servo controller supports both types. This function selects between them
 // - Setting "double_width" to false means 1ms range, setting "double_width" to true means 2ms range.
 // - Will return ERR_SUCCESS if successful.
-HpsErr_t Servo_pulseWidthRange( PServoCtx_t ctx, unsigned int channel, bool double_width ) {
+HpsErr_t Servo_pulseWidthRange( ServoCtx_t* ctx, unsigned int channel, bool double_width ) {
     //Ensure context valid and initialised and channel is valid
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -174,7 +174,7 @@ HpsErr_t Servo_pulseWidthRange( PServoCtx_t ctx, unsigned int channel, bool doub
 //   If position changed while busy, last update will be lost.
 // - Will return ERR_BUSY if not ready for an update
 // - Will return ERR_SUCCESS once ready.
-HpsErr_t Servo_busy( PServoCtx_t ctx, unsigned int channel ) {
+HpsErr_t Servo_busy( ServoCtx_t* ctx, unsigned int channel ) {
     //Ensure context valid and initialised and channel is valid
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -189,7 +189,7 @@ HpsErr_t Servo_busy( PServoCtx_t ctx, unsigned int channel ) {
 //   20ms or 40ms for cheap servos.
 // - "period" is specified as a number in milliseconds from 1 to 255.
 // - Will return ERR_SUCCESS if updated successfully.
-HpsErr_t Servo_period( PServoCtx_t ctx, unsigned int channel, unsigned char period) {
+HpsErr_t Servo_period( ServoCtx_t* ctx, unsigned int channel, unsigned char period) {
     //Ensure controller not busy as well as context and channel validity.
     HpsErr_t status = Servo_busy(ctx, channel);
     if (ERR_IS_ERROR(status)) return status;
@@ -207,7 +207,7 @@ HpsErr_t Servo_period( PServoCtx_t ctx, unsigned int channel, unsigned char peri
 //   e.g. 0 means 1.5ms centre, +26 means 1.6ms centre, etc.
 // - "calibration" is the calibration byte for the servo.
 // - Will return ERR_SUCCESS if updated successfully.
-HpsErr_t Servo_calibrate( PServoCtx_t ctx, unsigned int channel, signed char calibration) {
+HpsErr_t Servo_calibrate( ServoCtx_t* ctx, unsigned int channel, signed char calibration) {
     //Ensure controller not busy as well as context and channel validity.
     HpsErr_t status = Servo_busy(ctx, channel);
     if (ERR_IS_ERROR(status)) return status;
@@ -229,7 +229,7 @@ HpsErr_t Servo_calibrate( PServoCtx_t ctx, unsigned int channel, signed char cal
 //   will be added to the calibration offset internally.
 // - "width" is the pulse width value for the servo.
 // - Will return ERR_SUCCESS if updated successfully.
-HpsErr_t Servo_pulseWidth( PServoCtx_t ctx, unsigned int channel, signed char width) {
+HpsErr_t Servo_pulseWidth( ServoCtx_t* ctx, unsigned int channel, signed char width) {
     //Ensure controller not busy as well as context and channel validity.
     HpsErr_t status = Servo_busy(ctx, channel);
     if (ERR_IS_ERROR(status)) return status;

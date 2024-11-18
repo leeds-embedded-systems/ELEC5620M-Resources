@@ -63,10 +63,10 @@ typedef struct {
         CRCCalculateFunc_t    calculate;
         CRCResultFunc_t       getResult;
     } split;
-} CRCCtx_t, *PCRCCtx_t;
+} CRCCtx_t;
 
 // Check if driver initialised
-static inline bool CRC_isInitialised(PCRCCtx_t crc) {
+static inline bool CRC_isInitialised(CRCCtx_t* crc) {
     if (!crc) return false;
     return DriverContextCheckInit(crc->ctx);
 }
@@ -77,11 +77,11 @@ static inline bool CRC_isInitialised(PCRCCtx_t crc) {
 //     - in split mode, this controls whether the initialise function is called.
 //  - CRC is calculated on length bytes from *data
 //  - Result is returned to (*crc)
-HpsErr_t CRC_calculate(PCRCCtx_t crcCtx, bool init, const uint8_t * data, unsigned int length, unsigned int* crc);
+HpsErr_t CRC_calculate(CRCCtx_t* crcCtx, bool init, const uint8_t * data, unsigned int length, unsigned int* crc);
 
 // Get the width of the CRC result in bits
 //  - Maximum width is 32 for the generic CRC driver.
-HpsErr_t CRC_getWidth(PCRCCtx_t crcCtx);
+HpsErr_t CRC_getWidth(CRCCtx_t* crcCtx);
 
 
 #endif /* DRIVER_CRC_H_ */

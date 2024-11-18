@@ -288,7 +288,7 @@ typedef enum {
 // Check interrupt flags
 // - Returns whether each of the the selected interrupt flags is asserted
 // - If clear is true, will also clear the flags.
-static HpsErr_t _HPS_UART_getInterruptFlags(PHPSUARTCtx_t ctx, HPSUARTIrqSources mask, bool clear) {
+static HpsErr_t _HPS_UART_getInterruptFlags(HPSUARTCtx_t* ctx, HPSUARTIrqSources mask, bool clear) {
     // Read the line status register. Reads to this clear the flags automatically, so we keep a copy
     // of them.
     ctx->irqFlags |= ctx->base[HPS_UART_REG_LINESTAT];
@@ -315,11 +315,11 @@ static HpsErr_t _HPS_UART_getInterruptFlags(PHPSUARTCtx_t ctx, HPSUARTIrqSources
     return (HpsErr_t)flags;
 }
 
-static unsigned int _HPS_UART_writeSpace(PHPSUARTCtx_t ctx) {
+static unsigned int _HPS_UART_writeSpace(HPSUARTCtx_t* ctx) {
     return ctx->fifoSize - ctx->base[HPS_UART_REG_TXFILL];
 }
 
-static HpsErr_t _HPS_UART_write(PHPSUARTCtx_t ctx, const uint8_t* data, uint8_t length) {
+static HpsErr_t _HPS_UART_write(HPSUARTCtx_t* ctx, const uint8_t* data, uint8_t length) {
     int written = 0;
     if (!length) return 0;
     // Ensure the TX empty flag if clear so we can detect end of run
@@ -339,11 +339,11 @@ static HpsErr_t _HPS_UART_write(PHPSUARTCtx_t ctx, const uint8_t* data, uint8_t 
     return written;
 }
 
-static unsigned int _HPS_UART_available(PHPSUARTCtx_t ctx) {
+static unsigned int _HPS_UART_available(HPSUARTCtx_t* ctx) {
     return ctx->base[HPS_UART_REG_RXFILL];
 }
 
-static void _HPS_UART_readWord(PHPSUARTCtx_t ctx, UartRxData_t* data) {
+static void _HPS_UART_readWord(HPSUARTCtx_t* ctx, UartRxData_t* data) {
     // Check if we have anything to read
     data->valid = (_HPS_UART_available(ctx) > 0);
     // If we do, decode the data
@@ -354,7 +354,7 @@ static void _HPS_UART_readWord(PHPSUARTCtx_t ctx, UartRxData_t* data) {
     }
 }
 
-static HpsErr_t _HPS_UART_read(PHPSUARTCtx_t ctx, uint8_t* data, uint8_t length) {
+static HpsErr_t _HPS_UART_read(HPSUARTCtx_t* ctx, uint8_t* data, uint8_t length) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -380,7 +380,7 @@ static HpsErr_t _HPS_UART_read(PHPSUARTCtx_t ctx, uint8_t* data, uint8_t length)
     return (parityErr ? ERR_CHECKSUM : (frameErr ? ERR_CORRUPT : numRead));
 }
 
-static void _HPS_UART_cleanup(PHPSUARTCtx_t ctx) {
+static void _HPS_UART_cleanup(HPSUARTCtx_t* ctx) {
     //Disable interrupts and reset FIFOs
     if (ctx->base) {
         //Disabling FIFOs clears them.
@@ -391,7 +391,7 @@ static void _HPS_UART_cleanup(PHPSUARTCtx_t ctx) {
 /*
  * Wrapper APIs used for generic UART interface
  */
-static HpsErr_t _HPS_UART_txFifoSpace(PHPSUARTCtx_t ctx) {
+static HpsErr_t _HPS_UART_txFifoSpace(HPSUARTCtx_t* ctx) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -399,7 +399,7 @@ static HpsErr_t _HPS_UART_txFifoSpace(PHPSUARTCtx_t ctx) {
     return (HpsErr_t)_HPS_UART_writeSpace(ctx);
 }
 
-static HpsErr_t _HPS_UART_rxFifoAvailable(PHPSUARTCtx_t ctx) {
+static HpsErr_t _HPS_UART_rxFifoAvailable(HPSUARTCtx_t* ctx) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -407,7 +407,7 @@ static HpsErr_t _HPS_UART_rxFifoAvailable(PHPSUARTCtx_t ctx) {
     return (HpsErr_t)_HPS_UART_available(ctx);
 }
 
-static HpsErr_t _HPS_UART_txIdle(PHPSUARTCtx_t ctx, bool clearFlag) {
+static HpsErr_t _HPS_UART_txIdle(HPSUARTCtx_t* ctx, bool clearFlag) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -417,7 +417,7 @@ static HpsErr_t _HPS_UART_txIdle(PHPSUARTCtx_t ctx, bool clearFlag) {
     return !ctx->txRunning;
 }
 
-static HpsErr_t _HPS_UART_rxReady(PHPSUARTCtx_t ctx, bool clearFlag) {
+static HpsErr_t _HPS_UART_rxReady(HPSUARTCtx_t* ctx, bool clearFlag) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -435,7 +435,7 @@ static HpsErr_t _HPS_UART_rxReady(PHPSUARTCtx_t ctx, bool clearFlag) {
 //  - periphClk is the peripheral clock rate in Hz (e.g. 100E6 = 100MHz for DE1-SoC)
 //  - Returns Util/error Code
 //  - Returns context pointer to *ctx
-HpsErr_t HPS_UART_initialise(void* base, unsigned int periphClk, PHPSUARTCtx_t* pCtx) {
+HpsErr_t HPS_UART_initialise(void* base, unsigned int periphClk, HPSUARTCtx_t** pCtx) {
     //Ensure user pointers valid
     if (!base) return ERR_NULLPTR;
     if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
@@ -443,7 +443,7 @@ HpsErr_t HPS_UART_initialise(void* base, unsigned int periphClk, PHPSUARTCtx_t* 
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_HPS_UART_cleanup);
     if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
-    PHPSUARTCtx_t ctx = *pCtx;
+    HPSUARTCtx_t* ctx = *pCtx;
     ctx->base = (unsigned int*)base;
     ctx->baudClk = periphClk / HPS_UART_L4_SP_CLK_DIVISOR;
     ctx->fifoSize = HPS_UART_FIFOMODE_TO_SIZE(MaskExtract(ctx->base[HPS_UART_REG_PARAMS],HPS_UART_PARAMS_FIFOMODE_MASK,HPS_UART_PARAMS_FIFOMODE_OFFS));
@@ -484,7 +484,7 @@ HpsErr_t HPS_UART_initialise(void* base, unsigned int periphClk, PHPSUARTCtx_t* 
 
 // Check if driver initialised
 //  - Returns true if driver context previously initialised
-bool HPS_UART_isInitialised(PHPSUARTCtx_t ctx) {
+bool HPS_UART_isInitialised(HPSUARTCtx_t* ctx) {
     return DriverContextCheckInit(ctx);
 }
 
@@ -492,7 +492,7 @@ bool HPS_UART_isInitialised(PHPSUARTCtx_t ctx) {
 // Enable or Disable UART interrupt(s)
 // - Will enable or disable based on the enable input.
 // - Only interrupts with mask bit set will be changed.
-HpsErr_t HPS_UART_setInterruptEnable(PHPSUARTCtx_t ctx, HPSUARTIrqSources enable, HPSUARTIrqSources mask) {
+HpsErr_t HPS_UART_setInterruptEnable(HPSUARTCtx_t* ctx, HPSUARTIrqSources enable, HPSUARTIrqSources mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -512,7 +512,7 @@ HpsErr_t HPS_UART_setInterruptEnable(PHPSUARTCtx_t ctx, HPSUARTIrqSources enable
 // Check interrupt flags
 // - Returns whether each of the the selected interrupt flags is asserted
 // - If clear is true, will also clear the flags.
-HpsErr_t HPS_UART_getInterruptFlags(PHPSUARTCtx_t ctx, HPSUARTIrqSources mask, bool clear) {
+HpsErr_t HPS_UART_getInterruptFlags(HPSUARTCtx_t* ctx, HPSUARTIrqSources mask, bool clear) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -522,7 +522,7 @@ HpsErr_t HPS_UART_getInterruptFlags(PHPSUARTCtx_t ctx, HPSUARTIrqSources mask, b
 
 // Set the UART Baud Rate
 // - Returns the achieved baud rate
-HpsErr_t HPS_UART_setBaudRate(PHPSUARTCtx_t ctx, unsigned int baudRate) {
+HpsErr_t HPS_UART_setBaudRate(HPSUARTCtx_t* ctx, unsigned int baudRate) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -557,7 +557,7 @@ HpsErr_t HPS_UART_setBaudRate(PHPSUARTCtx_t ctx, unsigned int baudRate) {
 
 // Check UART Operation mode
 //  - UART core is always in full-duplex mode
-HpsErr_t HPS_UART_getTransferMode(PHPSUARTCtx_t ctx) {
+HpsErr_t HPS_UART_getTransferMode(HPSUARTCtx_t* ctx) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -570,7 +570,7 @@ HpsErr_t HPS_UART_getTransferMode(PHPSUARTCtx_t ctx) {
 //  - The format can select the data width, and the parity mode.
 //  - There will always be 1 stop bit, but due to the design of the firmware design there will always be
 //    a single extra bit of dead time between TX, which makes the core compatible with both 1 and 2 stop bits
-HpsErr_t HPS_UART_setDataFormat(PHPSUARTCtx_t ctx, unsigned int dataWidth, UartParity parityEn, HPSUARTStopBits stopBits, HPSUARTFlowCntrl flowctrl) {
+HpsErr_t HPS_UART_setDataFormat(HPSUARTCtx_t* ctx, unsigned int dataWidth, UartParity parityEn, HPSUARTStopBits stopBits, HPSUARTFlowCntrl flowctrl) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -602,7 +602,7 @@ HpsErr_t HPS_UART_setDataFormat(PHPSUARTCtx_t ctx, unsigned int dataWidth, UartP
 // Clear UART FIFOs
 //  - Clears either the TX, RX or both FIFOs.
 //  - Data will be deleted. Any pending TX will not be sent.
-HpsErr_t HPS_UART_clearDataFifos(PHPSUARTCtx_t ctx, bool clearTx, bool clearRx) {
+HpsErr_t HPS_UART_clearDataFifos(HPSUARTCtx_t* ctx, bool clearTx, bool clearRx) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -615,7 +615,7 @@ HpsErr_t HPS_UART_clearDataFifos(PHPSUARTCtx_t ctx, bool clearTx, bool clearRx) 
 // Check if there is space for TX data
 //  - Returns ERR_NOSPACE if there is no space.
 //  - If non-null, returns the amount of empty space in the TX FIFO in *space
-HpsErr_t HPS_UART_writeSpace(PHPSUARTCtx_t ctx, unsigned int* space) {
+HpsErr_t HPS_UART_writeSpace(HPSUARTCtx_t* ctx, unsigned int* space) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -631,7 +631,7 @@ HpsErr_t HPS_UART_writeSpace(PHPSUARTCtx_t ctx, unsigned int* space) {
 //  - The data[] parameter must be an array of at least 'length' words.
 //  - If there is not enough space in the FIFO, as many bytes as possible are sent.
 //  - The return value indicates number sent.
-HpsErr_t HPS_UART_write(PHPSUARTCtx_t ctx, const uint8_t data[], uint8_t length) {
+HpsErr_t HPS_UART_write(HPSUARTCtx_t* ctx, const uint8_t data[], uint8_t length) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -642,7 +642,7 @@ HpsErr_t HPS_UART_write(PHPSUARTCtx_t ctx, const uint8_t data[], uint8_t length)
 // Check if there is available Rx data
 //  - Returns ERR_ISEMPTY if there is nothing available.
 //  - If non-null, returns the amount available in the RX FIFO in *available
-HpsErr_t HPS_UART_available(PHPSUARTCtx_t ctx, unsigned int* available) {
+HpsErr_t HPS_UART_available(HPSUARTCtx_t* ctx, unsigned int* available) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -655,7 +655,7 @@ HpsErr_t HPS_UART_available(PHPSUARTCtx_t ctx, unsigned int* available) {
 // Read from the UART FIFO
 //  - Reads a single word from the UART FIFO
 //  - Error information is included in the return struct
-UartRxData_t HPS_UART_readWord(PHPSUARTCtx_t ctx) {
+UartRxData_t HPS_UART_readWord(HPSUARTCtx_t* ctx) {
     UartRxData_t data = {0};
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
@@ -672,7 +672,7 @@ UartRxData_t HPS_UART_readWord(PHPSUARTCtx_t ctx) {
 //  - The data[] parameter must be an array of at least 'length' words.
 //  - If successful, will return number of bytes read
 //  - If the return value is negative, an error occurred in one of the words
-HpsErr_t HPS_UART_read(PHPSUARTCtx_t ctx, uint8_t data[], uint8_t length) {
+HpsErr_t HPS_UART_read(HPSUARTCtx_t* ctx, uint8_t data[], uint8_t length) {
     // Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;

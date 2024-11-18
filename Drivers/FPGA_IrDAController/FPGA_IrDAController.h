@@ -45,38 +45,38 @@ typedef struct {
     UartCtx_t uart;
     volatile unsigned int* base;
     bool txRunning;
-} FPGAIrDACtx_t, *PFPGAIrDACtx_t;
+} FPGAIrDACtx_t;
 
 
 // Initialise FPGA IrDA driver
 //  - base is a pointer to the IrDA CSR peripheral
 //  - Returns Util/error Code
 //  - Returns context pointer to *ctx
-HpsErr_t FPGA_IrDA_initialise(void* base, PFPGAIrDACtx_t* pCtx);
+HpsErr_t FPGA_IrDA_initialise(void* base, FPGAIrDACtx_t** pCtx);
 
 // Check if driver initialised
 //  - Returns true if driver context previously initialised
-bool FPGA_IrDA_isInitialised(PFPGAIrDACtx_t ctx);
+bool FPGA_IrDA_isInitialised(FPGAIrDACtx_t* ctx);
 
 // Enable or Disable IrDA interrupt(s)
 // - Will enable or disable based on the enable input.
 // - Only interrupts with mask bit set will be changed.
-HpsErr_t FPGA_IrDA_setInterruptEnable(PFPGAIrDACtx_t ctx, FPGAIrDAIrqSources enable, FPGAIrDAIrqSources mask);
+HpsErr_t FPGA_IrDA_setInterruptEnable(FPGAIrDACtx_t* ctx, FPGAIrDAIrqSources enable, FPGAIrDAIrqSources mask);
 
 // Check interrupt flags
 // - Returns whether each of the the selected interrupt flags is asserted
 // - If clear is true, will also clear the flags.
-HpsErr_t FPGA_IrDA_getInterruptFlags(PFPGAIrDACtx_t ctx, FPGAIrDAIrqSources mask, bool clear);
+HpsErr_t FPGA_IrDA_getInterruptFlags(FPGAIrDACtx_t* ctx, FPGAIrDAIrqSources mask, bool clear);
 
 // Clear IrDA FIFOs
 //  - Clears either the TX, RX or both FIFOs.
 //  - Data will be deleted. Any pending TX will not be sent.
-HpsErr_t FPGA_IrDA_clearDataFifos(PFPGAIrDACtx_t ctx, bool clearTx, bool clearRx);
+HpsErr_t FPGA_IrDA_clearDataFifos(FPGAIrDACtx_t* ctx, bool clearTx, bool clearRx);
 
 // Check if there is space for TX data
 //  - Returns ERR_NOSPACE if there is no space.
 //  - If non-null, returns the amount of empty space in the TX FIFO in *space
-HpsErr_t FPGA_IrDA_writeSpace(PFPGAIrDACtx_t ctx, unsigned int* space);
+HpsErr_t FPGA_IrDA_writeSpace(FPGAIrDACtx_t* ctx, unsigned int* space);
 
 // Perform a IrDA write
 //  - A write transfer will be performed
@@ -86,17 +86,17 @@ HpsErr_t FPGA_IrDA_writeSpace(PFPGAIrDACtx_t ctx, unsigned int* space);
 //  - If the length of the data is not 0<=length<=16, the function will return -1 and write is not performed
 //  - If there is not enough space in the FIFO, as many bytes as possible are sent.
 //  - The return value indicates number sent.
-HpsErr_t FPGA_IrDA_write(PFPGAIrDACtx_t ctx, const uint8_t data[], uint8_t length);
+HpsErr_t FPGA_IrDA_write(FPGAIrDACtx_t* ctx, const uint8_t data[], uint8_t length);
 
 // Check if there is available Rx data
 //  - Returns ERR_ISEMPTY if there is nothing available.
 //  - If non-null, returns the amount available in the RX FIFO in *available
-HpsErr_t FPGA_IrDA_available(PFPGAIrDACtx_t ctx, unsigned int* available);
+HpsErr_t FPGA_IrDA_available(FPGAIrDACtx_t* ctx, unsigned int* available);
 
 // Read a word with status info
 //  - Reads a single word from the IrDA FIFO
 //  - Error information is included in the return struct
-UartRxData_t FPGA_IrDA_readWord(PFPGAIrDACtx_t ctx);
+UartRxData_t FPGA_IrDA_readWord(FPGAIrDACtx_t* ctx);
 
 // Read from the IrDA FIFO
 //  - This will attempt to read multiple bytes from the IrDA FIFO.
@@ -105,6 +105,6 @@ UartRxData_t FPGA_IrDA_readWord(PFPGAIrDACtx_t ctx);
 //  - The data[] parameter must be an array of at least 'length' words.
 //  - If successful, will return number of bytes read
 //  - If the return value is negative, an error occurred in one of the words
-HpsErr_t FPGA_IrDA_read(PFPGAIrDACtx_t ctx, uint8_t data[], uint8_t length);
+HpsErr_t FPGA_IrDA_read(FPGAIrDACtx_t* ctx, uint8_t data[], uint8_t length);
 
 #endif /* FPGA_IRDACONTROLLER_H_ */

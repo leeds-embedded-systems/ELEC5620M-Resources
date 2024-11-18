@@ -86,7 +86,7 @@
 
 //Check if busy, and if not disable the SPI
 // - if rxFill is true, will return RX fill level on success. Otherwise returns ERR_SUCCESS.
-static HpsErr_t _HPS_SPI_checkBusy(PHPSSPICtx_t ctx) {
+static HpsErr_t _HPS_SPI_checkBusy(HPSSPICtx_t* ctx) {
     //Can only update if SPI is disabled (i.e. not busy)
     if (ctx->base[HPS_SPI_REG_ENABLE] & _BV(HPS_SPI_ENABLE_SPIEN)) {
         //Busy if a transfer is still running
@@ -112,7 +112,7 @@ static inline HpsErr_t _HPS_SPI_checkWidth(unsigned int val, unsigned int minVal
 
 //Calculate the necessary clock divider
 // - returns false if can't find suitable rate
-static inline bool _HPS_SPI_calcDivider(PHPSSPICtx_t ctx, unsigned int clockFreq) {
+static inline bool _HPS_SPI_calcDivider(HPSSPICtx_t* ctx, unsigned int clockFreq) {
     //Divider is periphery clock over clock frequency, rounded up (to ensure we don't exceed clkFreq)
     unsigned int divider = CEIL_DIV(ctx->periphClk, clockFreq);
     //We also must be a multiple of 2, so round up if needed.
@@ -126,7 +126,7 @@ static inline bool _HPS_SPI_calcDivider(PHPSSPICtx_t ctx, unsigned int clockFreq
 }
 
 //Set number of transfers and shift register width based on data width
-static HpsErr_t _HPS_SPI_setDataWidth(PHPSSPICtx_t ctx, unsigned int dataWidth) {
+static HpsErr_t _HPS_SPI_setDataWidth(HPSSPICtx_t* ctx, unsigned int dataWidth) {
     //Width must be in range
     HpsErr_t status = _HPS_SPI_checkWidth(dataWidth, HPS_SPI_WIDTH_MIN, HPS_SPI_WIDTH_TOTAL_MAX);
     if (ERR_IS_ERROR(status)) return status;
@@ -161,7 +161,7 @@ static HpsErr_t _HPS_SPI_setDataWidth(PHPSSPICtx_t ctx, unsigned int dataWidth) 
 }
 
 //Set Microwire control width
-static HpsErr_t _HPS_SPI_setMwCtrlWidth(PHPSSPICtx_t ctx, unsigned int mwCtrlWidth) {
+static HpsErr_t _HPS_SPI_setMwCtrlWidth(HPSSPICtx_t* ctx, unsigned int mwCtrlWidth) {
     // If not in MW mode, value is don't care. Set to min.
     if (ctx->config.format != HPS_SPI_FORMAT_MICROWIRE) {
         ctx->config.mw.ctrlWidth = HPS_SPI_MW_CNTRL_MIN;
@@ -177,7 +177,7 @@ static HpsErr_t _HPS_SPI_setMwCtrlWidth(PHPSSPICtx_t ctx, unsigned int mwCtrlWid
 }
 
 //Set config register. Requires SPI be disabled
-static void _HPS_SPI_configureFormat(PHPSSPICtx_t ctx) {
+static void _HPS_SPI_configureFormat(HPSSPICtx_t* ctx) {
     //Prepare config value
     unsigned int config = 0;
     //Set transfer parameters. Default to TxRx mode
@@ -202,7 +202,7 @@ static void _HPS_SPI_configureFormat(PHPSSPICtx_t ctx) {
     ctx->base[HPS_SPI_REG_SLVSEL] = ctx->config.selectedSlaves;
 }
 
-static void _HPS_SPI_cleanup(PHPSSPICtx_t ctx) {
+static void _HPS_SPI_cleanup(HPSSPICtx_t* ctx) {
     //Disable the SPI controller.
     if (ctx->base) {
         ctx->base[HPS_SPI_REG_ENABLE] = 0x0;
@@ -220,7 +220,7 @@ static void _HPS_SPI_cleanup(PHPSSPICtx_t ctx) {
 // - dataWidth sets number of bits in data transfers
 // - mwCtrlWidth is only used if format is MICROWIRE
 // - Returns 0 if successful.
-HpsErr_t HPS_SPI_initialise(void* base, unsigned int periphClk, HPSSPIFormat format, PHPSSPICtx_t* pCtx) {
+HpsErr_t HPS_SPI_initialise(void* base, unsigned int periphClk, HPSSPIFormat format, HPSSPICtx_t** pCtx) {
     HpsErr_t status;
     //Ensure user pointers valid
     if (!base) return ERR_NULLPTR;
@@ -229,7 +229,7 @@ HpsErr_t HPS_SPI_initialise(void* base, unsigned int periphClk, HPSSPIFormat for
     status = DriverContextAllocateWithCleanup(pCtx, &_HPS_SPI_cleanup);
     if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
-    PHPSSPICtx_t ctx = *pCtx;
+    HPSSPICtx_t* ctx = *pCtx;
     ctx->base = (unsigned int*)base;
     ctx->periphClk = periphClk;
     //Initialise SPI common context
@@ -266,7 +266,7 @@ HpsErr_t HPS_SPI_initialise(void* base, unsigned int periphClk, HPSSPIFormat for
 
 //Check if driver initialised
 // - Returns true if driver context is initialised
-bool HPS_SPI_isInitialised(PHPSSPICtx_t ctx){
+bool HPS_SPI_isInitialised(HPSSPICtx_t* ctx){
     return DriverContextCheckInit(ctx);
 }
 
@@ -279,7 +279,7 @@ bool HPS_SPI_isInitialised(PHPSSPICtx_t ctx){
 //    - Widths > SHIFT_MAX will be performed as multiple transfers
 //    - Only multiples of 1, 2, 3, or 5 transfers is supported. This works for all widths up to 16, and all non-prime data widths up to 32.
 // - mwCtrlWidth is only used if format is MICROWIRE
-HpsErr_t HPS_SPI_configureFormat(PHPSSPICtx_t ctx, SpiSCLKPolarity cpol, SpiSCLKPhase cpha, unsigned int clkFreq, unsigned int dataWidth, unsigned int mwCtrlWidth) {
+HpsErr_t HPS_SPI_configureFormat(HPSSPICtx_t* ctx, SpiSCLKPolarity cpol, SpiSCLKPhase cpha, unsigned int clkFreq, unsigned int dataWidth, unsigned int mwCtrlWidth) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -301,7 +301,7 @@ HpsErr_t HPS_SPI_configureFormat(PHPSSPICtx_t ctx, SpiSCLKPolarity cpol, SpiSCLK
 
 // Set the SPI clock parameters
 // - Change the phase/polarity width without changing other formats
-HpsErr_t HPS_SPI_setClockMode(PHPSSPICtx_t ctx, SpiSCLKPolarity cpol, SpiSCLKPhase cpha) {
+HpsErr_t HPS_SPI_setClockMode(HPSSPICtx_t* ctx, SpiSCLKPolarity cpol, SpiSCLKPhase cpha) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -313,7 +313,7 @@ HpsErr_t HPS_SPI_setClockMode(PHPSSPICtx_t ctx, SpiSCLKPolarity cpol, SpiSCLKPha
 
 //Change the SPI data width
 // - Change the data width without changing other formats
-HpsErr_t HPS_SPI_setDataWidth(PHPSSPICtx_t ctx, unsigned int dataWidth) {
+HpsErr_t HPS_SPI_setDataWidth(HPSSPICtx_t* ctx, unsigned int dataWidth) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -323,7 +323,7 @@ HpsErr_t HPS_SPI_setDataWidth(PHPSSPICtx_t ctx, unsigned int dataWidth) {
 //Check if ready to write
 // - Only one lane. Ignores bits higher than 0 in lane mask.
 // - returns ERR_SUCCESS if ready to start a new write (i.e. not busy)
-HpsErr_t HPS_SPI_writeReady(PHPSSPICtx_t ctx, uint32_t laneMask) {
+HpsErr_t HPS_SPI_writeReady(HPSSPICtx_t* ctx, uint32_t laneMask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -334,7 +334,7 @@ HpsErr_t HPS_SPI_writeReady(PHPSSPICtx_t ctx, uint32_t laneMask) {
 //Perform a single word transfer
 // - Only one lane. Ignores bits higher than 0 in lane mask.
 // - If write only, will not store read result to FIFO.
-HpsErr_t HPS_SPI_writeData(PHPSSPICtx_t ctx, uint32_t laneMask, uint32_t* data, SpiTransferType type) {
+HpsErr_t HPS_SPI_writeData(HPSSPICtx_t* ctx, uint32_t laneMask, uint32_t* data, SpiTransferType type) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -372,7 +372,7 @@ HpsErr_t HPS_SPI_writeData(PHPSSPICtx_t ctx, uint32_t laneMask, uint32_t* data, 
 //Check if there is any data in the read FIFO
 // - Only one lane. Ignores bits higher than 0 in lane mask.
 // - Returns the number of available words on success.
-HpsErr_t HPS_SPI_readReady(PHPSSPICtx_t ctx, uint32_t laneMask) {
+HpsErr_t HPS_SPI_readReady(HPSSPICtx_t* ctx, uint32_t laneMask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -382,7 +382,7 @@ HpsErr_t HPS_SPI_readReady(PHPSSPICtx_t ctx, uint32_t laneMask) {
 
 //Read a word from the read FIFO
 // - Only one lane. Ignores bits higher than 0 in lane mask.
-HpsErr_t HPS_SPI_readData(PHPSSPICtx_t ctx, uint32_t laneMask, uint32_t* data) {
+HpsErr_t HPS_SPI_readData(HPSSPICtx_t* ctx, uint32_t laneMask, uint32_t* data) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -408,7 +408,7 @@ HpsErr_t HPS_SPI_readData(PHPSSPICtx_t ctx, uint32_t laneMask, uint32_t* data) {
 //Configure the slave select pins
 // - Only auto slave select mode supported
 // - Maximum of 4 slave selects, only bits 0-3 are used.
-HpsErr_t HPS_SPI_slaveSelect(PHPSSPICtx_t ctx, bool autoSlaveSel, uint32_t selectedSlaves) {
+HpsErr_t HPS_SPI_slaveSelect(HPSSPICtx_t* ctx, bool autoSlaveSel, uint32_t selectedSlaves) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -423,7 +423,7 @@ HpsErr_t HPS_SPI_slaveSelect(PHPSSPICtx_t ctx, bool autoSlaveSel, uint32_t selec
 
 //Set the microwire transfer direction.
 // - This is only used in microwire mode to select the direction of a microwire transfer
-HpsErr_t HPS_SPI_setMicrowireDirection(PHPSSPICtx_t ctx, SpiMISODirection dir) {
+HpsErr_t HPS_SPI_setMicrowireDirection(HPSSPICtx_t* ctx, SpiMISODirection dir) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -435,7 +435,7 @@ HpsErr_t HPS_SPI_setMicrowireDirection(PHPSSPICtx_t ctx, SpiMISODirection dir) {
 //Set the microwire control mode
 // - Configure whether the next transfers will be sequential or non-sequential mode
 // - Configure whether to use handshaking interface
-HpsErr_t HPS_SPI_setMicrowireControl(PHPSSPICtx_t ctx, bool seqTransfer, bool useHandshake) {
+HpsErr_t HPS_SPI_setMicrowireControl(HPSSPICtx_t* ctx, bool seqTransfer, bool useHandshake) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -448,7 +448,7 @@ HpsErr_t HPS_SPI_setMicrowireControl(PHPSSPICtx_t ctx, bool seqTransfer, bool us
 
 //Abort the current transfer
 // - Immediately disables the SPI controller. This may cause partial transfers on the bus.
-HpsErr_t HPS_SPI_abort(PHPSSPICtx_t ctx) {
+HpsErr_t HPS_SPI_abort(HPSSPICtx_t* ctx) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;

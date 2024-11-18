@@ -34,7 +34,7 @@ typedef struct {
     bool         isLast;
     unsigned int index;   // Optional index of chunk if chaining multiple chunks.
     void*        params;  // Optional driver specific parameters
-} DmaChunk_t, *PDmaChunk_t;
+} DmaChunk_t;
 
 //Abort types
 typedef enum {
@@ -44,8 +44,8 @@ typedef enum {
 } DmaAbortType;
 
 // IO Function Templates
-typedef HpsErr_t (*DmaXferParamFunc_t)(void* ctx, PDmaChunk_t xfer);
-typedef HpsErr_t (*DmaXferFunc_t)     (void* ctx, PDmaChunk_t xfer, bool autoStart);
+typedef HpsErr_t (*DmaXferParamFunc_t)(void* ctx, DmaChunk_t* xfer);
+typedef HpsErr_t (*DmaXferFunc_t)     (void* ctx, DmaChunk_t* xfer, bool autoStart);
 typedef HpsErr_t (*DmaXferStartFunc_t)(void* ctx);
 typedef HpsErr_t (*DmaXferSpaceFunc_t)(void* ctx, unsigned int* space);
 typedef HpsErr_t (*DmaAbortFunc_t)    (void* ctx, DmaAbortType abort);
@@ -67,10 +67,10 @@ typedef struct {
     DmaStatusFunc_t   transferDone;
     DmaStatInfoFunc_t transferError;
     DmaStatusFunc_t   transferAborted;
-} DmaCtx_t, *PDmaCtx_t;
+} DmaCtx_t;
 
 // Check if driver initialised
-static inline bool DMA_isInitialised(PDmaCtx_t dma) {
+static inline bool DMA_isInitialised(DmaCtx_t* dma) {
     if (!dma) return false;
     return DriverContextCheckInit(dma->ctx);
 }
@@ -78,7 +78,7 @@ static inline bool DMA_isInitialised(PDmaCtx_t dma) {
 // Check if there is space to perform a transfer
 // - Returns the amount of space available for transfers
 // - Returns ERR_NOSPACE if the space is 0.
-static inline HpsErr_t DMA_transferSpace(PDmaCtx_t dma, unsigned int* space) {
+static inline HpsErr_t DMA_transferSpace(DmaCtx_t* dma, unsigned int* space) {
     if (!dma) return ERR_NULLPTR;
     if (!dma->transferSpace) return ERR_NOSUPPORT;
     return dma->transferSpace(dma->ctx, space);
@@ -87,7 +87,7 @@ static inline HpsErr_t DMA_transferSpace(PDmaCtx_t dma, unsigned int* space) {
 // Initialise the optional ->params argument in a DmaChunk structure
 // - This is optional and implementation defined. If no function is
 //   provided by driver, then this is a No-Op.
-static inline HpsErr_t DMA_initOptionalTransferParams(PDmaCtx_t dma, PDmaChunk_t xfer) {
+static inline HpsErr_t DMA_initOptionalTransferParams(DmaCtx_t* dma, DmaChunk_t* xfer) {
     if (!dma) return ERR_NULLPTR;
     if (!dma->initXferParams) {
         xfer->params = NULL;
@@ -100,7 +100,7 @@ static inline HpsErr_t DMA_initOptionalTransferParams(PDmaCtx_t dma, PDmaChunk_t
 // - Can optionally request the transfer be started immediately
 // - Returns ERR_SKIPPED if transfer was completed immediately before returning.
 // - Returns ERR_BUSY if not enough space to start a new Xfer
-static inline HpsErr_t DMA_setupTransfer(PDmaCtx_t dma, PDmaChunk_t xfer, bool autoStart) {
+static inline HpsErr_t DMA_setupTransfer(DmaCtx_t* dma, DmaChunk_t* xfer, bool autoStart) {
     if (!dma) return ERR_NULLPTR;
     if (!dma->setupTransfer) return ERR_NOSUPPORT;
     return dma->setupTransfer(dma->ctx, xfer, autoStart);
@@ -108,7 +108,7 @@ static inline HpsErr_t DMA_setupTransfer(PDmaCtx_t dma, PDmaChunk_t xfer, bool a
 
 // Perform the previously configured transfer
 // - Returns ERR_BUSY if not enough space to start a new Xfer
-static inline HpsErr_t DMA_startTransfer(PDmaCtx_t dma) {
+static inline HpsErr_t DMA_startTransfer(DmaCtx_t* dma) {
     if (!dma) return ERR_NULLPTR;
     if (!dma->startTransfer) return ERR_NOSUPPORT;
     return dma->startTransfer(dma->ctx);
@@ -118,7 +118,7 @@ static inline HpsErr_t DMA_startTransfer(PDmaCtx_t dma) {
 // - Allows setting or clearing an abort flag.
 // - Returns ERR_ABORTED if aborted immediately.
 // - Otherwise call transferAborted to find out when abort is done. 
-static inline HpsErr_t DMA_abortTransfer(PDmaCtx_t dma, DmaAbortType abort) {
+static inline HpsErr_t DMA_abortTransfer(DmaCtx_t* dma, DmaAbortType abort) {
     if (!dma) return ERR_NULLPTR;
     if (!dma->abortTransfer) return ERR_NOSUPPORT;
     return dma->abortTransfer(dma->ctx, abort);
@@ -127,7 +127,7 @@ static inline HpsErr_t DMA_abortTransfer(PDmaCtx_t dma, DmaAbortType abort) {
 // Check if the controller is busy
 // - Returns ERR_BUSY if a transfer is in progress.
 // - Non-stateful. Can be used to check at any time.
-static inline HpsErr_t DMA_transferBusy(PDmaCtx_t dma) {
+static inline HpsErr_t DMA_transferBusy(DmaCtx_t* dma) {
     if (!dma) return ERR_NULLPTR;
     if (!dma->transferBusy) return ERR_NOSUPPORT;
     return dma->transferBusy(dma->ctx);
@@ -137,7 +137,7 @@ static inline HpsErr_t DMA_transferBusy(PDmaCtx_t dma) {
 // - Returns ERR_SUCCESS once done.
 // - Uses self clearing flag, so should can only be used to check
 //   that a previously started transfer has just finished.
-static inline HpsErr_t DMA_transferDone(PDmaCtx_t dma) {
+static inline HpsErr_t DMA_transferDone(DmaCtx_t* dma) {
     if (!dma) return ERR_NULLPTR;
     if (!dma->transferDone) return ERR_NOSUPPORT;
     return dma->transferDone(dma->ctx);
@@ -148,7 +148,7 @@ static inline HpsErr_t DMA_transferDone(PDmaCtx_t dma) {
 // - Returns ERR_IOFAIL if in an error state
 //    - Optional second argument can be used to read error information.
 // - Non-stateful. Can be used to check at any time.
-static inline HpsErr_t DMA_transferError(PDmaCtx_t dma, unsigned int* errorInfo) {
+static inline HpsErr_t DMA_transferError(DmaCtx_t* dma, unsigned int* errorInfo) {
     if (!dma) return ERR_NULLPTR;
     if (!dma->transferError) return ERR_NOSUPPORT;
     return dma->transferError(dma->ctx, errorInfo);
@@ -158,7 +158,7 @@ static inline HpsErr_t DMA_transferError(PDmaCtx_t dma, unsigned int* errorInfo)
 // - Returns ERR_SUCCESS once done.
 // - Uses self clearing flag, so should can only be used to check
 //   that a previously started abort request has just finished.
-static inline HpsErr_t DMA_transferAborted(PDmaCtx_t dma) {
+static inline HpsErr_t DMA_transferAborted(DmaCtx_t* dma) {
     if (!dma) return ERR_NULLPTR;
     if (!dma->transferAborted) return ERR_NOSUPPORT;
     return dma->transferAborted(dma->ctx);

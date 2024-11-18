@@ -393,7 +393,7 @@ static inline HpsErr_t HPS_DMA_instChDMAWMB(HPSDmaProgram_t* prog) {
 
 // Pack control parameters into DMOV command targetting CCR
 #define HPS_DMA_INSTCH_DMAMOVCCR_LEN                (HPS_DMA_INSTCH_DMAMOV_LEN)
-static inline HpsErr_t HPS_DMA_instChDMAMOVCCR(HPSDmaProgram_t* prog, PHPSDmaChCtlParams_t params) {
+static inline HpsErr_t HPS_DMA_instChDMAMOVCCR(HPSDmaProgram_t* prog, HPSDmaChCtlParams_t* params) {
     uint32_t ccr = (MaskInsert(params->_srcAddrInc,     _HPS_DMA_CHCNTRL_SRCADRINC_MASK, _HPS_DMA_CHCNTRL_SRCADRINC_OFFS) |
                     MaskInsert(params->_srcBurstSize,   _HPS_DMA_CHCNTRL_SRCBRSTSZ_MASK, _HPS_DMA_CHCNTRL_SRCBRSTSZ_OFFS) |
                     MaskInsert(params->_srcBurstLen-1,  _HPS_DMA_CHCNTRL_SRCBRSTLN_MASK, _HPS_DMA_CHCNTRL_SRCBRSTLN_OFFS) |
@@ -508,13 +508,13 @@ static inline HpsErr_t HPS_DMA_instDbgDMAKILL(HPSDmaProgram_t* prog) {
  */
 
 // Re-initialse an existing program structure
-static HpsErr_t HPS_DMA_initialiseProgram(PHPSDmaProgram_t prog);
+static HpsErr_t HPS_DMA_initialiseProgram(HPSDmaProgram_t* prog);
 
 // Allocate a new program structure
-static HpsErr_t HPS_DMA_allocateProgram(unsigned int maxSize, bool autoFree, PHPSDmaProgram_t* pProg);
+static HpsErr_t HPS_DMA_allocateProgram(unsigned int maxSize, bool autoFree, HPSDmaProgram_t** pProg);
 
 // Free a program structure
 //  - if onlyAuto is true, will only perform free operation if *pProg->autoFree is true.
-static HpsErr_t HPS_DMA_freeProgram(PHPSDmaProgram_t* pProg, bool onlyAuto);
+static HpsErr_t HPS_DMA_freeProgram(HPSDmaProgram_t** pProg, bool onlyAuto);
 
 #endif /* HPS_DMACONTROLLERPROGRAM_H_ */

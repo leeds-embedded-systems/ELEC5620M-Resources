@@ -52,48 +52,48 @@ typedef struct {
     volatile unsigned int* cntrl;
     volatile unsigned short* data;
     bool hwOpt;
-} LT24Ctx_t, *PLT24Ctx_t;
+} LT24Ctx_t;
 
 //Function to initialise the LCD
 //  - Returns Util/error Code
 //  - Returns context pointer to *ctx
-HpsErr_t LT24_initialise( void* cntrlBase, void* dataBase, PLT24Ctx_t* pCtx );
+HpsErr_t LT24_initialise( void* cntrlBase, void* dataBase, LT24Ctx_t** pCtx );
 
 //Check if driver initialised
 // - returns true if initialised
-bool LT24_isInitialised( PLT24Ctx_t ctx );
+bool LT24_isInitialised( LT24Ctx_t* ctx );
 
 //Function for writing to LT24 Registers (using dedicated HW)
 //You must check LT24_isInitialised() before calling this function
-HpsErr_t LT24_write( PLT24Ctx_t ctx, bool isData, unsigned short value );
+HpsErr_t LT24_write( LT24Ctx_t* ctx, bool isData, unsigned short value );
 
 //Function for configuring LCD reset/power (using PIO)
 //You must check LT24_isInitialised() before calling this function
-HpsErr_t LT24_powerConfig( PLT24Ctx_t ctx, bool isOn );
+HpsErr_t LT24_powerConfig( LT24Ctx_t* ctx, bool isOn );
 
 //Function to clear display to a set colour
 // - Returns ERR_SUCCESS if successful
-HpsErr_t LT24_clearDisplay( PLT24Ctx_t ctx, unsigned short colour );
+HpsErr_t LT24_clearDisplay( LT24Ctx_t* ctx, unsigned short colour );
 
 //Function to convert Red/Green/Blue to RGB565 encoded colour value 
 unsigned short LT24_makeColour( unsigned int R, unsigned int G, unsigned int B );
 
 //Function to set the drawing window on the display
 //  Returns ERR_SUCCESS if successful
-HpsErr_t LT24_setWindow( PLT24Ctx_t ctx, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height);
+HpsErr_t LT24_setWindow( LT24Ctx_t* ctx, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height);
 
 //Generates test pattern on display
 // - returns ERR_SUCCESS if successful
-HpsErr_t LT24_testPattern( PLT24Ctx_t ctx );
+HpsErr_t LT24_testPattern( LT24Ctx_t* ctx );
 
 //Copy frame buffer to display
 // - returns ERR_SUCCESS if successful
-HpsErr_t LT24_copyFrameBuffer( PLT24Ctx_t ctx, const unsigned short* framebuffer,
+HpsErr_t LT24_copyFrameBuffer( LT24Ctx_t* ctx, const unsigned short* framebuffer,
     unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height);
 
 //Plot a single pixel on the LT24 display
 // - returns ERR_SUCCESS if successful
-HpsErr_t LT24_drawPixel( PLT24Ctx_t ctx, unsigned short colour, unsigned int x, unsigned int y);
+HpsErr_t LT24_drawPixel( LT24Ctx_t* ctx, unsigned short colour, unsigned int x, unsigned int y);
 
 #endif /*DE1SoC_LT24_H_*/
 

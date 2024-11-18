@@ -52,7 +52,7 @@
 #define WM8731_I2C_ACTIVECNTRL   (0x12/sizeof(unsigned short))
 
 //Driver Cleanup
-void _WM8731_cleanup(PWM8731Ctx_t ctx ) {
+void _WM8731_cleanup(WM8731Ctx_t* ctx ) {
     if (ctx->base) {
         // Assert FIFO resets
         ctx->base[WM8731_CONTROL] |= ((1<<WM8731_FIFO_RESET_ADC) | (1<<WM8731_FIFO_RESET_DAC));
@@ -66,7 +66,7 @@ void _WM8731_cleanup(PWM8731Ctx_t ctx ) {
 //Initialise Audio Codec
 // - base_address is memory-mapped address of audio controller
 // - returns 0 if successful
-HpsErr_t WM8731_initialise( void* base, PHPSI2CCtx_t i2c, PWM8731Ctx_t* pCtx ) {
+HpsErr_t WM8731_initialise( void* base, HPSI2CCtx_t* i2c, WM8731Ctx_t** pCtx ) {
     //Ensure user pointers valid
     if (!base) return ERR_NULLPTR;
     if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
@@ -74,7 +74,7 @@ HpsErr_t WM8731_initialise( void* base, PHPSI2CCtx_t i2c, PWM8731Ctx_t* pCtx ) {
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_WM8731_cleanup);
     if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
-    PWM8731Ctx_t ctx = *pCtx;
+    WM8731Ctx_t* ctx = *pCtx;
     ctx->base = (unsigned int*)base;
     ctx->i2c = i2c;
     ctx->i2cAddr = 0x1A;
@@ -124,12 +124,12 @@ HpsErr_t WM8731_initialise( void* base, PHPSI2CCtx_t i2c, PWM8731Ctx_t* pCtx ) {
 //Check if driver initialised
 // - Returns true if driver previously initialised
 // - WM8731_initialise() must be called if false.
-bool WM8731_isInitialised( PWM8731Ctx_t ctx ) {
+bool WM8731_isInitialised( WM8731Ctx_t* ctx ) {
     return DriverContextCheckInit(ctx);
 }
 
 //Get the sample rate for the ADC/DAC
-HpsErr_t WM8731_getSampleRate( PWM8731Ctx_t ctx, unsigned int* sampleRate ) {
+HpsErr_t WM8731_getSampleRate( WM8731Ctx_t* ctx, unsigned int* sampleRate ) {
 	if (!sampleRate) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
@@ -141,7 +141,7 @@ HpsErr_t WM8731_getSampleRate( PWM8731Ctx_t ctx, unsigned int* sampleRate ) {
 
 //Clears FIFOs
 // - returns 0 if successful
-HpsErr_t WM8731_clearFIFO( PWM8731Ctx_t ctx, bool adc, bool dac) {
+HpsErr_t WM8731_clearFIFO( WM8731Ctx_t* ctx, bool adc, bool dac) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -153,7 +153,7 @@ HpsErr_t WM8731_clearFIFO( PWM8731Ctx_t ctx, bool adc, bool dac) {
 }
 
 //Get FIFO Space (DAC)
-HpsErr_t WM8731_getFIFOSpace( PWM8731Ctx_t ctx, unsigned int* fifoSpace ) {
+HpsErr_t WM8731_getFIFOSpace( WM8731Ctx_t* ctx, unsigned int* fifoSpace ) {
 	if (!fifoSpace) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
@@ -166,7 +166,7 @@ HpsErr_t WM8731_getFIFOSpace( PWM8731Ctx_t ctx, unsigned int* fifoSpace ) {
 }
 
 //Get FIFO Fill (ADC)
-HpsErr_t WM8731_getFIFOFill( PWM8731Ctx_t ctx, unsigned int* fifoFill ) {
+HpsErr_t WM8731_getFIFOFill( WM8731Ctx_t* ctx, unsigned int* fifoFill ) {
 	if (!fifoFill) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
@@ -181,7 +181,7 @@ HpsErr_t WM8731_getFIFOFill( PWM8731Ctx_t ctx, unsigned int* fifoFill ) {
 
 //Write a sample to the FIFO for the both channels
 // - You must check there is data available in the FIFO before calling this function.
-HpsErr_t WM8731_writeSample( PWM8731Ctx_t ctx, unsigned int left, unsigned int right) {
+HpsErr_t WM8731_writeSample( WM8731Ctx_t* ctx, unsigned int left, unsigned int right) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -193,7 +193,7 @@ HpsErr_t WM8731_writeSample( PWM8731Ctx_t ctx, unsigned int left, unsigned int r
 
 //Read a sample from the FIFO for both channels
 // - You must check there is space in the FIFO before calling this function.
-HpsErr_t WM8731_readSample( PWM8731Ctx_t ctx, unsigned int* left, unsigned int* right ) {
+HpsErr_t WM8731_readSample( WM8731Ctx_t* ctx, unsigned int* left, unsigned int* right ) {
 	//Must provide place for returning values too.
 	if (!left || !right) return ERR_NULLPTR;
     //Ensure context valid and initialised

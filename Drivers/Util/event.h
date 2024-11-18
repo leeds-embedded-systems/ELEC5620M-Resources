@@ -85,18 +85,18 @@ typedef enum {
 //  - Called when a registered event hits the timeout
 //  - Return ERR_SUCCESS to stop handling the event
 //  - Return ERR_AGAIN to continue handling the event
-typedef struct _Event_t Event_t, *PEvent_t;
-typedef HpsErr_t (*EventFunc_t)(PEvent_t event, void* param);
+typedef struct _Event_t Event_t;
+typedef HpsErr_t (*EventFunc_t)(Event_t* event, void* param);
 
 // Event Handling Context
 typedef struct {
     //Header
     DrvCtx_t header;
     //Body
-    PTimerCtx_t  timer;  // Timer used by this event manager.
-    PEvent_t*    events; // "Registered" type events
+    TimerCtx_t*  timer;  // Timer used by this event manager.
+    Event_t**    events; // "Registered" type events
     unsigned int count;
-} EventMgrCtx_t, *PEventMgrCtx_t;
+} EventMgrCtx_t;
 
 // Event structure
 typedef struct _Event_t{
@@ -104,17 +104,17 @@ typedef struct _Event_t{
     EventType      type;         // Whether the event is enabled and repeats
     unsigned int   interval;     // Interval between events in clock cycles
     unsigned int   lastTime;     // Last counter value that the event was handled
-    PTimerCtx_t    timerCtx;     // Timer context.
+    TimerCtx_t*    timerCtx;     // Timer context.
     // Context entries used for registered events only:
     EventFunc_t    handler;      // Optional handler to call when event occurs
     void*          param;        // Optional parameter for handler
-    PEventMgrCtx_t evtMgrCtx;    // Event Manager context
-} Event_t, *PEvent_t;
+    EventMgrCtx_t* evtMgrCtx;    // Event Manager context
+} Event_t;
 
 // Event polling function
 //  - Must call this function repeatedly in the main loop to keep checking
 //    if any event has occurred
-HpsErr_t Event_process(PEventMgrCtx_t ctx);
+HpsErr_t Event_process(EventMgrCtx_t* ctx);
 
 // Create a registered event
 //  - Timer must be configured to TIMER_MODE_EVENT
@@ -122,22 +122,22 @@ HpsErr_t Event_process(PEventMgrCtx_t ctx);
 //  - mode sets the initial state of the event (whether disabled, enabled once, or enabled repeating)
 //  - Multiple events can be registered
 //  - Will return event context to *pEvtCtx
-HpsErr_t Event_create(PEventMgrCtx_t ctx, EventType type, unsigned int interval, EventFunc_t handler, void* param, PEvent_t* pEvtCtx);
+HpsErr_t Event_create(EventMgrCtx_t* ctx, EventType type, unsigned int interval, EventFunc_t handler, void* param, Event_t** pEvtCtx);
 
 // Initialise a manual event
 //  - Will error if event is already initialised.
 //  - If enqueue is true, will automatically start event timeout. Otherwise event will start disabled.
 //  - To avoid strange behaviour, call Event_destroy(evt) before init.
-HpsErr_t Event_init(PEvent_t evt, PTimerCtx_t timer, unsigned int interval, bool enqueue);
+HpsErr_t Event_init(Event_t* evt, TimerCtx_t* timer, unsigned int interval, bool enqueue);
 
 // Destroy an event
 //  - Cancels the event by zeroing out its structure.
 //  - Do NOT destroy an event from within its own handler function!
-void Event_destroy(PEvent_t evt);
+void Event_destroy(Event_t* evt);
 
 // Check if an event context is valid
 //  - returns true if the event context is valid
-bool Event_validate(PEvent_t evt);
+bool Event_validate(Event_t* evt);
 
 // Check or control an event
 //  - Pass in a event context returned from Event_create or Event_init.
@@ -145,17 +145,17 @@ bool Event_validate(PEvent_t evt);
 //  - Performs control operation on event if not EVENT_CNTRL_CHECK.
 //  - If restarting the event, and interval != EVENT_INTERVAL_UNCHANGED (0),
 //    the interval of the event will be updated to match.
-HpsErr_t Event_state(PEvent_t evt, EventControl op, unsigned int interval);
+HpsErr_t Event_state(Event_t* evt, EventControl op, unsigned int interval);
 
 // Change mode for a timer event
 //  - Pass in a timer event context returned from createEvent.
 //  - Setting an interval of EVENT_INTERVAL_UNCHANGED (0) means keep the
 //    previously set interval.
-HpsErr_t Event_setMode(PEvent_t evt, EventType type, unsigned int interval);
+HpsErr_t Event_setMode(Event_t* evt, EventType type, unsigned int interval);
 
 // Event just occurred
 //  - Returns true if a valid event occurred since the last check.
-static inline bool Event_occurred(PEvent_t evt) {
+static inline bool Event_occurred(Event_t* evt) {
     return (Event_state(evt, EVENT_CNTRL_CHECK, EVENT_INTERVAL_UNCHANGED) == EVENT_STATE_OCCURRED);
 }
 

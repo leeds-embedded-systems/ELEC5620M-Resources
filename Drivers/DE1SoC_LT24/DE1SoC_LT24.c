@@ -150,7 +150,7 @@ unsigned short LT24_initData [][2] = {
  */
 
 //Function for writing to LT24 Registers
-static void _LT24_write( PLT24Ctx_t ctx, bool isData, unsigned short value ) {
+static void _LT24_write( LT24Ctx_t* ctx, bool isData, unsigned short value ) {
     if (ctx->hwOpt) {
         // Use data interface in hwOpt mode
         if (isData) {
@@ -186,7 +186,7 @@ static void _LT24_write( PLT24Ctx_t ctx, bool isData, unsigned short value ) {
 }
 
 //Internal function to generate Red/Green corner of test pattern
-static HpsErr_t _LT24_redGreen( PLT24Ctx_t ctx, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height ) {
+static HpsErr_t _LT24_redGreen( LT24Ctx_t* ctx, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height ) {
     HpsErr_t status;
 	unsigned int i, j;
     unsigned short colour;
@@ -206,7 +206,7 @@ static HpsErr_t _LT24_redGreen( PLT24Ctx_t ctx, unsigned int xleft, unsigned int
 }
 
 //Internal function to generate Green/Blue corner of test pattern
-static HpsErr_t _LT24_greenBlue( PLT24Ctx_t ctx, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height ) {
+static HpsErr_t _LT24_greenBlue( LT24Ctx_t* ctx, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height ) {
     HpsErr_t status;
 	unsigned int i, j;
     unsigned short colour;
@@ -226,7 +226,7 @@ static HpsErr_t _LT24_greenBlue( PLT24Ctx_t ctx, unsigned int xleft, unsigned in
 }
 
 //Internal function to generate Blue/Red of test pattern
-static HpsErr_t _LT24_blueRed( PLT24Ctx_t ctx, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height ) {
+static HpsErr_t _LT24_blueRed( LT24Ctx_t* ctx, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height ) {
     HpsErr_t status;
 	unsigned int i, j;
     unsigned short colour;
@@ -245,7 +245,7 @@ static HpsErr_t _LT24_blueRed( PLT24Ctx_t ctx, unsigned int xleft, unsigned int 
 }
 
 //Internal function to generate colour bars of test pattern
-static HpsErr_t _LT24_colourBars( PLT24Ctx_t ctx, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height ) {
+static HpsErr_t _LT24_colourBars( LT24Ctx_t* ctx, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height ) {
     HpsErr_t status;
 	unsigned int i, j;
     unsigned int colourbars[6] = {LT24_RED,LT24_YELLOW,LT24_GREEN,LT24_CYAN,LT24_BLUE,LT24_MAGENTA};
@@ -270,7 +270,7 @@ static HpsErr_t _LT24_colourBars( PLT24Ctx_t ctx, unsigned int xleft, unsigned i
     return ERR_SUCCESS;
 }
 
-static void _LT24_powerConfig( PLT24Ctx_t ctx, bool isOn ) {
+static void _LT24_powerConfig( LT24Ctx_t* ctx, bool isOn ) {
     unsigned int regVal = ctx->cntrl[LT24_PIO_DATA];
     if (isOn) {
         //To turn on we must set the RESETn and LCD_ON bits high
@@ -283,7 +283,7 @@ static void _LT24_powerConfig( PLT24Ctx_t ctx, bool isOn ) {
 }
 
 // Cleanup function called when driver destroyed.
-static void _LT24_cleanup( PLT24Ctx_t ctx ) {
+static void _LT24_cleanup( LT24Ctx_t* ctx ) {
     if (ctx->cntrl) {
         // Turn off LCD
         _LT24_write(ctx, false, 0x0028);
@@ -298,7 +298,7 @@ static void _LT24_cleanup( PLT24Ctx_t ctx ) {
 //Function to initialise the LCD
 //  - Returns Util/error Code
 //  - Returns context pointer to *ctx
-HpsErr_t LT24_initialise( void* cntrlBase, void* dataBase, PLT24Ctx_t* pCtx ) {
+HpsErr_t LT24_initialise( void* cntrlBase, void* dataBase, LT24Ctx_t** pCtx ) {
     //Ensure user pointers valid. dataBase can be NULL.
     if (!cntrlBase) return ERR_NULLPTR;
     if (!pointerIsAligned(cntrlBase, sizeof(unsigned int))) return ERR_ALIGNMENT;
@@ -307,7 +307,7 @@ HpsErr_t LT24_initialise( void* cntrlBase, void* dataBase, PLT24Ctx_t* pCtx ) {
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_LT24_cleanup);
     if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
-    PLT24Ctx_t ctx = *pCtx;
+    LT24Ctx_t* ctx = *pCtx;
     ctx->cntrl = (unsigned int*)cntrlBase;
     ctx->data  = (unsigned short*)dataBase;
     ctx->hwOpt = (dataBase != NULL); // Use HW Opt mode if we have a data pointer
@@ -346,12 +346,12 @@ HpsErr_t LT24_initialise( void* cntrlBase, void* dataBase, PLT24Ctx_t* pCtx ) {
 }
 
 //Check if driver initialised
-bool LT24_isInitialised(PLT24Ctx_t ctx) {
+bool LT24_isInitialised(LT24Ctx_t* ctx) {
     return DriverContextCheckInit(ctx);
 }
 
 //Function for writing to LT24 Registers
-HpsErr_t LT24_write( PLT24Ctx_t ctx, bool isData, unsigned short value ) {
+HpsErr_t LT24_write( LT24Ctx_t* ctx, bool isData, unsigned short value ) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -362,7 +362,7 @@ HpsErr_t LT24_write( PLT24Ctx_t ctx, bool isData, unsigned short value ) {
 
 //Function for configuring LCD reset/power (using PIO)
 //You must check LT24_isInitialised() before calling this function
-HpsErr_t LT24_powerConfig( PLT24Ctx_t ctx, bool isOn ) {
+HpsErr_t LT24_powerConfig( LT24Ctx_t* ctx, bool isOn ) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -373,7 +373,7 @@ HpsErr_t LT24_powerConfig( PLT24Ctx_t ctx, bool isOn ) {
 
 //Function to clear display to a set colour
 // - Returns true if successful
-HpsErr_t LT24_clearDisplay( PLT24Ctx_t ctx, unsigned short colour) {
+HpsErr_t LT24_clearDisplay( LT24Ctx_t* ctx, unsigned short colour) {
     HPS_ResetWatchdog();
     //Define window as entire display (LT24_setWindow will check if we are initialised).
     HpsErr_t status = LT24_setWindow(ctx, 0, 0, LT24_WIDTH, LT24_HEIGHT);
@@ -399,7 +399,7 @@ unsigned short LT24_makeColour( unsigned int R, unsigned int G, unsigned int B )
 
 //Function to set the drawing window on the display
 //  Returns 0 if successful
-HpsErr_t LT24_setWindow( PLT24Ctx_t ctx, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height) {
+HpsErr_t LT24_setWindow( LT24Ctx_t* ctx, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -431,7 +431,7 @@ HpsErr_t LT24_setWindow( PLT24Ctx_t ctx, unsigned int xleft, unsigned int ytop, 
 
 //Generates test pattern on display
 // - returns 0 if successful
-HpsErr_t LT24_testPattern( PLT24Ctx_t ctx ) {
+HpsErr_t LT24_testPattern( LT24Ctx_t* ctx ) {
     //Generate different test pattern for each corner of the display (test pattern funtion will validate ctx)
     HpsErr_t status;
     status = _LT24_redGreen  ( ctx,            0,            0,LT24_WIDTH/2,LT24_HEIGHT/2 );
@@ -446,7 +446,7 @@ HpsErr_t LT24_testPattern( PLT24Ctx_t ctx ) {
 
 //Copy frame buffer to display
 // - returns 0 if successful
-HpsErr_t LT24_copyFrameBuffer( PLT24Ctx_t ctx, const unsigned short* framebuffer, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height ) {
+HpsErr_t LT24_copyFrameBuffer( LT24Ctx_t* ctx, const unsigned short* framebuffer, unsigned int xleft, unsigned int ytop, unsigned int width, unsigned int height ) {
     //Define Window (setWindow validates context for us)
     HpsErr_t status = LT24_setWindow(ctx, xleft, ytop, width, height);
     if (ERR_IS_ERROR(status)) return status;
@@ -460,7 +460,7 @@ HpsErr_t LT24_copyFrameBuffer( PLT24Ctx_t ctx, const unsigned short* framebuffer
 
 //Plot a single pixel on the LT24 display
 // - returns 0 if successful
-HpsErr_t LT24_drawPixel( PLT24Ctx_t ctx, unsigned short colour, unsigned int x, unsigned int y ) {
+HpsErr_t LT24_drawPixel( LT24Ctx_t* ctx, unsigned short colour, unsigned int x, unsigned int y ) {
     //Define single pixel window (setWindow validates context for us)
     HpsErr_t status = LT24_setWindow(ctx, x, y, 1, 1);
     if (ERR_IS_ERROR(status)) return status;

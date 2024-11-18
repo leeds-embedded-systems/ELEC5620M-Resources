@@ -53,7 +53,7 @@
 // Check if the task has reached its interval
 //  - If so, update its state and call any handler
 //  - Event must be validated before calling this.
-static void _Event_checkOccured(PEvent_t evt, unsigned int curTime) {
+static void _Event_checkOccured(Event_t* evt, unsigned int curTime) {
     // Skip any events in disabled state
     if (EVENT_STATE_ISDISABLED(evt->state)) return;
     // Check if time has elapsed
@@ -90,12 +90,12 @@ static void _Event_checkOccured(PEvent_t evt, unsigned int curTime) {
     }
 }
 
-static void _EventMgr_cleanup(PEventMgrCtx_t ctx) {
+static void _EventMgr_cleanup(EventMgrCtx_t* ctx) {
     //Clean up any event handler contexts
     if (ctx->events) {
         //Loop through the table deleting any valid entries
         for (unsigned int tableIdx = 0; tableIdx < ctx->count; tableIdx++) {
-            PEvent_t evt = ctx->events[tableIdx];
+            Event_t* evt = ctx->events[tableIdx];
             if (evt) {
                 evt->state = EVENT_STATE_INVALID;
                 free(evt);
@@ -120,7 +120,7 @@ static void _EventMgr_cleanup(PEventMgrCtx_t ctx) {
 //    - Must be configured in event mode.
 //  - Returns Util/error Code
 //  - Returns context pointer to *ctx
-HpsErr_t EventMgr_initialise(TimerCtx_t* timer, PEventMgrCtx_t* pCtx) {
+HpsErr_t EventMgr_initialise(TimerCtx_t* timer, EventMgrCtx_t** pCtx) {
     //Ensure timer is valid
     TimerMode mode;
     HpsErr_t status = Timer_getMode(timer, &mode);
@@ -130,7 +130,7 @@ HpsErr_t EventMgr_initialise(TimerCtx_t* timer, PEventMgrCtx_t* pCtx) {
     status = DriverContextAllocateWithCleanup(pCtx, &_EventMgr_cleanup);
     if (ERR_IS_ERROR(status)) return status;
     //Save context values
-    PEventMgrCtx_t ctx = *pCtx;
+    EventMgrCtx_t* ctx = *pCtx;
     ctx->timer = timer;
     //Now initialised
     DriverContextSetInit(ctx);
@@ -138,7 +138,7 @@ HpsErr_t EventMgr_initialise(TimerCtx_t* timer, PEventMgrCtx_t* pCtx) {
 }
 
 //Check if driver initialised
-bool EventMgr_isInitialised(PEventMgrCtx_t ctx) {
+bool EventMgr_isInitialised(EventMgrCtx_t* ctx) {
     return DriverContextCheckInit(ctx);
 }
 
@@ -147,7 +147,7 @@ bool EventMgr_isInitialised(PEventMgrCtx_t ctx) {
 //    function which handles callbacks for those events.
 //  - Must call this function repeatedly in the main loop to keep checking
 //    if any event has occurred
-HpsErr_t Event_process(PEventMgrCtx_t ctx) {
+HpsErr_t Event_process(EventMgrCtx_t* ctx) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -163,7 +163,7 @@ HpsErr_t Event_process(PEventMgrCtx_t ctx) {
     // Check if it is time to run each task
     for (unsigned int taskID = 0; (taskID < ctx->count) && ctx->events; taskID++) {
         // Skip any invalid or disabled tasks
-        PEvent_t evt = ctx->events[taskID];
+        Event_t* evt = ctx->events[taskID];
         if (!Event_validate(evt) || (evt->type == EVENT_TYPE_DISABLED)) {
             continue;
         }
@@ -183,7 +183,7 @@ HpsErr_t Event_process(PEventMgrCtx_t ctx) {
 //  - mode sets the initial state of the event (whether disabled, enabled once, or enabled repeating)
 //  - Multiple events can be registered
 //  - Will return event context to *pEvtCtx
-HpsErr_t Event_create(PEventMgrCtx_t ctx, EventType type, unsigned int interval, EventFunc_t handler, void* param, PEvent_t* pEvtCtx) {
+HpsErr_t Event_create(EventMgrCtx_t* ctx, EventType type, unsigned int interval, EventFunc_t handler, void* param, Event_t** pEvtCtx) {
     if (!pEvtCtx) return ERR_NULLPTR;
     *pEvtCtx = NULL;
     //Ensure context valid and initialised
@@ -194,10 +194,10 @@ HpsErr_t Event_create(PEventMgrCtx_t ctx, EventType type, unsigned int interval,
         ctx->count = 0;
     }
     //See if there is an invalid handler we can reuse
-    PEvent_t evt = NULL;
+    Event_t* evt = NULL;
     unsigned int tableIdx = 0;
     for (; tableIdx < ctx->count; tableIdx++) {
-        PEvent_t checkCtx = ctx->events[tableIdx];
+        Event_t* checkCtx = ctx->events[tableIdx];
         if (!checkCtx) {
             //Empty table entry. Will reuse table index, but make a new entry
             break;
@@ -211,7 +211,7 @@ HpsErr_t Event_create(PEventMgrCtx_t ctx, EventType type, unsigned int interval,
     if (tableIdx == ctx->count) {
         //Increase the size of the table by 1
         unsigned int count = ctx->count + 1;
-        PEvent_t* newTable = (PEvent_t*)realloc(ctx->events, count * sizeof(*ctx->events));
+        Event_t** newTable = (Event_t**)realloc(ctx->events, count * sizeof(*ctx->events));
         if (!newTable) {
             return ERR_ALLOCFAIL;
         }
@@ -221,7 +221,7 @@ HpsErr_t Event_create(PEventMgrCtx_t ctx, EventType type, unsigned int interval,
     }
     //If we have no event context, allocate a new one and assign to table
     if (!evt) {
-        evt = (PEvent_t)malloc(sizeof(*evt));
+        evt = (Event_t*)malloc(sizeof(*evt));
         ctx->events[tableIdx] = evt;
         if (!evt) return ERR_ALLOCFAIL;
     }
@@ -242,7 +242,7 @@ HpsErr_t Event_create(PEventMgrCtx_t ctx, EventType type, unsigned int interval,
 // Initialise a manual event
 //  - Will error if event is already initialised.
 //  - To avoid strange behaviour, call Event_destroy(evt) before init.
-HpsErr_t Event_init(PEvent_t evt, PTimerCtx_t timer, unsigned int interval, bool enqueue) {
+HpsErr_t Event_init(Event_t* evt, TimerCtx_t* timer, unsigned int interval, bool enqueue) {
     // Ensure event pointer is valid and not already initialised
     if (!evt) return ERR_NULLPTR;
     if (!EVENT_STATE_ISINVALID(evt->state) || (evt->state != EVENT_TYPE_DISABLED)) return ERR_INUSE;
@@ -263,14 +263,14 @@ HpsErr_t Event_init(PEvent_t evt, PTimerCtx_t timer, unsigned int interval, bool
 
 // Check if an event context is valid
 //  - returns true if the event context is valid
-bool Event_validate(PEvent_t evt) {
+bool Event_validate(Event_t* evt) {
     return evt && !EVENT_STATE_ISINVALID(evt->state) && Timer_isInitialised(evt->timerCtx);
 }
 
 // Destroy an event
 //  - Cancels the event by zeroing out its structure.
 //  - Do NOT destroy an event from within its own handler function!
-void Event_destroy(PEvent_t evt) {
+void Event_destroy(Event_t* evt) {
     //Zero out the structure. This will mark it as invalid.
     memset(evt, 0, sizeof(*evt));
 }
@@ -279,7 +279,7 @@ void Event_destroy(PEvent_t evt) {
 //  - Pass in a event context returned from Event_create or Event_init.
 //  - Returns the state of the event before any op was performed
 //  - Performs control operation on event if not EVENT_CNTRL_CHECK.
-HpsErr_t Event_state(PEvent_t evt, EventControl op, unsigned int interval) {
+HpsErr_t Event_state(Event_t* evt, EventControl op, unsigned int interval) {
     //Check if this is a valid event
     if (!Event_validate(evt)) return EVENT_STATE_INVALID;
     // Read the current state.
@@ -359,7 +359,7 @@ HpsErr_t Event_state(PEvent_t evt, EventControl op, unsigned int interval) {
 //  - Pass in a timer event context returned from createEvent.
 //  - Setting an interval of EVENT_INTERVAL_UNCHANGED (0) means keep the
 //    previously set interval.
-HpsErr_t Event_setMode(PEvent_t evt, EventType type, unsigned int interval) {
+HpsErr_t Event_setMode(Event_t* evt, EventType type, unsigned int interval) {
     // Ensure event valid
     if (!Event_validate(evt)) return ERR_NOTFOUND;
     // Update the type and optionally the interval

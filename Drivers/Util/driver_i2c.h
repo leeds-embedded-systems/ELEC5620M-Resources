@@ -47,10 +47,10 @@ typedef struct {
     I2CWriteFunc_t write;
     I2CReadFunc_t  read;
     I2CAbortFunc_t abort;
-} I2CCtx_t, *PI2CCtx_t;
+} I2CCtx_t;
 
 // Check if driver initialised
-static inline bool I2C_isInitialised(PI2CCtx_t i2c) {
+static inline bool I2C_isInitialised(I2CCtx_t* i2c) {
     if (!i2c) return false;
     return DriverContextCheckInit(i2c->ctx);
 }
@@ -61,7 +61,7 @@ static inline bool I2C_isInitialised(PI2CCtx_t i2c) {
 //    - Returns ERR_AGAIN if still running
 //    - Positive return value indicates amount of data written.
 //    - Other error codes mean failure
-static inline HpsErr_t I2C_write(PI2CCtx_t i2c, unsigned short address, const uint8_t writeData[], unsigned int writeLen) {
+static inline HpsErr_t I2C_write(I2CCtx_t* i2c, unsigned short address, const uint8_t writeData[], unsigned int writeLen) {
     if (!i2c) return ERR_NULLPTR;
     if (!i2c->write) return ERR_NOSUPPORT;
     return i2c->write(i2c->ctx,address,writeData,writeLen);
@@ -76,7 +76,7 @@ static inline HpsErr_t I2C_write(PI2CCtx_t i2c, unsigned short address, const ui
 //    - Returns ERR_AGAIN if still running
 //    - Positive return value indicates amount of data written.
 //    - Other error codes mean failure
-static inline HpsErr_t I2C_read(PI2CCtx_t i2c, unsigned short address, const uint8_t writeData[], unsigned int writeLen, uint8_t readData[], unsigned int readLen) {
+static inline HpsErr_t I2C_read(I2CCtx_t* i2c, unsigned short address, const uint8_t writeData[], unsigned int writeLen, uint8_t readData[], unsigned int readLen) {
     if (!i2c) return ERR_NULLPTR;
     if (!i2c->read) return ERR_NOSUPPORT;
     return i2c->read(i2c->ctx,address,writeData,writeLen,readData,readLen);
@@ -84,7 +84,7 @@ static inline HpsErr_t I2C_read(PI2CCtx_t i2c, unsigned short address, const uin
 
 // Abort read or write
 // - Aborts read if 'isRead' true, otherwise aborts write.
-static inline HpsErr_t I2C_abort(PI2CCtx_t i2c, bool isRead) {
+static inline HpsErr_t I2C_abort(I2CCtx_t* i2c, bool isRead) {
     if (!i2c) return ERR_NULLPTR;
     if (!i2c->abort) return ERR_NOSUPPORT;
     return i2c->abort(i2c->ctx,isRead);

@@ -46,7 +46,7 @@
  */
 
 #define SOFT_DMA_MEMCPY_DEF(type) \
-static void* _Soft_DMA_memcpy_##type(void* dest, void* src, size_t length, PSoftDmaCtx_t ctx) { \
+static void* _Soft_DMA_memcpy_##type(void* dest, void* src, size_t length, SoftDmaCtx_t* ctx) { \
     volatile type* outPtr = dest;                                       \
     volatile type* inPtr = src;                                         \
     size_t nWords = length / ctx->wordSize;                             \
@@ -66,7 +66,7 @@ SOFT_DMA_MEMCPY_DEF(uint64_t)
  * Internal Functions
  */
 
-static HpsErr_t _Soft_DMA_setChunkSize(PSoftDmaCtx_t ctx, unsigned int chunkSize) {
+static HpsErr_t _Soft_DMA_setChunkSize(SoftDmaCtx_t* ctx, unsigned int chunkSize) {
     // Validate chunk size
     if (chunkSize == 0) return ERR_TOOSMALL;             // Can't be zero
     // Store the new size
@@ -75,7 +75,7 @@ static HpsErr_t _Soft_DMA_setChunkSize(PSoftDmaCtx_t ctx, unsigned int chunkSize
 }
 
 // Send a chunk
-static HpsErr_t _Soft_DMA_transferChunk(PSoftDmaCtx_t ctx) {
+static HpsErr_t _Soft_DMA_transferChunk(SoftDmaCtx_t* ctx) {
     //Must have a transfer
     if (!ctx->transferQueued) return ERR_NOTFOUND;
     if (!ctx->transferRunning) return ERR_SUCCESS;
@@ -102,7 +102,7 @@ static HpsErr_t _Soft_DMA_transferChunk(PSoftDmaCtx_t ctx) {
 }
 
 // Start a transfer
-static HpsErr_t _Soft_DMA_startTransfer(PSoftDmaCtx_t ctx) {
+static HpsErr_t _Soft_DMA_startTransfer(SoftDmaCtx_t* ctx) {
     // Check if accepting more
     if (ctx->transferRunning) return ERR_BUSY; // Can't start until previous done
     // Start the transfer.
@@ -130,14 +130,14 @@ static HpsErr_t _Soft_DMA_startTransfer(PSoftDmaCtx_t ctx) {
 //       memcpy function that doesn;t increment the destination address.
 //  - Returns Util/error Code
 //  - Returns context pointer to *ctx
-HpsErr_t Soft_DMA_initialise(SoftDMAWordSize wordSize, unsigned int chunkSize, SoftDmaMemcpyFunc_t copyFunc, void* copyFuncCtx, PSoftDmaCtx_t* pCtx) {
+HpsErr_t Soft_DMA_initialise(SoftDMAWordSize wordSize, unsigned int chunkSize, SoftDmaMemcpyFunc_t copyFunc, void* copyFuncCtx, SoftDmaCtx_t** pCtx) {
     //Word and chunk size must be non-zero
     if (!wordSize || !chunkSize) return ERR_TOOSMALL;
     //Allocate the driver context, validating return value.
     HpsErr_t status = DriverContextAllocate(pCtx);
     if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
-    PSoftDmaCtx_t ctx = *pCtx;
+    SoftDmaCtx_t* ctx = *pCtx;
     ctx->dma.ctx = ctx;
     ctx->dma.setupTransfer = (DmaXferFunc_t)&Soft_DMA_setupTransfer;
     ctx->dma.startTransfer = (DmaXferStartFunc_t)&Soft_DMA_startTransfer;
@@ -181,7 +181,7 @@ HpsErr_t Soft_DMA_initialise(SoftDMAWordSize wordSize, unsigned int chunkSize, S
 
 // Check if driver initialised
 //  - Returns true if driver previously initialised
-bool Soft_DMA_isInitialised(PSoftDmaCtx_t ctx) {
+bool Soft_DMA_isInitialised(SoftDmaCtx_t* ctx) {
     return DriverContextCheckInit(ctx);
 }
 
@@ -189,7 +189,7 @@ bool Soft_DMA_isInitialised(PSoftDmaCtx_t ctx) {
 //  - Size is specified in units of words (wordSize set during initialisation)
 //  - Returns ERR_SUCCESS if updated successfully
 //  - Returns ERR_BUSY if a DMA transfer is already running (can't change size during run).
-HpsErr_t Soft_DMA_setChunkSize(PSoftDmaCtx_t ctx, unsigned int chunkSize) {
+HpsErr_t Soft_DMA_setChunkSize(SoftDmaCtx_t* ctx, unsigned int chunkSize) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -209,7 +209,7 @@ HpsErr_t Soft_DMA_setChunkSize(PSoftDmaCtx_t ctx, unsigned int chunkSize) {
 //  - If autoStart completes immediately (length smaller than chunkSize) the API will
 //    return ERR_SKIPPED to indicate that it is complete and there is no need to call
 //    Soft_DMA_completed().
-HpsErr_t Soft_DMA_setupTransfer(PSoftDmaCtx_t ctx, PDmaChunk_t xfer, bool autoStart) {
+HpsErr_t Soft_DMA_setupTransfer(SoftDmaCtx_t* ctx, DmaChunk_t* xfer, bool autoStart) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -251,7 +251,7 @@ HpsErr_t Soft_DMA_setupTransfer(PSoftDmaCtx_t ctx, PDmaChunk_t xfer, bool autoSt
 //  - If completes immediately (length smaller than chunkSize) the API will
 //    return ERR_SKIPPED to indicate that it is complete and there is no
 //    need to call Soft_DMA_completed().
-HpsErr_t Soft_DMA_startTransfer(PSoftDmaCtx_t ctx) {
+HpsErr_t Soft_DMA_startTransfer(SoftDmaCtx_t* ctx) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -261,7 +261,7 @@ HpsErr_t Soft_DMA_startTransfer(PSoftDmaCtx_t ctx) {
 
 // Check if the DMA controller is busy
 //  - Will return ERR_BUSY if the DMA controller is busy.
-HpsErr_t Soft_DMA_busy(PSoftDmaCtx_t ctx) {
+HpsErr_t Soft_DMA_busy(SoftDmaCtx_t* ctx) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -274,7 +274,7 @@ HpsErr_t Soft_DMA_busy(PSoftDmaCtx_t ctx) {
 //  - Calling this function will return TRUE if the DMA has just completed
 //  - It will return ERR_BUSY if (a) the transfer has not completed, or (b) the completion has already been acknowledged
 //  - If ERR_SUCCESS is returned, the done flag will be cleared automatically acknowledging the completion.
-HpsErr_t Soft_DMA_completed(PSoftDmaCtx_t ctx) {
+HpsErr_t Soft_DMA_completed(SoftDmaCtx_t* ctx) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -288,7 +288,7 @@ HpsErr_t Soft_DMA_completed(PSoftDmaCtx_t ctx) {
 //  - DMA_ABORT_NONE does nothing.
 //  - Both DMA_ABORT_SAFE and DMA_ABORT_FORCE clear any remaining chunks and effectively stops the transfer immediately
 //  - Returns ERR_ABORTED to indicate abort completed immediately.
-HpsErr_t Soft_DMA_abort(PSoftDmaCtx_t ctx, DmaAbortType abort) {
+HpsErr_t Soft_DMA_abort(SoftDmaCtx_t* ctx, DmaAbortType abort) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;

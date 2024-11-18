@@ -46,7 +46,7 @@
  * Internal Functions
  */
 
-static void _Mandelbrot_setCoordinates( PMandelbrotCtx_t ctx, double radius, double xcentre, double ycentre ) {
+static void _Mandelbrot_setCoordinates( MandelbrotCtx_t* ctx, double radius, double xcentre, double ycentre ) {
     double xsize = MANDELBROT_XSIZE(radius);
     double ysize = MANDELBROT_YSIZE(radius);
     double xmin = MANDELBROT_XMIN(xsize, xcentre);
@@ -77,7 +77,7 @@ static void _Mandelbrot_setCoordinates( PMandelbrotCtx_t ctx, double radius, dou
     }
 }
 
-static void _Mandelbrot_setZnMax( PMandelbrotCtx_t ctx, double znMax ) {
+static void _Mandelbrot_setZnMax( MandelbrotCtx_t* ctx, double znMax ) {
     //Update internally
     ctx->magnitude = znMax;
     //Update device
@@ -94,7 +94,7 @@ static void _Mandelbrot_setZnMax( PMandelbrotCtx_t ctx, double znMax ) {
     }
 }
 
-static void _Mandelbrot_setCalculationPrecision( PMandelbrotCtx_t ctx, MandelbrotPrecision precision ) {
+static void _Mandelbrot_setCalculationPrecision( MandelbrotCtx_t* ctx, MandelbrotPrecision precision ) {
     ctx->precision = precision;
     if (precision == MANDELBROT_FLOAT_PRECISION) {
         ctx->base[MANDELBROT_CONTROL] = 0;
@@ -113,7 +113,7 @@ static void _Mandelbrot_setCalculationPrecision( PMandelbrotCtx_t ctx, Mandelbro
 //Function to initialise the Mandelbrot driver
 // - Requires that the LT24 controller has already been initialised.
 // - Returns 0 if successful
-HpsErr_t Mandelbrot_initialise( void* base, PLT24Ctx_t lt24ctx, PMandelbrotCtx_t* pCtx ) {
+HpsErr_t Mandelbrot_initialise( void* base, LT24Ctx_t* lt24ctx, MandelbrotCtx_t** pCtx ) {
     //Ensure user pointers valid.
     if (!base) return ERR_NULLPTR;
     if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
@@ -123,7 +123,7 @@ HpsErr_t Mandelbrot_initialise( void* base, PLT24Ctx_t lt24ctx, PMandelbrotCtx_t
     HpsErr_t status = DriverContextAllocate(pCtx);
     if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
-    PMandelbrotCtx_t ctx = *pCtx;
+    MandelbrotCtx_t* ctx = *pCtx;
     ctx->base = (unsigned char*)base;
     //Set default co-ordinates
     ctx->magnitude  =  2.00;
@@ -139,13 +139,13 @@ HpsErr_t Mandelbrot_initialise( void* base, PLT24Ctx_t lt24ctx, PMandelbrotCtx_t
 
 //Check if driver initialised
 // - returns true if initialised
-bool Mandelbrot_isInitialised(PMandelbrotCtx_t ctx) {
+bool Mandelbrot_isInitialised(MandelbrotCtx_t* ctx) {
     return DriverContextCheckInit(ctx);
 }
 
 //Get Precision
 // - returns true if double precision
-HpsErr_t Mandelbrot_getCalculationPrecision( PMandelbrotCtx_t ctx ) {
+HpsErr_t Mandelbrot_getCalculationPrecision( MandelbrotCtx_t* ctx ) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -158,7 +158,7 @@ HpsErr_t Mandelbrot_getCalculationPrecision( PMandelbrotCtx_t ctx ) {
 // - returns 0 if successful
 // - Once precision is changed, *all* coefficients (Zmax, Xmin, Ymin, Xstep, Ystep)
 //   will automatically be updated.
-HpsErr_t Mandelbrot_setCalculationPrecision( PMandelbrotCtx_t ctx, MandelbrotPrecision precision ) {
+HpsErr_t Mandelbrot_setCalculationPrecision( MandelbrotCtx_t* ctx, MandelbrotPrecision precision ) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -169,7 +169,7 @@ HpsErr_t Mandelbrot_setCalculationPrecision( PMandelbrotCtx_t ctx, MandelbrotPre
 
 //Set Bounding Value
 // - This typically never needs changing. It defaults to 2.
-HpsErr_t Mandelbrot_setZnMax( PMandelbrotCtx_t ctx, double znMax ) {
+HpsErr_t Mandelbrot_setZnMax( MandelbrotCtx_t* ctx, double znMax ) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -181,7 +181,7 @@ HpsErr_t Mandelbrot_setZnMax( PMandelbrotCtx_t ctx, double znMax ) {
 //Set Coordinates
 // - Sets coordinates and radius of pattern.
 // - Change this to change the zoom.
-HpsErr_t Mandelbrot_setCoordinates( PMandelbrotCtx_t ctx, double radius, double xcentre, double ycentre ) {
+HpsErr_t Mandelbrot_setCoordinates( MandelbrotCtx_t* ctx, double radius, double xcentre, double ycentre ) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -194,7 +194,7 @@ HpsErr_t Mandelbrot_setCoordinates( PMandelbrotCtx_t ctx, double radius, double 
 // - Returns how many iterations have been made on the current pattern.
 // - If >=0 is current iteration of this pattern
 // - If <0 is error code
-HpsErr_t Mandelbrot_currentIteration( PMandelbrotCtx_t ctx ) {
+HpsErr_t Mandelbrot_currentIteration( MandelbrotCtx_t* ctx ) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -207,7 +207,7 @@ HpsErr_t Mandelbrot_currentIteration( PMandelbrotCtx_t ctx ) {
 // - Resets the Mandelbrot generator and starts a new pattern.
 // - Returns 0 if successfully started new pattern.
 // - Ensure first that no iteration is currently running (Mandelbrot_iterationDone() returns SUCCESS).
-HpsErr_t Mandelbrot_resetPattern( PMandelbrotCtx_t ctx ) {
+HpsErr_t Mandelbrot_resetPattern( MandelbrotCtx_t* ctx ) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -232,7 +232,7 @@ HpsErr_t Mandelbrot_resetPattern( PMandelbrotCtx_t ctx ) {
 //Start next iteration
 // - Return 0 if successfully started iteration.
 // - Call mandelbrot_interationDone() to check if finished.
-HpsErr_t Mandelbrot_startIteration( PMandelbrotCtx_t ctx ) {
+HpsErr_t Mandelbrot_startIteration( MandelbrotCtx_t* ctx ) {
     //Check if busy (will also validate context)
     HpsErr_t status = Mandelbrot_iterationDone(ctx);
     if (ERR_IS_ERROR(status)) return status;
@@ -244,7 +244,7 @@ HpsErr_t Mandelbrot_startIteration( PMandelbrotCtx_t ctx ) {
 //Check if last iteration is done
 // - Return 0 if successfully finished iteration.
 // - Return ERR_BUSY if still running.
-HpsErr_t Mandelbrot_iterationDone( PMandelbrotCtx_t ctx ) {
+HpsErr_t Mandelbrot_iterationDone( MandelbrotCtx_t* ctx ) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;

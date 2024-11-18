@@ -18,7 +18,7 @@
 
 #include "driver_flash.h"
 
-bool FLASH_rangeInRegion(PFlashRegion_t region, unsigned int address, unsigned int length) {
+bool FLASH_rangeInRegion(FlashRegion_t* region, unsigned int address, unsigned int length) {
     if (!region || !region->valid) return false;
     // Calculate end of range
     unsigned int addressEnd = address + length - 1;

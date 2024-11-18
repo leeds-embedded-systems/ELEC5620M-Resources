@@ -78,7 +78,7 @@ typedef struct {
     uintptr_t source;
     uintptr_t dest;
     size_t   length;
-} SoftDmaCtx_t, *PSoftDmaCtx_t;
+} SoftDmaCtx_t;
 
 // Initialise DMA Controller Driver
 //  - wordSize is the width of the DMA word in bytes.
@@ -94,17 +94,17 @@ typedef struct {
 //       memcpy function that doesn;t increment the destination address.
 //  - Returns Util/error Code
 //  - Returns context pointer to *ctx
-HpsErr_t Soft_DMA_initialise(SoftDMAWordSize wordSize, unsigned int chunkSize, SoftDmaMemcpyFunc_t copyFunc, void* copyFuncCtx, PSoftDmaCtx_t* pCtx);
+HpsErr_t Soft_DMA_initialise(SoftDMAWordSize wordSize, unsigned int chunkSize, SoftDmaMemcpyFunc_t copyFunc, void* copyFuncCtx, SoftDmaCtx_t** pCtx);
 
 // Check if driver initialised
 //  - Returns true if driver previously initialised
-bool Soft_DMA_isInitialised(PSoftDmaCtx_t ctx);
+bool Soft_DMA_isInitialised(SoftDmaCtx_t* ctx);
 
 // Set the size of the polled DMA chunk
 //  - Size is specified in units of words (wordSize set during initialisation)
 //  - Returns ERR_SUCCESS if updated successfully
 //  - Returns ERR_BUSY if a DMA transfer is already running (can't change size during run).
-HpsErr_t Soft_DMA_setChunkSize(PSoftDmaCtx_t ctx, unsigned int chunkSize);
+HpsErr_t Soft_DMA_setChunkSize(SoftDmaCtx_t* ctx, unsigned int chunkSize);
 
 // Configure a DMA transfer
 //  - If a transfer has already been queued but is not running it will be cancelled.
@@ -116,7 +116,7 @@ HpsErr_t Soft_DMA_setChunkSize(PSoftDmaCtx_t ctx, unsigned int chunkSize);
 //  - If autoStart completes immediately (length smaller than chunkSize) the API will
 //    return ERR_SKIPPED to indicate that it is complete and there is no need to call
 //    Soft_DMA_completed().
-HpsErr_t Soft_DMA_setupTransfer(PSoftDmaCtx_t ctx, PDmaChunk_t xfer, bool autoStart);
+HpsErr_t Soft_DMA_setupTransfer(SoftDmaCtx_t* ctx, DmaChunk_t* xfer, bool autoStart);
 
 // Start the previously configured transfer
 //  - If controller is busy and not able to start, returns ERR_BUSY.
@@ -124,24 +124,24 @@ HpsErr_t Soft_DMA_setupTransfer(PSoftDmaCtx_t ctx, PDmaChunk_t xfer, bool autoSt
 //  - If completes immediately (length smaller than chunkSize) the API will
 //    return ERR_SKIPPED to indicate that it is complete and there is no
 //    need to call Soft_DMA_completed().
-HpsErr_t Soft_DMA_startTransfer(PSoftDmaCtx_t ctx);
+HpsErr_t Soft_DMA_startTransfer(SoftDmaCtx_t* ctx);
 
 // Check if the DMA controller is busy
 //  - Will return ERR_BUSY if the DMA controller is busy.
-HpsErr_t Soft_DMA_busy(PSoftDmaCtx_t ctx);
+HpsErr_t Soft_DMA_busy(SoftDmaCtx_t* ctx);
 
 // Check if the DMA controller completed
 //  - If not all chunks have been copied yet, calling this will first copy another chunk.
 //  - Calling this function will return TRUE if the DMA has just completed
 //  - It will return ERR_BUSY if (a) the transfer has not completed, or (b) the completion has already been acknowledged
 //  - If ERR_SUCCESS is returned, the done flag will be cleared automatically acknowledging the completion.
-HpsErr_t Soft_DMA_completed(PSoftDmaCtx_t ctx);
+HpsErr_t Soft_DMA_completed(SoftDmaCtx_t* ctx);
 
 // Issue an abort request to the DMA controller
 //  - DMA_ABORT_NONE does nothing.
 //  - Both DMA_ABORT_SAFE and DMA_ABORT_FORCE clear any remaining chunks and effectively stops the transfer immediately
 //  - Returns ERR_ABORTED to indicate abort completed immediately.
-HpsErr_t Soft_DMA_abort(PSoftDmaCtx_t ctx, DmaAbortType abort);
+HpsErr_t Soft_DMA_abort(SoftDmaCtx_t* ctx, DmaAbortType abort);
 
 #endif /* SOFT_DMACONTROLLER_H_ */
 

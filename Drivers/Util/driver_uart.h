@@ -99,10 +99,10 @@ typedef struct {
     UartFifoSpaceFunc_t txFifoSpace;
     UartFifoSpaceFunc_t rxFifoAvailable;
     UartFifoClearFunc_t clearFifos;
-} UartCtx_t, *PUartCtx_t;
+} UartCtx_t;
 
 // Check if driver initialised
-static inline bool UART_isInitialised(PUartCtx_t uart) {
+static inline bool UART_isInitialised(UartCtx_t* uart) {
     if (!uart) return false;
     return DriverContextCheckInit(uart->ctx);
 }
@@ -110,7 +110,7 @@ static inline bool UART_isInitialised(PUartCtx_t uart) {
 // Check if data format is 9-bit
 // - In 9-bit mode, the Tx/Rx functions take uint16_t data array
 //   rather than uint8_t data array otherwise.
-static inline HpsErr_t UART_is9bit(PUartCtx_t uart) {
+static inline HpsErr_t UART_is9bit(UartCtx_t* uart) {
     if (!uart) return ERR_NULLPTR;
     return (HpsErr_t)uart->is9bit;
 }
@@ -119,7 +119,7 @@ static inline HpsErr_t UART_is9bit(PUartCtx_t uart) {
 // - Non-negative return value indicates idle status flag value
 // - If clearFlag is true, the status flag should be cleared
 // - Negative indicates error
-static inline HpsErr_t UART_txIdle(PUartCtx_t uart, bool clearFlag) {
+static inline HpsErr_t UART_txIdle(UartCtx_t* uart, bool clearFlag) {
     if (!uart) return ERR_NULLPTR;
     if (!uart->txIdle) return ERR_NOSUPPORT;
     return uart->txIdle(uart->ctx, clearFlag);
@@ -129,7 +129,7 @@ static inline HpsErr_t UART_txIdle(PUartCtx_t uart, bool clearFlag) {
 // - Non-negative return value indicates busy status flag value
 // - If clearFlag is true, the status flag should be cleared
 // - Negative indicates error
-static inline HpsErr_t UART_rxReady(PUartCtx_t uart, bool clearFlag) {
+static inline HpsErr_t UART_rxReady(UartCtx_t* uart, bool clearFlag) {
     if (!uart) return ERR_NULLPTR;
     if (!uart->rxReady) return ERR_NOSUPPORT;
     return uart->rxReady(uart->ctx, clearFlag);
@@ -138,7 +138,7 @@ static inline HpsErr_t UART_rxReady(PUartCtx_t uart, bool clearFlag) {
 // Check transmit data FIFO space
 // - Non-negative return value indicates amount of space in FIFO for data
 // - Negative indicates error
-static inline HpsErr_t UART_txFifoSpace(PUartCtx_t uart) {
+static inline HpsErr_t UART_txFifoSpace(UartCtx_t* uart) {
     if (!uart) return ERR_NULLPTR;
     if (!uart->txFifoSpace) return ERR_NOSUPPORT;
     return uart->txFifoSpace(uart->ctx);
@@ -147,7 +147,7 @@ static inline HpsErr_t UART_txFifoSpace(PUartCtx_t uart) {
 // Check receive data FIFO availability
 // - Non-negative return value indicates amount of space in FIFO for data
 // - Negative indicates error
-static inline HpsErr_t UART_rxFifoAvailable(PUartCtx_t uart) {
+static inline HpsErr_t UART_rxFifoAvailable(UartCtx_t* uart) {
     if (!uart) return ERR_NULLPTR;
     if (!uart->rxFifoAvailable) return ERR_NOSUPPORT;
     return uart->rxFifoAvailable(uart->ctx);
@@ -156,7 +156,7 @@ static inline HpsErr_t UART_rxFifoAvailable(PUartCtx_t uart) {
 // Clear FIFOs
 // - Tx and Rx flags select which FIFOs to clear
 // - Negative indicates error
-static inline HpsErr_t UART_clearFifos(PUartCtx_t uart, bool tx, bool rx) {
+static inline HpsErr_t UART_clearFifos(UartCtx_t* uart, bool tx, bool rx) {
     if (!uart) return ERR_NULLPTR;
     if (!uart->clearFifos) return ERR_NOSUPPORT;
     return uart->clearFifos(uart->ctx, tx, rx);
@@ -167,7 +167,7 @@ static inline HpsErr_t UART_clearFifos(PUartCtx_t uart, bool tx, bool rx) {
 // - Length is size of data in words.
 // - In 9-bit data mode, data[] is cast to a uint16_t internally.
 // - Negative indicates error.
-static inline HpsErr_t UART_transmit(PUartCtx_t uart, const uint8_t data[], uint8_t length) {
+static inline HpsErr_t UART_transmit(UartCtx_t* uart, const uint8_t data[], uint8_t length) {
     if (!length) return ERR_SUCCESS;
     if (!uart || !data) return ERR_NULLPTR;
     if (!uart->transmit) return ERR_NOSUPPORT;
@@ -179,7 +179,7 @@ static inline HpsErr_t UART_transmit(PUartCtx_t uart, const uint8_t data[], uint
 // - Length is size of data in words.
 // - In 9-bit data mode, data[] is cast to a uint16_t internally.
 // - Negative indicates error.
-static inline HpsErr_t UART_receive(PUartCtx_t uart, uint8_t data[], uint8_t length) {
+static inline HpsErr_t UART_receive(UartCtx_t* uart, uint8_t data[], uint8_t length) {
     if (!length) return ERR_SUCCESS;
     if (!uart || !data) return ERR_NULLPTR;
     if (!uart->receive) return ERR_NOSUPPORT;

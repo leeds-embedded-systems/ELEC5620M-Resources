@@ -29,11 +29,13 @@
 
 
 //Control Bit Map
-#define SERVO_ENABLE    (1 << 0)  //Output enab1e
-#define SERVO_DOUBLEWID (1 << 1)  //Whether 1ms pulse or 2ms pulse
-#define SERVO_READY     (1 << 2)  //Whether the servo is ready for changing
-#define SERVO_INPUT     (1 << 4)  //Pin level of the servo io
-#define SERVO_AVAILABLE (1 << 7)  //High if servo controller available
+#define SERVO_ENABLE     0  //Output enab1e0
+#define SERVO_DOUBLEWID  1  //Whether 1ms pulse or 2ms pulse0
+#define SERVO_READY      2  //Whether the servo is ready for changing0
+#define SERVO_INPUT      4  //Pin level of the servo io0
+#define SERVO_AVAILABLE  7  //High if servo controller available0
+
+#define SERVO_FLAGMASK   0x1U  // All of the control bits are 1-bit wide
 
 //LT24 Dedicated Address Offsets
 #define SERVO_CONTROL  (0x00/sizeof(unsigned char))
@@ -73,7 +75,8 @@ HpsErr_t Servo_initialise( void* base, ServoChannel channel, ServoCtx_t** pCtx )
     ctx->base = (unsigned char*)base + SERVO_CHANNEL_OFFSET(channel);
     ctx->channel = channel;
     //Check if servo is available for use
-    if (!(ctx->base[SERVO_CONTROL] & SERVO_AVAILABLE)) return DriverContextInitFail(pCtx, ERR_NOTFOUND);
+    if (!MaskCheck(ctx->base[SERVO_CONTROL], 0x1U, SERVO_AVAILABLE)) /*`\label{line:servoinitfail}`*/
+        return DriverContextInitFail(pCtx, ERR_NOTFOUND);
     //Populate the GPIO structure. We only have the getInput function.
     ctx->gpio.ctx = ctx;
     ctx->gpio.getInput = (GpioReadFunc_t)&Servo_readInput;
@@ -101,7 +104,8 @@ HpsErr_t Servo_enable( ServoCtx_t* ctx, bool enable) {
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
     //Configure enable
-    ctx->base[SERVO_CONTROL] = MaskModify(ctx->base[SERVO_CONTROL], enable, 0x1U, SERVO_ENABLE);
+    ctx->base[SERVO_CONTROL] = 
+        MaskModify(ctx->base[SERVO_CONTROL], enable, SERVO_FLAGMASK, SERVO_ENABLE);
     return ERR_SUCCESS;
 }
 
@@ -117,7 +121,7 @@ HpsErr_t Servo_readInput( ServoCtx_t* ctx, unsigned int* value, unsigned int mas
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
     // Read servo pin input flag
-    *value = MaskExtract(ctx->base[SERVO_CONTROL], mask & 0x1U, SERVO_INPUT);
+    *value = MaskExtract(ctx->base[SERVO_CONTROL], mask & SERVO_FLAGMASK, SERVO_INPUT);
     return ERR_SUCCESS;
 }
 
@@ -132,7 +136,8 @@ HpsErr_t Servo_pulseWidthRange( ServoCtx_t* ctx, bool double_width ) {
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
     //Configure double-width flag
-    ctx->base[SERVO_CONTROL] = MaskModify(ctx->base[SERVO_CONTROL], double_width, 0x1U, SERVO_DOUBLEWID);
+    ctx->base[SERVO_CONTROL] = 
+        MaskModify(ctx->base[SERVO_CONTROL], double_width, SERVO_FLAGMASK, SERVO_DOUBLEWID);
     return ERR_SUCCESS;
 }
 
@@ -146,7 +151,7 @@ HpsErr_t Servo_busy( ServoCtx_t* ctx ) {
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
     //Check if ready flag is set
-    return MaskCheck(ctx->base[SERVO_CONTROL], 0x1U, SERVO_READY) ? ERR_SUCCESS : ERR_BUSY;
+    return MaskCheck(ctx->base[SERVO_CONTROL], SERVO_FLAGMASK, SERVO_READY) ? ERR_SUCCESS : ERR_BUSY;
 }
 
 //Update PWM Period

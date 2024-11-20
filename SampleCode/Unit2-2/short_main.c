@@ -6,38 +6,30 @@
 // Fatal Status Check
 // ==================
 // This can be used to terminate the program (i.e. crash + reboot)
-// if the "status" value returned from a driver doesn't match the
-// "successStatus" value.
-
-void exitOnFail(signed int status, signed int successStatus){
-    if (status != successStatus) {
+// in the event of an error
+void exitOnFail(HpsErr_t status){
+    if (ERR_IS_ERROR(status)) {
         exit((int)status); //Add breakpoint here to catch failure
     }
 }
 
 // Main Function
 // =============
-
 int main (void) {
-    //Initialise Servo Driver
-    ServoCtx_t* servoCtx;
-    exitOnFail(    //Initialise Servo Controller
-            Servo_initialise(LSC_BASE_SERVO, &servoCtx),   
-            ERR_SUCCESS);                               //Exit if not successful
-    exitOnFail(
-            Servo_enable(servoCtx, 0, true),            //Enable Servo 0.
-            ERR_SUCCESS);                               //Exit if not successful
-    exitOnFail(
-            Servo_pulseWidthRange(servoCtx, 0, true),   //Double pulse width.
-            ERR_SUCCESS);                               //Exit if not successful
-
+    //Pointer variable to hold servo driver instance
+    ServoCtx_t* servo0Ctx;
+    //Initialise Servo Driver Structure
+    exitOnFail(Servo_initialise(LSC_BASE_SERVO, SERVO_CHANNEL_0, &servo0Ctx));
+    //Enable Servo 0.
+    exitOnFail(Servo_enable(servo0Ctx, true));
+    //Select double width pulse mode required for for SG-90 servo.
+    exitOnFail(Servo_pulseWidthRange(servo0Ctx, true));
+    //Default starting position
     signed char posn = 50;
     /* Main Run Loop */
     while (1) {        
-        while (ERR_IS_BUSY(Servo_busy(servoCtx, 0)));   //Wait while Servo 0 busy.
-        exitOnFail(
-                Servo_pulseWidth(servoCtx,0,posn),      //Update Servo 0 position
-                ERR_SUCCESS);                           //Exit if not successful
+        while (ERR_IS_BUSY(Servo_busy(servo0Ctx)));   //Wait while Servo 0 busy.
+        exitOnFail(Servo_pulseWidth(servo0Ctx,posn));  //Update Servo 0 position
         //Other code... Maybe manipulate posn to control the servo position?
     }
 }

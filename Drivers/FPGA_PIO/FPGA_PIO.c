@@ -182,23 +182,23 @@ HpsErr_t FPGA_PIO_initialise(void* base, FPGAPIODirectionType pioType, bool spli
     ctx->gpio.ctx = ctx;
     if (pioType == FPGA_PIO_DIRECTION_BIDIR) {
         //Enable direction APIs
-        ctx->gpio.getDirection = (GpioReadFunc_t)&_FPGA_PIO_getDirection;
-        ctx->gpio.setDirection = (GpioWriteFunc_t)&_FPGA_PIO_setDirection;
+        ctx->gpio.getDirection = (GpioReadFunc_t)&FPGA_PIO_getDirection;
+        ctx->gpio.setDirection = (GpioWriteFunc_t)&FPGA_PIO_setDirection;
         //Initialise the direction register
         ctx->base[GPIO_DIRECTION] = dir;
     }
     if (pioType & FPGA_PIO_DIRECTION_OUT) {
         //Enable write APIs
-        ctx->gpio.getOutput    = (GpioReadFunc_t)&_FPGA_PIO_getOutput;
-        ctx->gpio.setOutput    = (GpioWriteFunc_t)&_FPGA_PIO_setOutput;
-        ctx->gpio.toggleOutput = (GpioToggleFunc_t)&_FPGA_PIO_toggleOutput;
+        ctx->gpio.getOutput    = (GpioReadFunc_t)&FPGA_PIO_getOutput;
+        ctx->gpio.setOutput    = (GpioWriteFunc_t)&FPGA_PIO_setOutput;
+        ctx->gpio.toggleOutput = (GpioToggleFunc_t)&FPGA_PIO_toggleOutput;
         //Initialise the output register
         ctx->base[GPIO_OUTPUT] = port;
         ctx->outPort           = port;
     }
     if (pioType & FPGA_PIO_DIRECTION_IN) {
         //Enable read APIs
-        ctx->gpio.getInput = (GpioReadFunc_t)&_FPGA_PIO_getInput;
+        ctx->gpio.getInput = (GpioReadFunc_t)&FPGA_PIO_getInput;
     }
     if (pioType & FPGA_PIO_DIRECTION_BOTH) {
         // If we have both directions, we must use the cached port copy for reads

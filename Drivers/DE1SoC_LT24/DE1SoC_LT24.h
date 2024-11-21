@@ -3,7 +3,38 @@
  * ------------------------------
  * Description: 
  * Driver for the LT24 Display Controller
+ * 
+ * Provides APIs for initialising and writing data to the
+ * LT24 display. The driver can operate either in bit-banging
+ * mode using a GPIO controller instance, or in a special
+ * hardware optimised mode which uses the FPGA fabric to
+ * write commands and data to the display more efficiently.
+ * 
+ * The sideband signals such as power and reset are controlled
+ * using a GPIO driver instance. For the Leeds SoC Computer this
+ * is an instance of the FPGA_PIO driver. The GPIO instance has
+ * been split out from the LT24 driver to make it easier to
+ * access other sideband signals such as the touchscreen control
+ * bits.
+ * 
+ * 
+ * 
+ * DO NOT MODIFY THIS FILE.
  *
+ * 
+ * 
+ * This is a basic driver which provides only the interface
+ * APIs. If you wish to make add graphics processing such as
+ * Text and Shape display, you should create another driver
+ * for your graphics code, which takes an LT24Ctx_t instance.
+ * 
+ * For example:
+ * 
+ *     MyGraphicDriver_initialise(LT24Ctx_t* display, ...);
+ * 
+ * 
+ * 
+ * 
  * Company: University of Leeds
  * Author: T Carpenter
  *
@@ -11,6 +42,7 @@
  *
  * Date       | Changes
  * -----------+----------------------------------
+ * 21/11/2024 | Use external GPIO instance
  * 31/01/2024 | Update to new driver contexts
  * 20/10/2017 | Update driver to match new styles
  * 05/02/2017 | Creation of driver
@@ -23,6 +55,7 @@
 //Include required header files
 #include <stdint.h>
 #include "Util/driver_ctx.h"
+#include "Util/driver_gpio.h"
 
 //Map some error codes to their use
 #define LT24_INVALIDSIZE  ERR_BEYONDEND
@@ -49,15 +82,17 @@ typedef struct {
     // Context Header
     DrvCtx_t header;
     // Context Body
-    volatile unsigned int* cntrl;
-    volatile unsigned short* data;
-    bool hwOpt;
+    GpioCtx_t* cntrl;
+    volatile unsigned short* hwOpt; // Uses hardware optimised interface if non-NULL
 } LT24Ctx_t;
 
 //Function to initialise the LCD
+//  - cntrl is a GPIO instance used to configure the control pins for the LT24.
+//  - dataBase if non-NULL indicates using hardware optimised mode. Must be base
+//    address of the optimised data transfer buffer
 //  - Returns Util/error Code
 //  - Returns context pointer to *ctx
-HpsErr_t LT24_initialise( void* cntrlBase, void* dataBase, LT24Ctx_t** pCtx );
+HpsErr_t LT24_initialise( GpioCtx_t* cntrl, void* dataBase, LT24Ctx_t** pCtx );
 
 //Check if driver initialised
 // - returns true if initialised

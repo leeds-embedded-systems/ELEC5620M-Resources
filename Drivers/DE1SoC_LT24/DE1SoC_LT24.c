@@ -3,7 +3,38 @@
  * ------------------------------
  * Description: 
  * Driver for the LT24 Display Controller
+ * 
+ * Provides APIs for initialising and writing data to the
+ * LT24 display. The driver can operate either in bit-banging
+ * mode using a GPIO controller instance, or in a special
+ * hardware optimised mode which uses the FPGA fabric to
+ * write commands and data to the display more efficiently.
+ * 
+ * The sideband signals such as power and reset are controlled
+ * using a GPIO driver instance. For the Leeds SoC Computer this
+ * is an instance of the FPGA_PIO driver. The GPIO instance has
+ * been split out from the LT24 driver to make it easier to
+ * access other sideband signals such as the touchscreen control
+ * bits.
+ * 
+ * 
+ * 
+ * DO NOT MODIFY THIS FILE.
  *
+ * 
+ * 
+ * This is a basic driver which provides only the interface
+ * APIs. If you wish to make add graphics processing such as
+ * Text and Shape display, you should create another driver
+ * for your graphics code, which takes an LT24Ctx_t instance
+ * 
+ * For example:
+ * 
+ *     MyGraphicDriver_initialise(LT24Ctx_t* display, ...);
+ * 
+ * 
+ * 
+ * 
  * Company: University of Leeds
  * Author: T Carpenter
  *
@@ -11,6 +42,7 @@
  *
  * Date       | Changes
  * -----------+----------------------------------
+ * 21/11/2024 | Use external GPIO instance
  * 31/01/2024 | Update to new driver contexts
  * 20/10/2017 | Update driver to match new styles
  * 05/02/2017 | Creation of driver
@@ -28,22 +60,19 @@
 //
 
 //PIO Bit Map
-#define LT24_WRn        (   1 << 16)
-#define LT24_RS         (   1 << 17)
-#define LT24_RDn        (   1 << 18)
-#define LT24_CSn        (   1 << 19)
-#define LT24_RESETn     (   1 << 20)
-#define LT24_LCD_ON     (   1 << 21)
+#define LT24_WRn        (  1U << 16)
+#define LT24_RS         (  1U << 17)
+#define LT24_RDn        (  1U << 18)
+#define LT24_CSn        (  1U << 19)
+#define LT24_RESETn     (  1U << 20)
+#define LT24_LCD_ON     (  1U << 21)
 #define LT24_HW_OPT(en) ((en) << 23)
-#define LT24_CMDDATMASK (LT24_CSn | LT24_RDn | LT24_RS | LT24_WRn | 0x0000FFFF) //CMD and Data bits in PIO
+#define LT24_CMDDATMASK (LT24_CSn | LT24_RDn | LT24_RS | LT24_WRn | 0x0000FFFFU) //CMD and Data bits in PIO
+#define LT24_PIOMASK    (LT24_CMDDATMASK | LT24_LCD_ON | LT24_RESETn | LT24_HW_OPT(1))
 
 //LT24 Dedicated Address Offsets
 #define LT24_DEDCMD  (0x00/sizeof(unsigned short))
 #define LT24_DEDDATA (0x02/sizeof(unsigned short))
-
-//LT24 PIO Address Offsets
-#define LT24_PIO_DATA (0x00/sizeof(unsigned int))
-#define LT24_PIO_DIR  (0x04/sizeof(unsigned int))
 
 //Display Initialisation Data
 //You don't need to worry about what all these registers are.
@@ -151,38 +180,32 @@ unsigned short LT24_initData [][2] = {
  */
 
 //Function for writing to LT24 Registers
-static void _LT24_write( LT24Ctx_t* ctx, bool isData, unsigned short value ) {
+static HpsErr_t _LT24_write( LT24Ctx_t* ctx, bool isData, unsigned short value ) {
     if (ctx->hwOpt) {
         // Use data interface in hwOpt mode
         if (isData) {
-            ctx->data[LT24_DEDDATA] = value;
+            ctx->hwOpt[LT24_DEDDATA] = value;
         } else {
-            ctx->data[LT24_DEDCMD ] = value;
+            ctx->hwOpt[LT24_DEDCMD ] = value;
         }
+        return ERR_SUCCESS;
     } else {
-        //PIO controls more than just LT24, so need to Read-Modify-Write
-        //First we output the value with the LT24_WRn bit low (1st cycle of write)
-        //Read
-        unsigned int regVal = ctx->cntrl[LT24_PIO_DATA];
-        //Modify
-        //Mask all bits for command and data (sets them all to 0)
-        regVal = regVal & ~LT24_CMDDATMASK;
-        //Set the data bits (unsigned value, so cast pads MSBs with 0's)
-        regVal = regVal | ((unsigned int)value); 
+        //Build new register value, starting with the data bits
+        unsigned int regVal = value; 
         if (isData) {
             //For data we set the RS bit high.
-            regVal = regVal | (LT24_RS | LT24_RDn);
+            regVal |= LT24_RS | LT24_RDn;
         } else {
             //For command we don't set the RS bit
-            regVal = regVal | (LT24_RDn);
+            regVal |= LT24_RDn;
         }
-        //Write
-        ctx->cntrl[LT24_PIO_DATA] = regVal;
-        //Then we output the value again with LT24_WRn high (2nd cycle of write)
+        //Write to the PIO controller, changing only the command and data bits
+        HpsErr_t status = GPIO_setOutput(ctx->cntrl, regVal, LT24_CMDDATMASK);
+        if (ERR_IS_ERROR(status)) return status;
+        //Then we output the same value again but with LT24_WRn high (2nd cycle of write)
         //Rest of regVal is unchanged, so we just OR the LT24_WRn bit
-        regVal = regVal | (LT24_WRn); 
-        //Write
-        ctx->cntrl[LT24_PIO_DATA] = regVal;
+        regVal |= LT24_WRn;
+        return GPIO_setOutput(ctx->cntrl, regVal, LT24_CMDDATMASK);
     }
 }
 
@@ -271,16 +294,14 @@ static HpsErr_t _LT24_colourBars( LT24Ctx_t* ctx, unsigned int xleft, unsigned i
     return ERR_SUCCESS;
 }
 
-static void _LT24_powerConfig( LT24Ctx_t* ctx, bool isOn ) {
-    unsigned int regVal = ctx->cntrl[LT24_PIO_DATA];
+static HpsErr_t _LT24_powerConfig( LT24Ctx_t* ctx, bool isOn ) {
     if (isOn) {
         //To turn on we must set the RESETn and LCD_ON bits high
-        regVal = regVal |  (LT24_RESETn | LT24_LCD_ON);
+        return GPIO_setOutput(ctx->cntrl, UINT32_MAX, (LT24_RESETn | LT24_LCD_ON));
     } else {
         //To turn off we must set the RESETn and LCD_ON bits low
-        regVal = regVal & ~(LT24_RESETn | LT24_LCD_ON);
+        return GPIO_setOutput(ctx->cntrl,          0, (LT24_RESETn | LT24_LCD_ON));
     }
-    ctx->cntrl[LT24_PIO_DATA] = regVal;
 }
 
 // Cleanup function called when driver destroyed.
@@ -297,28 +318,30 @@ static void _LT24_cleanup( LT24Ctx_t* ctx ) {
  */
 
 //Function to initialise the LCD
+//  - cntrl is a GPIO instance used to configure the control pins for the LT24.
+//  - dataBase if non-NULL indicates using hardware optimised mode. Must be base
+//    address of the optimised data transfer buffer
 //  - Returns Util/error Code
 //  - Returns context pointer to *ctx
-HpsErr_t LT24_initialise( void* cntrlBase, void* dataBase, LT24Ctx_t** pCtx ) {
-    //Ensure user pointers valid. dataBase can be NULL.
-    if (!cntrlBase) return ERR_NULLPTR;
-    if (!pointerIsAligned(cntrlBase, sizeof(unsigned int))) return ERR_ALIGNMENT;
+HpsErr_t LT24_initialise( GpioCtx_t* cntrl, void* dataBase, LT24Ctx_t** pCtx ) {
+    //Control GPIO must be valid and initialised
+    if (!GPIO_isInitialised(cntrl)) return ERR_BADDEVICE;
+    //Optimised data address must be integer aligned (NULL is allowed)
     if (!pointerIsAligned(dataBase, sizeof(unsigned int))) return ERR_ALIGNMENT;
     //Allocate the driver context, validating return value.
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_LT24_cleanup);
     if (ERR_IS_ERROR(status)) return status;
     //Save base address pointers
     LT24Ctx_t* ctx = *pCtx;
-    ctx->cntrl = (unsigned int*)cntrlBase;
-    ctx->data  = (unsigned short*)dataBase;
-    ctx->hwOpt = (dataBase != NULL); // Use HW Opt mode if we have a data pointer
-    //Initialise LCD PIO direction
-    ctx->cntrl[LT24_PIO_DIR] |= (LT24_CMDDATMASK | LT24_LCD_ON | LT24_RESETn | LT24_HW_OPT(1)); //All data/cmd bits are outputs
-    //Initialise LCD data/control register.
-    unsigned int regVal = ctx->cntrl[LT24_PIO_DATA];
-    regVal &= ~(LT24_CMDDATMASK | LT24_LCD_ON | LT24_RESETn | LT24_HW_OPT(1)); //Mask all data/cmd bits
-    regVal |=  (LT24_CSn | LT24_WRn | LT24_RDn | LT24_HW_OPT(ctx->hwOpt));     //Deselect Chip and set write and read signals to idle and set HW opt bit if enabled.
-    ctx->cntrl[LT24_PIO_DATA] = regVal;
+    ctx->cntrl = cntrl;
+    ctx->hwOpt  = (unsigned short*)dataBase;
+    
+    //Initialise LCD PIO direction. All data/cmd bits are outputs
+    GPIO_setDirection(ctx->cntrl, UINT32_MAX, LT24_PIOMASK);
+    
+    //Initialise LCD data/control register. Deselect Chip and set write and read signals
+    //to idle. Set the HW opt bit if enabled.
+    GPIO_setOutput(ctx->cntrl, (LT24_CSn | LT24_WRn | LT24_RDn | LT24_HW_OPT(ctx->hwOpt != NULL)), LT24_PIOMASK);
     
     //LCD requires specific reset sequence:
     _LT24_powerConfig(ctx, true);  //turn on for 1ms
@@ -357,8 +380,7 @@ HpsErr_t LT24_write( LT24Ctx_t* ctx, bool isData, unsigned short value ) {
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
     //Then perform write
-    _LT24_write(ctx, isData, value);
-    return ERR_SUCCESS;
+    return _LT24_write(ctx, isData, value);
 }
 
 //Function for configuring LCD reset/power (using PIO)
@@ -368,8 +390,7 @@ HpsErr_t LT24_powerConfig( LT24Ctx_t* ctx, bool isOn ) {
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
     //Then configure
-    _LT24_powerConfig(ctx, isOn);
-    return ERR_SUCCESS;
+    return _LT24_powerConfig(ctx, isOn);
 }
 
 //Function to clear display to a set colour
@@ -466,7 +487,6 @@ HpsErr_t LT24_drawPixel( LT24Ctx_t* ctx, unsigned short colour, unsigned int x, 
     HpsErr_t status = LT24_setWindow(ctx, x, y, 1, 1);
     if (ERR_IS_ERROR(status)) return status;
     //Write one pixel of colour data
-    _LT24_write(ctx, true, colour);
-    return ERR_SUCCESS; 
+    return _LT24_write(ctx, true, colour);
 }
 

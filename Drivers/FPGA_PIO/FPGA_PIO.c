@@ -1,5 +1,5 @@
 /*
- * Nios PIO Controller Driver
+ * FPGA PIO Controller Driver
  * ---------------------------
  *
  * Driver for writing to generic PIO controller
@@ -8,10 +8,13 @@
  * The PIO controller has a single data registers
  * shared between input and output. If there is an
  * input register, then we cannot read the state of
- * the output register. This means that R-M-W of
- * the output is only possible if the PIO is either
- * output-only, or has the optional bit set/clear
- * capability.
+ * the output register directly.
+ * 
+ * To combat this, a cached value of the output
+ * register has been added to the driver context. If
+ * it is not possible to read the output register
+ * directly, the cached value is used in any R-M-W
+ * operations.
  *
  * Company: University of Leeds
  * Author: T Carpenter
@@ -20,6 +23,7 @@
  *
  * Date       | Changes
  * -----------+-----------------------------------------
+ * 21/11/2024 | Add output cache to allow getOutput in all modes
  * 21/02/2024 | Conversion from struct to array indexing
  * 30/12/2023 | Creation of driver.
  *
@@ -61,37 +65,40 @@ static HpsErr_t _FPGA_PIO_getDirection(FPGAPIOCtx_t* ctx, unsigned int* dir, uns
     return ERR_SUCCESS;
 }
 
-static HpsErr_t _FPGA_PIO_setOutput(FPGAPIOCtx_t* ctx, unsigned int port, unsigned int mask){
-    //Masking required
-    if (ctx->gpio.getOutput) {
-        // Can read output register, so do R-M-W
-        unsigned int curVal = ctx->base[GPIO_OUTPUT];
-        ctx->base[GPIO_OUTPUT] = ((port & mask) | (curVal & ~mask));
+static unsigned int _FPGA_PIO_getOutputRegValue(FPGAPIOCtx_t*ctx) {
+    //Check if we have the capability to read the output port
+    if (ctx->usePortCache) {
+        // Rely on our cached value as we cannot read back the port register value.
+        return ctx->outPort;
     } else {
-        //Configure output
-        if (mask == UINT32_MAX) {
-            //No masking required, just write port
-            ctx->base[GPIO_OUTPUT] = port;
-        } else {
-            // Can't read register. Can only do R-M-W if we have bitset support
-            if (!ctx->hasBitset) return ERR_NOSUPPORT;
-            // Clear zero bits and set one bits.
-            ctx->base[GPIO_OUT_CLEAR] = (~port & mask);
-            ctx->base[GPIO_OUT_SET  ] = ( port & mask);
-        }
+        // Can read output register, so use the real current value in case it was changed by something else
+        return ctx->base[GPIO_OUTPUT];
     }
+}
+
+static HpsErr_t _FPGA_PIO_setOutput(FPGAPIOCtx_t* ctx, unsigned int port, unsigned int mask) {
+    //Configure output
+    if (mask != UINT32_MAX) {
+        //Masking required, integrate the new value with our current output register value
+        //based on masked bits.
+        unsigned int curVal = _FPGA_PIO_getOutputRegValue(ctx);
+        port = ((port & mask) | (curVal & ~mask));
+    }
+    //Update the output register, and our shadow copy in case we can't read it back.
+    ctx->base[GPIO_OUTPUT] = port;
+    ctx->outPort           = port;
     return ERR_SUCCESS;
 }
 
 static HpsErr_t _FPGA_PIO_toggleOutput(FPGAPIOCtx_t* ctx, unsigned int mask) {
     //Toggle outputs
-    ctx->base[GPIO_OUTPUT] = (ctx->base[GPIO_OUTPUT] ^ mask);
+    ctx->base[GPIO_OUTPUT] = _FPGA_PIO_getOutputRegValue(ctx) ^ mask;
     return ERR_SUCCESS;
 }
 
 static HpsErr_t _FPGA_PIO_getOutput(FPGAPIOCtx_t* ctx, unsigned int* port, unsigned int mask) {
     //Get output
-    *port = ctx->base[GPIO_OUTPUT] & mask;
+    *port = _FPGA_PIO_getOutputRegValue(ctx) & mask;
     return ERR_SUCCESS;
 }
 
@@ -154,6 +161,7 @@ HpsErr_t FPGA_PIO_initialise(void* base, FPGAPIODirectionType pioType, bool spli
     //Ensure user pointers valid
     if (!base) return ERR_NULLPTR;
     if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
+    if ((pioType == FPGA_PIO_DIRECTION_BIDIR) && splitData) return ERR_WRONGMODE;
     //Allocate the driver context, validating return value.
     HpsErr_t status = DriverContextAllocateWithCleanup(pCtx, &_FPGA_PIO_cleanup);
     if (ERR_IS_ERROR(status)) return status;
@@ -173,30 +181,29 @@ HpsErr_t FPGA_PIO_initialise(void* base, FPGAPIODirectionType pioType, bool spli
     //Populate the GPIO structure
     ctx->gpio.ctx = ctx;
     if (pioType == FPGA_PIO_DIRECTION_BIDIR) {
+        //Enable direction APIs
         ctx->gpio.getDirection = (GpioReadFunc_t)&_FPGA_PIO_getDirection;
         ctx->gpio.setDirection = (GpioWriteFunc_t)&_FPGA_PIO_setDirection;
-        if (!hasBitset) {
-            // Note: for bidir, can get output only if direction is output, else result is input value.
-            // so we only enable this if we don't have the bitset feature (which is more reliable in this mode).
-            ctx->gpio.getOutput    = (GpioReadFunc_t)&_FPGA_PIO_getOutput;
-        }
+        //Initialise the direction register
         ctx->base[GPIO_DIRECTION] = dir;
     }
     if (pioType & FPGA_PIO_DIRECTION_OUT) {
-        ctx->gpio.setOutput = (GpioWriteFunc_t)&_FPGA_PIO_setOutput;
+        //Enable write APIs
+        ctx->gpio.getOutput    = (GpioReadFunc_t)&_FPGA_PIO_getOutput;
+        ctx->gpio.setOutput    = (GpioWriteFunc_t)&_FPGA_PIO_setOutput;
+        ctx->gpio.toggleOutput = (GpioToggleFunc_t)&_FPGA_PIO_toggleOutput;
+        //Initialise the output register
         ctx->base[GPIO_OUTPUT] = port;
+        ctx->outPort           = port;
     }
     if (pioType & FPGA_PIO_DIRECTION_IN) {
+        //Enable read APIs
         ctx->gpio.getInput = (GpioReadFunc_t)&_FPGA_PIO_getInput;
-        if (splitData) {
-            // When we have an input, can only read output value if in split data mode.
-            ctx->gpio.getOutput = (GpioReadFunc_t)&_FPGA_PIO_getOutput;
-            ctx->gpio.toggleOutput = (GpioToggleFunc_t)&_FPGA_PIO_toggleOutput;
-        }
-    } else {
-        // Can get/toggle output if we don't have input
-        ctx->gpio.getOutput = (GpioReadFunc_t)&_FPGA_PIO_getOutput;
-        ctx->gpio.toggleOutput = (GpioToggleFunc_t)&_FPGA_PIO_toggleOutput;
+    }
+    if (pioType & FPGA_PIO_DIRECTION_BOTH) {
+        // If we have both directions, we must use the cached port copy for reads
+        // unless the hardware uses the special splitData mode.
+        ctx->usePortCache = !splitData;
     }
     //Initialised
     DriverContextSetInit(ctx);
@@ -215,6 +222,7 @@ bool FPGA_PIO_isInitialised(FPGAPIOCtx_t* ctx) {
 // - Will perform read-modify-write such that only pins with
 //   their mask bit set will be changed.
 // - e.g. with mask of 0x00010002, pins [1] and [16] will be changed.
+// - Only supported if pio type is FPGA_PIO_DIRECTION_BIDIR
 HpsErr_t FPGA_PIO_setDirection(FPGAPIOCtx_t* ctx, unsigned int dir, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
@@ -226,6 +234,7 @@ HpsErr_t FPGA_PIO_setDirection(FPGAPIOCtx_t* ctx, unsigned int dir, unsigned int
 
 //Get direction
 // - Returns the current direction of masked pins to *dir
+// - Only supported if pio type is FPGA_PIO_DIRECTION_BIDIR
 HpsErr_t FPGA_PIO_getDirection(FPGAPIOCtx_t* ctx, unsigned int* dir, unsigned int mask) {
     if (!dir) return ERR_NULLPTR;
     //Ensure context valid and initialised
@@ -241,6 +250,7 @@ HpsErr_t FPGA_PIO_getDirection(FPGAPIOCtx_t* ctx, unsigned int* dir, unsigned in
 // - Will perform read-modify-write such that only pins with
 //   their mask bit set will be changed.
 // - e.g. with mask of 0x00010002, pins [1] and [16] will be changed.
+// - Only supported if pio type has FPGA_PIO_DIRECTION_OUT capability.
 HpsErr_t FPGA_PIO_setOutput(FPGAPIOCtx_t* ctx, unsigned int port, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
@@ -252,6 +262,7 @@ HpsErr_t FPGA_PIO_setOutput(FPGAPIOCtx_t* ctx, unsigned int port, unsigned int m
 
 //Set output bits
 // - If bit-set feature is supported, directly sets the masked bits
+// - Only supported if pio type has FPGA_PIO_DIRECTION_OUT capability.
 HpsErr_t FPGA_PIO_bitsetOutput(FPGAPIOCtx_t* ctx, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
@@ -264,6 +275,7 @@ HpsErr_t FPGA_PIO_bitsetOutput(FPGAPIOCtx_t* ctx, unsigned int mask) {
 
 //Clear output bits
 // - If bit-set feature is supported, directly clears the masked bits
+// - Only supported if pio type has FPGA_PIO_DIRECTION_OUT capability.
 HpsErr_t FPGA_PIO_bitclearOutput(FPGAPIOCtx_t* ctx, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
@@ -279,35 +291,38 @@ HpsErr_t FPGA_PIO_bitclearOutput(FPGAPIOCtx_t* ctx, unsigned int mask) {
 // - Will perform read-modify-write such that only pins with
 //   their mask bit set will be toggled.
 // - e.g. with mask of 0x00010002, pins [1] and [16] will be changed.
+// - Only supported if pio type has FPGA_PIO_DIRECTION_OUT capability.
 HpsErr_t FPGA_PIO_toggleOutput(FPGAPIOCtx_t* ctx, unsigned int mask) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
-    if (!ctx->gpio.toggleOutput) return ERR_NOSUPPORT;
+    if (!(ctx->pioType & FPGA_PIO_DIRECTION_OUT)) return ERR_NOSUPPORT;
     //Toggle outputs
     return _FPGA_PIO_toggleOutput(ctx, mask);
 }
 
 //Get output value
 // - Returns the current value of the masked output pins to *port
+// - Only supported if pio type has FPGA_PIO_DIRECTION_OUT capability.
 HpsErr_t FPGA_PIO_getOutput(FPGAPIOCtx_t* ctx, unsigned int* port, unsigned int mask) {
     if (!port) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
-    if (!ctx->gpio.getOutput) return ERR_NOSUPPORT;
+    if (!(ctx->pioType & FPGA_PIO_DIRECTION_OUT)) return ERR_NOSUPPORT;
     //Get output
     return _FPGA_PIO_getOutput(ctx, port, mask);
 }
 
 //Get input value
 // - Returns the current value of the masked input pins to *in.
+// - Only supported if pio type has FPGA_PIO_DIRECTION_IN capability.
 HpsErr_t FPGA_PIO_getInput(FPGAPIOCtx_t* ctx, unsigned int* in, unsigned int mask) {
     if (!in) return ERR_NULLPTR;
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
-    if (!ctx->gpio.getInput) return ERR_NOSUPPORT;
+    if (!(ctx->pioType & FPGA_PIO_DIRECTION_IN)) return ERR_NOSUPPORT;
     //Get input
     return _FPGA_PIO_getInput(ctx, in, mask);
 }

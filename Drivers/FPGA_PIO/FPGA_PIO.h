@@ -1,5 +1,5 @@
 /*
- * Nios PIO Controller Driver
+ * FPGA PIO Controller Driver
  * ---------------------------
  *
  * Driver for writing to generic PIO controller
@@ -8,10 +8,13 @@
  * The PIO controller has a single data registers
  * shared between input and output. If there is an
  * input register, then we cannot read the state of
- * the output register. This means that R-M-W of
- * the output is only possible if the PIO is either
- * output-only, or has the optional bit set/clear
- * capability.
+ * the output register directly.
+ * 
+ * To combat this, a cached value of the output
+ * register has been added to the driver context. If
+ * it is not possible to read the output register
+ * directly, the cached value is used in any R-M-W
+ * operations.
  *
  * Company: University of Leeds
  * Author: T Carpenter
@@ -20,6 +23,7 @@
  *
  * Date       | Changes
  * -----------+-----------------------------------------
+ * 21/11/2024 | Add output cache to allow getOutput in all modes
  * 21/02/2024 | Conversion from struct to array indexing
  * 30/12/2023 | Creation of driver.
  *
@@ -68,8 +72,10 @@ typedef struct {
     bool hasBitset;
     bool hasEdge;
     bool hasIrq;
+    bool usePortCache;
     unsigned int initPort;
     unsigned int initDir;
+    unsigned int outPort;
     GpioCtx_t gpio;
 } FPGAPIOCtx_t;
 
@@ -109,15 +115,16 @@ HpsErr_t FPGA_PIO_getDirection(FPGAPIOCtx_t* ctx, unsigned int *dir, unsigned in
 //   their mask bit set will be changed.
 // - e.g. with mask of 0x00010002, pins [1] and [16] will be changed.
 // - Only supported if pio type has FPGA_PIO_DIRECTION_OUT capability.
-// - Masking not supported if has FPGA_PIO_DIRECTION_IN capability, unless hasBitset is true.
 HpsErr_t FPGA_PIO_setOutput(FPGAPIOCtx_t* ctx, unsigned int port, unsigned int mask);
 
 //Set output bits
 // - If bit-set feature is supported, directly sets the masked bits
+// - Only supported if pio type has FPGA_PIO_DIRECTION_OUT capability.
 HpsErr_t FPGA_PIO_bitsetOutput(FPGAPIOCtx_t* ctx, unsigned int mask);
 
 //Clear output bits
 // - If bit-set feature is supported, directly clears the masked bits
+// - Only supported if pio type has FPGA_PIO_DIRECTION_OUT capability.
 HpsErr_t FPGA_PIO_bitclearOutput(FPGAPIOCtx_t* ctx, unsigned int mask);
 
 //Toggle output value
@@ -125,12 +132,12 @@ HpsErr_t FPGA_PIO_bitclearOutput(FPGAPIOCtx_t* ctx, unsigned int mask);
 // - Will perform read-modify-write such that only pins with
 //   their mask bit set will be toggled.
 // - e.g. with mask of 0x00010002, pins [1] and [16] will be changed.
-// - Not supported if pio type has FPGA_PIO_DIRECTION_IN capability.
+// - Only supported if pio type has FPGA_PIO_DIRECTION_OUT capability.
 HpsErr_t FPGA_PIO_toggleOutput(FPGAPIOCtx_t* ctx, unsigned int mask);
 
 //Get output value
 // - Returns the current value of the masked output pins to *port
-// - Not supported if pio type has FPGA_PIO_DIRECTION_IN capability.
+// - Only supported if pio type has FPGA_PIO_DIRECTION_OUT capability.
 HpsErr_t FPGA_PIO_getOutput(FPGAPIOCtx_t* ctx, unsigned int* port, unsigned int mask);
 
 //Get input value

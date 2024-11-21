@@ -18,8 +18,9 @@
  */
 
 #include "DE1SoC_LT24.h"
-#include "HPS_Watchdog/HPS_Watchdog.h"
-#include "HPS_usleep/HPS_usleep.h"
+
+#include "Util/watchdog.h"
+#include "Util/delay.h"
 #include "Util/bit_helpers.h"
 
 //
@@ -190,7 +191,7 @@ static HpsErr_t _LT24_redGreen( LT24Ctx_t* ctx, unsigned int xleft, unsigned int
     HpsErr_t status;
 	unsigned int i, j;
     unsigned short colour;
-    HPS_ResetWatchdog();
+    ResetWDT();
     //Define Window
     status = LT24_setWindow(ctx, xleft,ytop,width,height);
     if (ERR_IS_ERROR(status)) return status;
@@ -210,7 +211,7 @@ static HpsErr_t _LT24_greenBlue( LT24Ctx_t* ctx, unsigned int xleft, unsigned in
     HpsErr_t status;
 	unsigned int i, j;
     unsigned short colour;
-    HPS_ResetWatchdog();
+    ResetWDT();
     //Define Window
     status = LT24_setWindow(ctx, xleft,ytop,width,height);
     if (ERR_IS_ERROR(status)) return status;
@@ -230,7 +231,7 @@ static HpsErr_t _LT24_blueRed( LT24Ctx_t* ctx, unsigned int xleft, unsigned int 
     HpsErr_t status;
 	unsigned int i, j;
     unsigned short colour;
-    HPS_ResetWatchdog();
+    ResetWDT();
     //Define Window
     status = LT24_setWindow(ctx, xleft,ytop,width,height);
     if (ERR_IS_ERROR(status)) return status;
@@ -250,7 +251,7 @@ static HpsErr_t _LT24_colourBars( LT24Ctx_t* ctx, unsigned int xleft, unsigned i
 	unsigned int i, j;
     unsigned int colourbars[6] = {LT24_RED,LT24_YELLOW,LT24_GREEN,LT24_CYAN,LT24_BLUE,LT24_MAGENTA};
     unsigned short colour;
-    HPS_ResetWatchdog();
+    ResetWDT();
     //Define Window
     status = LT24_setWindow(ctx, xleft,ytop,width,height);
     if (ERR_IS_ERROR(status)) return status;
@@ -374,7 +375,7 @@ HpsErr_t LT24_powerConfig( LT24Ctx_t* ctx, bool isOn ) {
 //Function to clear display to a set colour
 // - Returns true if successful
 HpsErr_t LT24_clearDisplay( LT24Ctx_t* ctx, unsigned short colour) {
-    HPS_ResetWatchdog();
+    ResetWDT();
     //Define window as entire display (LT24_setWindow will check if we are initialised).
     HpsErr_t status = LT24_setWindow(ctx, 0, 0, LT24_WIDTH, LT24_HEIGHT);
     if (ERR_IS_ERROR(status)) return status;

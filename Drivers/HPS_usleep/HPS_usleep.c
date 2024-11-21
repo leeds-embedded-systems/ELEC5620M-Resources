@@ -34,7 +34,8 @@
  */
 
 #include "HPS_usleep.h"
-#include "HPS_Watchdog/HPS_Watchdog.h"
+
+#include "Util/watchdog.h"
 
 #ifdef __ARRIA10__
 
@@ -109,7 +110,7 @@ void usleep(int x) //Max delay ~2.09 seconds
     if (x > 0x200000) x = 0x200000; //For delays longer than the max, set to max. 
     
     //Reset the watchdog before we sleep
-    HPS_ResetWatchdog();
+    ResetWDT();
     
     //Convert x from microseconds to ticks
     __timer[TIMER_LOAD] = (((unsigned int)x) * __timerFreqMhz) - 1;
@@ -122,5 +123,5 @@ void usleep(int x) //Max delay ~2.09 seconds
     __timer[TIMER_CTRL] = (TIMER_IRQMASKED | TIMER_ONESHOT | TIMER_DISABLED);
 
     //Reset the watchdog after we sleep
-    HPS_ResetWatchdog();
+    ResetWDT();
 }

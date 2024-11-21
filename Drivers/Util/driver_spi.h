@@ -147,7 +147,7 @@ static inline HpsErr_t SPI_writeReady(SpiCtx_t* spi, uint32_t laneMask) {
 // - Negative indicates error.
 static inline HpsErr_t SPI_write(SpiCtx_t* spi, uint32_t laneMask, uint32_t* data, SpiTransferType type) {
     if (!laneMask) return ERR_SUCCESS;
-    if (!spi || !data) return ERR_NULLPTR;
+    if (!spi) return ERR_NULLPTR;
     if (!spi->write) return ERR_NOSUPPORT;
     laneMask &= INT32_MAX;
     if (findHighestBit(laneMask) >= spi->laneCount) return ERR_BEYONDEND;
@@ -183,7 +183,7 @@ static inline HpsErr_t SPI_readReady(SpiCtx_t* spi, uint32_t laneMask) {
 // - Negative indicates error.
 static inline HpsErr_t SPI_read(SpiCtx_t* spi, uint32_t laneMask, uint32_t* data) {
     if (!laneMask) return ERR_SUCCESS;
-    if (!spi || !data) return ERR_NULLPTR;
+    if (!spi) return ERR_NULLPTR;
     if (!spi->read) return ERR_NOSUPPORT;
     laneMask &= INT32_MAX;
     if (findHighestBit(laneMask) >= spi->laneCount) return ERR_BEYONDEND;

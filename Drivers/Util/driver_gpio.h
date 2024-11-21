@@ -57,7 +57,7 @@ static inline HpsErr_t GPIO_setDirection(GpioCtx_t* gpio, unsigned int dir, unsi
 }
 
 static inline HpsErr_t GPIO_getDirection(GpioCtx_t* gpio, unsigned int* dir, unsigned int mask) {
-    if (!gpio || !dir) return ERR_NULLPTR;
+    if (!gpio) return ERR_NULLPTR;
     if (!gpio->getDirection) return ERR_NOSUPPORT;
     return gpio->getDirection(gpio->ctx,dir,mask);
 }
@@ -69,7 +69,7 @@ static inline HpsErr_t GPIO_setOutput(GpioCtx_t* gpio, unsigned int port, unsign
 }
 
 static inline HpsErr_t GPIO_getOutput(GpioCtx_t* gpio, unsigned int* port, unsigned int mask) {
-    if (!gpio || !port) return ERR_NULLPTR;
+    if (!gpio) return ERR_NULLPTR;
     if (!gpio->getOutput) return ERR_NOSUPPORT;
     return gpio->getOutput(gpio->ctx,port,mask);
 }
@@ -81,7 +81,7 @@ static inline HpsErr_t GPIO_toggleOutput(GpioCtx_t* gpio, unsigned int mask) {
 }
 
 static inline HpsErr_t GPIO_getInput(GpioCtx_t* gpio, unsigned int* in, unsigned int mask) {
-    if (!gpio || !in) return ERR_NULLPTR;
+    if (!gpio) return ERR_NULLPTR;
     if (!gpio->getInput) return ERR_NOSUPPORT;
     return gpio->getInput(gpio->ctx,in,mask);
 }

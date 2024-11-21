@@ -169,7 +169,7 @@ static inline HpsErr_t UART_clearFifos(UartCtx_t* uart, bool tx, bool rx) {
 // - Negative indicates error.
 static inline HpsErr_t UART_transmit(UartCtx_t* uart, const uint8_t data[], uint8_t length) {
     if (!length) return ERR_SUCCESS;
-    if (!uart || !data) return ERR_NULLPTR;
+    if (!uart) return ERR_NULLPTR;
     if (!uart->transmit) return ERR_NOSUPPORT;
     return uart->transmit(uart->ctx,data,length);
 }
@@ -181,7 +181,7 @@ static inline HpsErr_t UART_transmit(UartCtx_t* uart, const uint8_t data[], uint
 // - Negative indicates error.
 static inline HpsErr_t UART_receive(UartCtx_t* uart, uint8_t data[], uint8_t length) {
     if (!length) return ERR_SUCCESS;
-    if (!uart || !data) return ERR_NULLPTR;
+    if (!uart) return ERR_NULLPTR;
     if (!uart->receive) return ERR_NOSUPPORT;
     return uart->receive(uart->ctx,data,length);
 }

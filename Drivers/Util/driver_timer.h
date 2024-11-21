@@ -67,28 +67,28 @@ static inline bool Timer_isInitialised(TimerCtx_t* timer) {
 //  - If prescaler is UINT32_MAX, will return based on previously configured.
 //    prescaler settings, otherwise will calculate for specified value
 static inline HpsErr_t Timer_getRate(TimerCtx_t* timer, unsigned int prescaler, unsigned int* rate) {
-    if (!timer || !rate) return ERR_NULLPTR;
+    if (!timer) return ERR_NULLPTR;
     if (!timer->getRate) return ERR_NOSUPPORT;
     return timer->getRate(timer->ctx,prescaler,rate);
 }
 
 // Get the current mode of the timer
 static inline HpsErr_t Timer_getMode(TimerCtx_t* timer, TimerMode* mode) {
-    if (!timer || !mode) return ERR_NULLPTR;
+    if (!timer) return ERR_NULLPTR;
     if (!timer->getMode) return ERR_NOSUPPORT;
     return timer->getMode(timer->ctx,mode);
 }
 
 // Get the top/initial/load value of the timer
 static inline HpsErr_t Timer_getLoad(TimerCtx_t* timer, unsigned int* loadTime) {
-    if (!timer || !loadTime) return ERR_NULLPTR;
+    if (!timer) return ERR_NULLPTR;
     if (!timer->getLoad) return ERR_NOSUPPORT;
     return timer->getLoad(timer->ctx,loadTime);
 }
 
 // Get current timer value
 static inline HpsErr_t Timer_getTime(TimerCtx_t* timer, unsigned int* curTime) {
-    if (!timer || !curTime) return ERR_NULLPTR;
+    if (!timer) return ERR_NULLPTR;
     if (!timer->getTime) return ERR_NOSUPPORT;
     return timer->getTime(timer->ctx,curTime);
 }

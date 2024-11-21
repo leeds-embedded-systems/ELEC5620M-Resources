@@ -2,8 +2,30 @@
  * WM8731 Audio Controller Driver
  * ------------------------------
  * Description: 
- * Driver for the WM8731 Audio Controller
+ * 
+ * Driver for the WM8731 Audio Controller in the Leeds SoC Computer
+ * 
+ * This core will configure the audio codec to the correct interface
+ * settings and by default power it on to use the Line In as the ADC
+ * input, and Line Out as the DAC output.
+ * 
+ * FIFO APIs are provided to allow reading and writing samples to
+ * and from the FIFOs in the FPGA. The FIFOs ensure data is fed out
+ * and received at the correct sample rate, 48kHz currently, to allow
+ * bursts of samples to be read/written by the CPU.
  *
+ * When using with the DE1SoC, if you are using the HPS I2C
+ * controller (as opposed to an FPGA I2C controller) as in the
+ * Leeds SoC Computer, you must initialise the HPS GPIO instance
+ * with the following code to ensure that the I2C mux selects 
+ * the HPS I2C controller as the configuration source:
+ * 
+ *    HPS_GPIO_initialise(LSC_BASE_ARM_GPIO, ARM_GPIO_DIR, ARM_GPIO_I2C_GENERAL_MUX, 0, &gpio)
+ * 
+ * An additional WM8731_writeRegister API is provided to allow
+ * changing registers in the audio codec, e.g. to configure the
+ * volume or filtering settings.
+ * 
  * Company: University of Leeds
  * Author: T Carpenter
  *
@@ -11,6 +33,7 @@
  *
  * Date       | Changes
  * -----------+-------------------------------
+ * 21/11/2024 | Use generic I2C interface
  * 10/02/2024 | Add new API for FIFO access
  * 31/01/2024 | Update to new driver contexts
  * 20/10/2017 | Change to include status codes
@@ -24,7 +47,21 @@
 //Include required header files
 #include <stdint.h>
 #include "Util/driver_ctx.h"
-#include "HPS_I2C/HPS_I2C.h"
+#include "Util/driver_i2c.h"
+
+//I2C Register Addresses
+typedef enum {
+    WM8731_REG_LEFTINCNTRL   = (0x00/sizeof(unsigned short)),
+    WM8731_REG_RIGHTINCNTRL  = (0x02/sizeof(unsigned short)),
+    WM8731_REG_LEFTOUTCNTRL  = (0x04/sizeof(unsigned short)),
+    WM8731_REG_RIGHTOUTCNTRL = (0x06/sizeof(unsigned short)),
+    WM8731_REG_ANLGPATHCNTRL = (0x08/sizeof(unsigned short)),
+    WM8731_REG_DGTLPATHCNTRL = (0x0A/sizeof(unsigned short)),
+    WM8731_REG_POWERCNTRL    = (0x0C/sizeof(unsigned short)),
+    WM8731_REG_DATAFMTCNTRL  = (0x0E/sizeof(unsigned short)),  // Changes to this register are not allowed
+    WM8731_REG_SMPLINGCNTRL  = (0x10/sizeof(unsigned short)),
+    WM8731_REG_ACTIVECNTRL   = (0x12/sizeof(unsigned short))
+} WM8731RegAddress;
 
 // Driver context
 typedef struct {
@@ -32,20 +69,25 @@ typedef struct {
     DrvCtx_t header;
     // Context Body
     volatile unsigned int* base;
-    HPSI2CCtx_t* i2c; // I2C peripheral used by Audio Codec
-    unsigned int i2cAddr;
+    I2CCtx_t* i2c; // I2C peripheral used by Audio Codec
+    unsigned short i2cAddr;
     unsigned int sampleRate;
 } WM8731Ctx_t;
 
 //Initialise Audio Codec
 // - base_address is memory-mapped address of audio controller
 // - returns 0 if successful
-HpsErr_t WM8731_initialise( void* base, HPSI2CCtx_t* i2c, WM8731Ctx_t** pCtx );
+HpsErr_t WM8731_initialise( void* base, I2CCtx_t* i2c, WM8731Ctx_t** pCtx );
 
 //Check if driver initialised
 // - Returns true if driver previously initialised
 // - WM8731_initialise() must be called if false.
 bool WM8731_isInitialised( WM8731Ctx_t* ctx );
+
+//Configure an I2C register
+// - Allows changing settings for codec (e.g. volumen control, filtering, etc)
+// - Refer to Page 46 of WM8731 codec datasheet.
+HpsErr_t WM8731_writeRegister( WM8731Ctx_t* ctx, WM8731RegAddress regAddr, unsigned int regVal );
 
 //Get the sample rate for the ADC/DAC
 HpsErr_t WM8731_getSampleRate( WM8731Ctx_t* ctx, unsigned int* sampleRate );

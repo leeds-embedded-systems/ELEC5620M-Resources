@@ -7,25 +7,15 @@
 ############################################################
 
 #
-# Stop processor if running
+# Perform a reset of the system and stop it running to get
+# the hardware back to some known place
 #
+reset hardware
 stop
-wait 5s
-
-#
-# Perform a reset of the system to get it back to some known place
-#
-reset hardware
-reset hardware
-reset hardware
-
-#
-# Stop processor if running
-#
-stop
-wait 5s
+wait 10s
 
 # Processor should now be stopped at 0x00000000
+info core
 
 #
 # We need to add a hw breakpoint at a specific place. This is actually

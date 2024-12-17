@@ -22,7 +22,11 @@
 
 #include <stdint.h>
 
-// List of Common Addresses
+// HPS Base Addresses
+#define HPS_AXIMASTER_BASE ((uint32_t *)0xC0000000U)
+#define HPS_LWMASTER_BASE  ((uint32_t *)0xFF200000U)
+
+// List of Common Peripherals
 //      Peripheral             Base Address                   Description                                           Driver
 #define LSC_BASE_BOOTLDR_RAM   ((uint8_t  *)0x01000040U)   // ~16MB Reserved DDR RAM for bootloader
 #define LSC_BASE_DDR_RAM       ((uint8_t  *)0x02000040U)   // ~1GB DDR3 Memory
@@ -44,8 +48,8 @@
 #define LSC_BASE_PS2_SECONDARY ((uint32_t *)0xFF200108U)   // PS/2 (Secondary Port)
 #define LSC_BASE_JTAG_UART     ((uint32_t *)0xFF201000U)   // 2x JTAG UART
 #define LSC_BASE_INFRARED      ((uint8_t  *)0xFF201020U)   // Infrared (IrDA)                                       [FPGA_IrDAController]
-#define LSC_BASE_INTERVAL_TMR1 ((uint32_t *)0xFF202000U)   // Interval Timer
-#define LSC_BASE_INTERVAL_TMR2 ((uint32_t *)0xFF202020U)   // Second Interval Timer
+#define LSC_BASE_INTERVAL_TMR  ((uint32_t *)0xFF202000U)   // Interval Timer
+#define LSC_BASE_SYSTEM_ID     ((uint32_t *)0xFF202020U)   // System ID                                             [Util/sysid]
 #define LSC_BASE_AV_CONFIG     ((uint32_t *)0xFF203000U)   // Audio/video Configuration
 #define LSC_BASE_PIXEL_BUFF    ((uint32_t *)0xFF203020U)   // Pixel Buffer Control
 #define LSC_BASE_CHAR_BUFF     ((uint32_t *)0xFF203030U)   // Character Buffer Control
@@ -59,7 +63,6 @@
 #define LSC_BASE_WATCHDOG      ((uint32_t *)0xFFD02000U)   // ARM A9 Watchdog Timer (CPU 0)                         [HPS_Watchdog]
 #define LSC_BASE_PRIV_TIM      ((uint32_t *)0xFFFEC600U)   // ARM A9 Private Timer
 #define LSC_BASE_PROC_OCRAM    ((uint8_t  *)0xFFFF0000U)   // ARM A9 64kB On-chip Memory
-
 
 // List of memory sizes
 #define LSC_SIZE_DDR_RAM       0xBDFFFFC0U
@@ -90,5 +93,9 @@
 #define LSC_CONFIG_GPIO           FPGA_PIO_DIRECTION_BIDIR, false, false, true, true, 0, 0
 #define LSC_CONFIG_7SEG           FPGA_PIO_DIRECTION_OUT, false, false, false, false, 0, 0
 #define LSC_CONFIG_RED_LEDS       FPGA_PIO_DIRECTION_OUT, false, false, false, false, 0, 0
+
+// System IDs
+#define LSC_SYSID_SOCPC           0x50C1EED5
+#define LSC_SYSID_HPSWRAPPER      0x50CDECAF
 
 #endif /* DE1SOC_ADDRESSES_H_ */

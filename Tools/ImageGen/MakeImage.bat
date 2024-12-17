@@ -24,3 +24,8 @@ echo Entry point: %EntryPoint%
 
 echo Generating image with u-boot header
 %BinDir%mkimage.exe -A arm -O U-Boot -T kernel -C none -a %EntryPoint% -e %EntryPoint% -n "%ProjName% App for DE1-SoC" -d %ProjName%.bin %ProjDir%\user-mkpimage.bin
+
+if exist "%ProjDir%\tools\postBuild.bat" (
+    echo Running project specific post-build steps
+    "%ProjDir%\tools\postBuild.bat" %*
+)

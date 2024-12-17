@@ -101,11 +101,11 @@ static void _WM8731_cleanup(WM8731Ctx_t* ctx) {
 }
 
 //Initialise Audio Codec
-// - base_address is memory-mapped address of audio controller
-// - returns 0 if successful
+// - base is memory-mapped address of audio controller data interface
+//   - If base is NULL, provides access to the I2C configuration interface only.
+// - i2c is a generic I2C driver instance used to configure the controller.
 HpsErr_t WM8731_initialise( void* base, I2CCtx_t* i2c, WM8731Ctx_t** pCtx ) {
     //Ensure user pointers valid
-    if (!base) return ERR_NULLPTR;
     if (!pointerIsAligned(base, sizeof(unsigned int))) return ERR_ALIGNMENT;
     if (!I2C_isInitialised(i2c)) return ERR_BADDEVICE;
     //Allocate the driver context, validating return value.
@@ -183,6 +183,8 @@ HpsErr_t WM8731_clearFIFO( WM8731Ctx_t* ctx, bool adc, bool dac) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
+    //Check if we have the I2S interface
+    if (!ctx->base) return ERR_NOSUPPORT;
     //Assert reset flags by setting corresponding bits for clearing adc and/or dac FIFOs
     ctx->base[WM8731_CONTROL] |=  ((adc<<WM8731_FIFO_RESET_ADC) | (dac<<WM8731_FIFO_RESET_DAC));
     //Deassert again
@@ -196,6 +198,8 @@ HpsErr_t WM8731_getFIFOSpace( WM8731Ctx_t* ctx, unsigned int* fifoSpace ) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
+    //Check if we have the I2S interface
+    if (!ctx->base) return ERR_NOSUPPORT;
     //Get the FIFO fill register value
     unsigned int fill = ctx->base[WM8731_FIFOSPACE];
     //Space is the minimum space from either FIFO
@@ -209,6 +213,8 @@ HpsErr_t WM8731_getFIFOFill( WM8731Ctx_t* ctx, unsigned int* fifoFill ) {
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
+    //Check if we have the I2S interface
+    if (!ctx->base) return ERR_NOSUPPORT;
     //Get the FIFO fill register value
     unsigned int fill = ctx->base[WM8731_FIFOSPACE];
     //Space is the minimum space from either FIFO
@@ -223,6 +229,8 @@ HpsErr_t WM8731_writeSample( WM8731Ctx_t* ctx, unsigned int left, unsigned int r
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
+    //Check if we have the I2S interface
+    if (!ctx->base) return ERR_NOSUPPORT;
 	//Write the sample
     ctx->base[WM8731_LEFTFIFO] = left;
     ctx->base[WM8731_RIGHTFIFO] = right;
@@ -237,6 +245,8 @@ HpsErr_t WM8731_readSample( WM8731Ctx_t* ctx, unsigned int* left, unsigned int* 
     //Ensure context valid and initialised
     HpsErr_t status = DriverContextValidate(ctx);
     if (ERR_IS_ERROR(status)) return status;
+    //Check if we have the I2S interface
+    if (!ctx->base) return ERR_NOSUPPORT;
 	//Write the sample
     *left = ctx->base[WM8731_LEFTFIFO];
     *right = ctx->base[WM8731_RIGHTFIFO];

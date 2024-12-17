@@ -75,8 +75,9 @@ typedef struct {
 } WM8731Ctx_t;
 
 //Initialise Audio Codec
-// - base_address is memory-mapped address of audio controller
-// - returns 0 if successful
+// - base is memory-mapped address of audio controller data interface
+//   - If base is NULL, provides access to the I2C configuration interface only.
+// - i2c is a generic I2C driver instance used to configure the controller.
 HpsErr_t WM8731_initialise( void* base, I2CCtx_t* i2c, WM8731Ctx_t** pCtx );
 
 //Check if driver initialised

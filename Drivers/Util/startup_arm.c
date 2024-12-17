@@ -251,7 +251,9 @@ void __init_stacks (void) {
     // Reset the watchdog
     ResetWDT();
 
-    // Ensure data cache is disabled
+    // Ensure data cache is disabled. We must enable first otherwise disable leaves something
+    // somewhere in the HPS in a weird state causing sporadic crashes (instruction cache corruption).
+    alt_cache_system_enable();
     alt_cache_system_disable();
 
     // Call board specific initialisation

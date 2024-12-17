@@ -101,9 +101,11 @@ void __default_isr (void) __attribute__ ((alias("__reset_isr"))); // @suppress("
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wextra"
 void __irq __default_isr (void) {
+#ifndef SEMIHOST_DISABLED
     if (checkIfSemihostingConnected()) {
         printf("!EXCEPTION! In %s Mode.\n", __name_proc_state(__current_proc_state()));
     }
+#endif
     while(1);
 }
 #pragma clang diagnostic pop

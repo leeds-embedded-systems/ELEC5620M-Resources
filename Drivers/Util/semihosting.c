@@ -16,6 +16,9 @@
  * to see if a debugger is connected and semihosting
  * is enabled. This API is always available.
  * 
+ * Semihosting can be completely disabled by defining
+ * the global symbol SEMIHOST_DISABLED
+ *
  * Company: University of Leeds
  * Author: T Carpenter
  *
@@ -83,8 +86,24 @@ void semihostExit() {
     return;
 }
 
-#ifdef SEMIHOST_FAILBACK_ENABLE
+#if defined(SEMIHOST_DISABLED)
 
+#include "Util/irq.h"
+
+// Disable semihosting
+__asm(".global __use_no_semihosting\n\t");
+
+void _sys_exit(int status) {
+    IRQ_globalEnable(false);
+    while (1);
+}
+
+void _ttywrch(int ch){
+}
+
+#elif defined(SEMIHOST_FAILBACK_ENABLE)
+
+// Failback Semihosting Handler Routines
 #include <errno.h>
 
 typedef struct {

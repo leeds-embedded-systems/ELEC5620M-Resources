@@ -25,15 +25,17 @@ typedef struct {
 ct_assert(SystemId_t, 2*sizeof(uint32_t));
 
 // Ready the identity from a system ID peripheral
-static inline unsigned int sysid_identity(SystemId_t* sysIdBase) {
-    if (!sysIdBase) return 0;
-    return sysIdBase->ident;
+static inline unsigned int sysid_identity(void* sysIdBase) {
+    if (!sysIdBase || !pointerIsAligned(sysIdBase, sizeof(SystemId_t))) return 0;
+    volatile SystemId_t* sysId = (SystemId_t*)sysIdBase;
+    return sysId->ident;
 }
 
 // Ready the timestamp from a system ID peripheral
-static inline unsigned int sysid_timestamp(SystemId_t* sysIdBase) {
-    if (!sysIdBase) return 0;
-    return sysIdBase->timestamp;
+static inline unsigned int sysid_timestamp(void* sysIdBase) {
+    if (!sysIdBase || !pointerIsAligned(sysIdBase, sizeof(SystemId_t))) return 0;
+    volatile SystemId_t* sysId = (SystemId_t*)sysIdBase;
+    return sysId->timestamp;
 }
 
 

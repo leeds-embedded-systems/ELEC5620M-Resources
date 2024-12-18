@@ -48,6 +48,7 @@
 #define HPS_I2C_IRQFLAG_TXABORT  6
 
 // Status flags
+#define HPS_I2C_STATUS_TXEMPTY 2
 #define HPS_I2C_STATUS_MASBUSY 5
 
 // Control flags
@@ -94,8 +95,10 @@ static HpsErr_t _HPS_I2C_writeCheckResult(HPSI2CCtx_t* ctx) {
         ctx->writeQueued = false;
         return ERR_ABORTED; //Aborted if any of the abort flags are set.
     }
-    //Check if master to finished
-    if (ctx->base[HPS_I2C_STATUS] & _BV(HPS_I2C_STATUS_MASBUSY)) {
+    //Check if master is still running (busy or Tx not empty)
+    if ( (ctx->base[HPS_I2C_STATUS] & _BV(HPS_I2C_STATUS_MASBUSY)) ||
+        !(ctx->base[HPS_I2C_STATUS] & _BV(HPS_I2C_STATUS_TXEMPTY))
+    ) {
         return ERR_AGAIN;
     }
     //And done.
@@ -114,8 +117,10 @@ static HpsErr_t _HPS_I2C_readCheckResult(HPSI2CCtx_t* ctx, unsigned char data[],
         ctx->readQueued = false;
         return ERR_ABORTED; //Aborted if any of the abort flags are set.
     }
-    //Check if master to finished
-    if (ctx->base[HPS_I2C_STATUS] & _BV(HPS_I2C_STATUS_MASBUSY)) {
+    //Check if master is still running (busy or Tx not empty)
+    if ( (ctx->base[HPS_I2C_STATUS] & _BV(HPS_I2C_STATUS_MASBUSY)) ||
+        !(ctx->base[HPS_I2C_STATUS] & _BV(HPS_I2C_STATUS_TXEMPTY))
+    ) {
         return ERR_AGAIN;
     }
     //Read from the RX FIFO

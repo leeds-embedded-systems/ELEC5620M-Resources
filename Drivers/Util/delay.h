@@ -41,7 +41,7 @@
 // Simple NOP Delay
 static inline void nopDelay(unsigned int loopCount) {
     for (unsigned int nopIdx = 0; nopIdx < loopCount; nopIdx++) {
-        asm volatile("nop");
+        __asm volatile("nop");
     }
 }
 

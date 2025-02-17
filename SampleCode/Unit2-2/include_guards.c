@@ -2,7 +2,7 @@
  * Example header with include guards
  */
 //Note MYHEADER_H_ is typically the filename in all-caps
-//replacing the . with _, and placning an _ at the end.
+//replacing the . with _, and placing an _ at the end.
 #ifndef MYHEADER_H_
 #define MYHEADER_H_
 #define SOME_CLEVER_MACRO()  (Do stuff)

@@ -1,7 +1,6 @@
 /*Generic GPIO Driver*/
 // IO Function Templates
 typedef HpsErr_t (*GpioWriteFunc_t )(void* ctx, unsigned int out, unsigned int mask);
-//...
 // GPIO Context
 typedef struct {
     // Driver Context
@@ -16,23 +15,24 @@ HpsErr_t GPIO_setOutput(GpioCtx_t* gpio, unsigned int out, unsigned int mask) {
     if (!gpio->setOutput) return ERR_NOSUPPORT;
     return gpio->setOutput(gpio->ctx,out,mask);
 }
-
 /*FPGA PIO Driver*/
 // Context includes its own copy of the generic driver structure:
 typedef struct {
+    volatile unsigned int* base;
     ...
     GpioCtx_t gpio;
 } FPGAPIOCtx_t;
 // The mapping is set up in hardware specific initialise
-HpsErr_t FPGA_PIO_initialise(void* base, ...) {
+HpsErr_t FPGA_PIO_initialise(void* base, ... FPGAPIOCtx_t** pCtx) {
     ...
+    FPGAPIOCtx_t* ctx = *pCtx;
+    ctx->base = (unsigned int*)base;
     //Populate the GPIO mapping structure
     ctx->gpio.ctx = ctx; //Will need our driver instance to pass into functions
     ctx->gpio.setOutput = (GpioWriteFunc_t)&FPGA_PIO_setOutput; //Hw specific API
     ...
 }
-
-/*Calling the HW specific API*/
+/*Calling the HW specific API, e.g. from main*/
 //Initialise hardware driver instance as normal:
 FPGAPIOCtx_t* fpgaCtx;
 FPGA_PIO_initialise(..., &fpgaCtx);

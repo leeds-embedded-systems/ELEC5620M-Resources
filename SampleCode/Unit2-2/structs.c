@@ -67,7 +67,8 @@ void freeTimer(timer_info* timerPtr) {
 // rather a pointer variable which will allow us to keep track of the
 // allocated memory
 timer_info* timerPtr = NULL;
-initialiseTimer(0x1234, &timerPtr); // Initialise writes the address to timerPtr.
+// Initialise writes the address to timerPtr.
+initialiseTimer((unsigned int *)0x1234, &timerPtr); 
 // ...
 // <Do Main Program>
 // ...

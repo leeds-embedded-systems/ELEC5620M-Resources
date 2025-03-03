@@ -277,8 +277,8 @@ void __init_stacks (void) {
     // in the C standard library.
 #if defined(__ARM_PCS_VFP) || defined(__TARGET_FPU_VFP)
     unsigned int fpexc = __GET_PROC_FPEXC();
-    fpexc = MaskSet  (fpexc, 0x1, __PROC_FPEXC_BIT_EN);  // Enable VFP and SIMD extensions
-    __SET_PROC_FPEXC(fpexc);
+    fpexc = MaskSet  (fpexc, 0x1, __PROC_FPEXC_BIT_EN);  
+    __SET_PROC_FPEXC(fpexc); // Enable VFP and SIMD extensions
 #endif
     // Launch the C entry point
     __main();

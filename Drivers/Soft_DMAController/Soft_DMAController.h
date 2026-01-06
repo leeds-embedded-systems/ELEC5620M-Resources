@@ -33,7 +33,8 @@
  * Change Log:
  *
  * Date       | Changes
- * -----------+----------------------------------
+ * -----------+--------------------------------------------
+ * 27/08/2025 | Add word size argument to copy function API
  * 02/10/2024 | Creation of driver.
  *
  */
@@ -47,20 +48,21 @@
 #include "Util/macros.h"
 
 typedef enum {
-    SOFT_DMA_WORDSIZE_8BIT  = 1,
-    SOFT_DMA_WORDSIZE_16BIT = 2,
-    SOFT_DMA_WORDSIZE_32BIT = 4,
-    SOFT_DMA_WORDSIZE_64BIT = 8,
+    SOFT_DMA_WORDSIZE_8BIT  = sizeof(uint8_t ),
+    SOFT_DMA_WORDSIZE_16BIT = sizeof(uint16_t),
+    SOFT_DMA_WORDSIZE_32BIT = sizeof(uint32_t),
+    SOFT_DMA_WORDSIZE_64BIT = sizeof(uint64_t),
 } SoftDMAWordSize;
 
 // Memory Copy Function Pointer
 //  - dest is a pointer to the start of the destination memory
 //  - src  is a pointer to the start of the source memory
 //  - len  is length of copy in bytes
+//  - word is the size of a single word
 //  - ctx  is an optional user parameter (copyFuncCtx)
-//  - Source/Destination/Length are guaranteed to be aligned to wordSize and non-zero
+//  - Source/Destination/Length are guaranteed to be aligned to 'word' bytes and non-zero
 //  - Return NULL if there was an error, or 'dest' otherwise.
-typedef void* (*SoftDmaMemcpyFunc_t)(void* dest, void* src, size_t len, void* ctx);
+typedef void* (*SoftDmaMemcpyFunc_t)(void* dest, void* src, size_t len, const size_t word, void* ctx);
 
 typedef struct {
     //Header

@@ -14,6 +14,8 @@
  *
  * Date       | Changes
  * -----------+----------------------------------
+ * 27/10/2025 | Add kernel support for Lnx/Win
+ *            | Trim leading/trailing whitespace in lookup.
  * 30/01/2024 | Adapt for embedded code from DLL
  * 30/01/2018 | Creation of utility
  *
@@ -23,13 +25,24 @@
 #define ENUMLOOKUP_H_
 
 #if defined(_WIN32)
- //Include windows header
+//Include windows header
+#ifdef _KERNEL_MODE
+#include <ntddk.h>
+#else
 #include <windows.h>
+#endif
 #elif defined( __linux__ ) || defined(__arm__) || defined(__arm_on_nios__)
  //Include standard libraries
+#ifdef __KERNEL__
+#include <linux/types.h>
+#include <linux/ctype.h>
+#include <linux/string.h>
+#else
 #include <stdint.h>
 #include <stddef.h>
+#include <ctype.h>
 #include <string.h>
+#endif
 #elif defined(__NIOS2__) || defined(__AVR__)
  //For Nios/Arm HPS/AVR, include the UsefulDefines.h header which has everything we need.
 #include "UsefulDefines.h"
@@ -65,6 +78,7 @@ const char* enumToString(size_t enumVal, const EnumLookupTable_t* lookupTable, s
 const char* enumToStringSafe(size_t enumVal, const EnumLookupTable_t* lookupTable, size_t lookupTableLength);
 
 //Convert a string to an enum value
+// - Ignores leading and trailing whitespace in `str`.
 // - Returns `notFoundVal` if not found.
 size_t stringToEnum(const char* str, const EnumLookupTable_t* lookupTable, size_t lookupTableLength, size_t notFoundValue);
 

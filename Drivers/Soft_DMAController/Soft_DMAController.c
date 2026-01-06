@@ -33,7 +33,8 @@
  * Change Log:
  *
  * Date       | Changes
- * -----------+----------------------------------
+ * -----------+--------------------------------------------
+ * 27/08/2025 | Add word size argument to copy function API
  * 02/10/2024 | Creation of driver.
  *
  */
@@ -46,10 +47,10 @@
  */
 
 #define SOFT_DMA_MEMCPY_DEF(type) \
-static void* _Soft_DMA_memcpy_##type(void* dest, void* src, size_t length, SoftDmaCtx_t* ctx) { \
+static void* _Soft_DMA_memcpy_##type(void* dest, void* src, size_t length, const size_t word, void* ctx_) { \
     volatile type* outPtr = dest;                                       \
     volatile type* inPtr = src;                                         \
-    size_t nWords = length / ctx->wordSize;                             \
+    size_t nWords = length / sizeof(type);                              \
     while (nWords--) {                                                  \
         *outPtr++ = *inPtr++;                                           \
     }                                                                   \
@@ -84,7 +85,7 @@ static HpsErr_t _Soft_DMA_transferChunk(SoftDmaCtx_t* ctx) {
     if (copyLen > ctx->length) copyLen = ctx->length;
     if (copyLen) {
         //If remaining length is non-zero, perform the copy.
-        if (!ctx->copyFunc((void*)ctx->dest, (void*)ctx->source, copyLen, ctx->copyFuncCtx)) {
+        if (!ctx->copyFunc((void*)ctx->dest, (void*)ctx->source, copyLen, ctx->wordSize, ctx->copyFuncCtx)) {
             //Null return means copy failed.
             return ERR_IOFAIL;
         }

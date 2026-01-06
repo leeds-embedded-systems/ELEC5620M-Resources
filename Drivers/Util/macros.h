@@ -23,8 +23,9 @@
 #define STRINGIFY(a) _STRINGIFY(a)
 
 //Concatenation Macro
-#define _CONCAT(a,b) a##b
-#define CONCAT(a,b) _CONCAT(a,b)
+// Source: https://stackoverflow.com/a/74729170/1557472
+#define _CONCAT(a,b,c,d,e,f,g,i,j,k,l,m,n,o,p,...) a##b##c##d##e##f##g##i##j##k##l##m##n##o##p
+#define CONCAT(...) _CONCAT(__VA_ARGS__,,,,,,,,,,,,,,,,,)
 
 //For enums this will make them the smallest integer type which can fit the maximum value.
 //For structs/unions it will ensure they are packed to the smallest size if applied.

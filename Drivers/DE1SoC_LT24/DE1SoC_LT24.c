@@ -202,7 +202,7 @@ static HpsErr_t _LT24_write( LT24Ctx_t* ctx, bool isData, unsigned short value )
         //Write to the PIO controller, changing only the command and data bits
         HpsErr_t status = GPIO_setOutput(ctx->cntrl, regVal, LT24_CMDDATMASK);
         if (ERR_IS_ERROR(status)) return status;
-        //Then we output the same value again but with LT24_WRn high (2nd cycle of write)
+        //Output the same value again but with LT24_WRn high (2nd cycle of write)
         //Rest of regVal is unchanged, so we just OR the LT24_WRn bit
         regVal |= LT24_WRn;
         return GPIO_setOutput(ctx->cntrl, regVal, LT24_CMDDATMASK);
